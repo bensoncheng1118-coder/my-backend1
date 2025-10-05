@@ -16,6 +16,8 @@ from pymongo import MongoClient
 from flask_pymongo import PyMongo
 from urllib.parse import unquote
 import time
+from flask import send_from_directory
+
 
 app = Flask(__name__)
 app.secret_key = "your_super_secret_key_123"  # 換成你自己的隨機字串
@@ -1060,9 +1062,10 @@ def comments():
 def teach():
     return render_template('teach.html')
 
-@app.route("google7cbf2a4d23dab379.html")
+@app.route('/google7cbf2a4d23dab379.html')
 def google_verify():
-    return app.send_static_file("google7cbf2a4d23dab379.html")
+    # __file__ 是 app.py 的路徑，dirname 可取得目前專案根目錄
+    return send_from_directory(os.path.dirname(__file__), 'google7cbf2a4d23dab379.html')
 
 
 print(app.url_map)

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>英文語音即時字幕示範</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      padding: 20px; 
+      background: #faf3e0;   /* 背景改為白色 */
+      color: #222222;        /* 文字改為深灰色，提升可讀性 */
+    }
+    #subtitle { 
+      margin-top: 20px; 
+      font-size: 2em; 
+      background: #f0f0f0;  /* 白色系底，稍微區分區塊 */
+      padding: 10px; 
+      border-radius: 5px; 
+      min-height: 60px; 
+      color: #222222;        /* 字體與整體文字顏色一致 */
+      border: 1px solid #ddd; /* 加輕微邊框區分 */
+    }
+    button { 
+      font-size: 1em; 
+      padding: 10px 20px; 
+      margin-right: 10px; 
+      background-color: #ffffff;  /* 白底 */
+      color: #222222;             /* 深色字 */
+      border: 1px solid #ccc;     /* 淺灰邊框 */
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:disabled {
+      color: #999999;
+      border-color: #eee;
+      cursor: not-allowed;
+      background-color: #f9f9f9;
+    }
+    button:hover:not(:disabled) {
+      background-color: #e6e6e6;
+    }
+    /* 返回首頁按鈕 - 透明底黑字，超圓潤 */
+    .back-home-button {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background-color: transparent;
+      color: #000000;
+      font-weight: bold;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 30px; /* 超圓潤 */
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-block;
+      line-height: 1.2;
+    }
+
+    .back-home-button:hover {
+      background-color: #000000; /* 滑鼠懸停黑底 */
+      color: #ffffff; /* 白字 */
+    }
+
+   
+  </style>
+</head>
+<body>
+  <a href="{{ url_for('index') }}" class="back-home-button">返回首頁</a>
+
+  <h1>英文語音即時字幕示範</h1>
+  <button id="startBtn">開始錄音</button>
+  <button id="stopBtn" disabled>停止錄音</button>
+  <div id="subtitle">這裡會顯示辨識字幕</div>
+
+  <script>
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const subtitleDiv = document.getElementById('subtitle');
+
+    let recognition;
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('抱歉，您的瀏覽器不支援語音辨識功能，建議使用 Chrome。');
+    } else {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.lang = 'en-US';           // 這裡設定英文
+      recognition.interimResults = true;    // 開啟中間結果即時顯示
+      recognition.continuous = true;        // 持續辨識，不因暫停自動停止
+
+      recognition.onresult = (event) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript + ' ';
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+        // 即時顯示最終及中間結果組合提升字幕流暢度
+        subtitleDiv.textContent = finalTranscript + interimTranscript;
+      };
+
+      recognition.onerror = (event) => {
+        console.error('語音辨識錯誤:', event.error);
+      };
+
+      recognition.onend = () => {
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+      };
+    }
+
+    startBtn.onclick = () => {
+      recognition.start();
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+      subtitleDiv.textContent = '';
+    };
+
+    stopBtn.onclick = () => {
+      recognition.stop();
+    };
+    
+  </script>
+</body>
+</html>

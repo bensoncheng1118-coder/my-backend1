@@ -1,0 +1,99 @@
+<!DOCTYPE html> 
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>搜尋結果</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, "Microsoft JhengHei", sans-serif;
+            padding: 30px;
+            background-color: #faf3e0;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .search-summary {
+            margin-bottom: 20px;
+            color: #666;
+        }
+
+        .result-item {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: background-color 0.2s;
+        }
+
+        .result-item:hover {
+            background-color: #f1f1f1;
+        }
+
+        .result-item a {
+            text-decoration: none;
+            color: #007BFF;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .result-item p {
+            margin-top: 8px;
+            color: #444;
+        }
+
+        .no-results {
+            font-style: italic;
+            color: #999;
+        }
+
+        /* 返回首頁按鈕樣式 */
+        .back-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 8px 24px;
+            background-color: transparent;
+            color: #000000;
+            text-decoration: none;
+            border-radius: 50px;
+            border: 2px solid transparent;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            font-weight: 600;
+            box-sizing: border-box;
+        }
+
+        .back-button:hover {
+            background-color: #000000;
+            color: #ffffff;
+            border-color: #000000;
+        }
+    </style>
+</head>
+<body>
+
+    <a href="{{ url_for('index') }}" class="back-button">返回首頁</a>
+
+    <h1>搜尋結果</h1>
+
+    <div class="search-summary">
+        搜尋關鍵字：<strong>{{ query }}</strong>
+    </div>
+
+    {% if results %}
+        {% for item in results %}
+            <div class="result-item">
+                <a href="{{ item.url }}">{{ item.title }}</a>
+                {% if item.excerpt %}
+                    <p>{{ item.excerpt }}</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="no-results">沒有找到符合「{{ query }}」的內容。</div>
+    {% endif %}
+</body>
+</html>

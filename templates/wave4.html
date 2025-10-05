@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>拍音與振幅調變波形顯示</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", sans-serif;
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
+      background: #faf3e0;
+    }
+    button {
+      margin: 8px 5px;
+      padding: 10px 25px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 1px solid #333;
+      background-color: white;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    button.active, button:hover {
+      background-color: #333;
+      color: white;
+    }
+    #sub-buttons {
+      margin-top: 15px;
+      margin-bottom: 30px;
+    }
+    #waveformCanvas, #barChart {
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      display: block;
+      margin-top: 10px;
+    }
+    #waveformCanvas {
+      width: 100%;
+      height: 300px;
+    }
+    #barChart {
+      max-width: 840px;
+      height: 300px;
+      margin: 20px auto 0;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #222;
+    }
+
+/* 返回首頁按鈕 - 透明底黑字，超圓潤 */
+    .back-home-button {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background-color: transparent;
+      color: #000000;
+      font-weight: bold;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 30px; /* 超圓潤 */
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-block;
+      line-height: 1.2;
+    }
+
+    .back-home-button:hover {
+      background-color: #000000; /* 滑鼠懸停黑底 */
+      color: #ffffff; /* 白字 */
+    }
+
+
+
+  </style>
+</head>
+<body>
+  <a href="{{ url_for('index') }}" class="back-home-button">返回首頁</a>
+  <h1>拍音與振幅調變波形顯示</h1>
+
+  <!-- 主按鈕 -->
+  <div>
+    <button id="btnBeat">拍音</button>
+    <button id="btnAM">振幅調變</button>
+  </div>
+
+  <!-- 子按鈕 -->
+  <div id="sub-buttons" style="display:none;">
+    <button id="btnComposite">複合波形圖</button>
+    <button id="btnComponent">組成波形圖</button>
+  </div>
+
+  <!-- 畫布-波形圖 -->
+  <canvas id="waveformCanvas" width="840" height="300"></canvas>
+  <!-- 柱狀圖畫布-組成波形 -->
+  <canvas id="barChart" style="display:none;"></canvas>
+
+  <script>
+    // 元素取得
+    const btnBeat = document.getElementById('btnBeat');
+    const btnAM = document.getElementById('btnAM');
+    const subButtons = document.getElementById('sub-buttons');
+    const btnComposite = document.getElementById('btnComposite');
+    const btnComponent = document.getElementById('btnComponent');
+    const waveformCanvas = document.getElementById('waveformCanvas');
+    const waveformCtx = waveformCanvas.getContext('2d');
+    const barCanvas = document.getElementById('barChart');
+
+    let currentMain = null;  // 'beat' or 'am'
+    let currentSub = null;   // 'composite' or 'component'
+    let barChartInstance = null;
+
+    const sampleRate = 1000; // samples per second
+    const duration = 1; // seconds
+    const points = sampleRate * duration;
+
+    // 清除波形畫布
+    function clearWaveformCanvas() {
+      waveformCtx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
+      waveformCtx.fillStyle = "#fff";
+      waveformCtx.fillRect(0, 0, waveformCanvas.width, waveformCanvas.height);
+      // 畫水平中線
+      waveformCtx.strokeStyle = "#aaa";
+      waveformCtx.beginPath();
+      waveformCtx.moveTo(0, waveformCanvas.height / 2);
+      waveformCtx.lineTo(waveformCanvas.width, waveformCanvas.height / 2);
+      waveformCtx.stroke();
+      // 標註時間軸文字
+      waveformCtx.fillStyle = "#555";
+      waveformCtx.font = "14px Microsoft JhengHei";
+      waveformCtx.fillText("時間 (0 ~ 1 秒)", waveformCanvas.width / 2 - 50, waveformCanvas.height - 10);
+    }
+
+    // 繪製波形函式
+    // x: Array 時間 0~1
+    // y: Array 正規化振幅 -1~1
+    // color: 線色
+    function drawWaveform(x, y, color) {
+      waveformCtx.strokeStyle = color;
+      waveformCtx.lineWidth = 2;
+      waveformCtx.beginPath();
+      for(let i=0; i < x.length; i++) {
+        const px = x[i] * waveformCanvas.width;
+        const py = waveformCanvas.height/2 - y[i] * (waveformCanvas.height/2) * 0.9;
+        if(i === 0) waveformCtx.moveTo(px, py);
+        else waveformCtx.lineTo(px, py);
+      }
+      waveformCtx.stroke();
+    }
+
+    // 拍音複合波: 兩個相近頻率正弦波相加
+    function generateBeatComposite(freq1=50, freq2=55) {
+      const x = [];
+      const y = [];
+      for(let i=0; i<points; i++) {
+        const t = i / sampleRate;
+        x.push(t);
+        const val = Math.sin(2 * Math.PI * freq1 * t) + Math.sin(2 * Math.PI * freq2 * t);
+        y.push(val / 2);
+      }
+      return {x, y};
+    }
+
+    // 振幅調變複合波: 載波與調變的AM波
+    function generateAMComposite(fc=100, fm=5, m=0.7) {
+      const x = [];
+      const y = [];
+      for(let i=0; i<points; i++) {
+        const t = i / sampleRate;
+        x.push(t);
+        const val = (1 + m * Math.sin(2 * Math.PI * fm * t)) * Math.sin(2 * Math.PI * fc * t);
+        y.push(val);
+      }
+      return {x, y};
+    }
+
+    // 拍音組成波: 兩個相近頻率正弦波
+    // 用柱狀圖表示(頻率與振幅)
+    function getBeatComponentData(freq1=50, freq2=55) {
+      // 兩個頻率的振幅預設1.0
+      return {
+        labels: [freq1 + " Hz", freq2 + " Hz"],
+        data: [1.0, 1.0]
+      };
+    }
+
+    // 振幅調變組成波: 載波頻率與調變頻率
+    function getAMComponentData(fc=100, fm=5) {
+      // 載波幅度1.0，調變幅度0.7
+      return {
+        labels: [fc + " Hz (載波)", fm + " Hz (調變)"],
+        data: [1.0, 0.7]
+      };
+    }
+
+    // 顯示波形圖，隱藏柱狀圖
+    function showWaveform() {
+      barCanvas.style.display = "none";
+      waveformCanvas.style.display = "block";
+    }
+
+    // 顯示柱狀圖，隱藏波形圖
+    function showBarChart() {
+      waveformCanvas.style.display = "none";
+      barCanvas.style.display = "block";
+    }
+
+    // 初始化Chart.js柱狀圖
+    function initBarChart(labels, data, colors) {
+      if(barChartInstance) {
+        barChartInstance.destroy();
+      }
+      barChartInstance = new Chart(barCanvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '幅值',
+            data: data,
+            backgroundColor: colors,
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero:true,
+              max: 1.2,
+              title: {
+                display: true,
+                text: '振幅'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: '頻率'
+              }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: ctx => '振幅: ' + ctx.parsed.y
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // 主態切換
+    function setMainActive(main) {
+      currentMain = main;
+      currentSub = null;
+      btnBeat.classList.toggle('active', main === 'beat');
+      btnAM.classList.toggle('active', main === 'am');
+      subButtons.style.display = 'block';
+      btnComposite.classList.remove('active');
+      btnComponent.classList.remove('active');
+      clearWaveformCanvas();
+      waveformCanvas.style.display = 'none';
+      barCanvas.style.display = 'none';
+    }
+
+    // 子態切換
+    function setSubActive(sub) {
+      currentSub = sub;
+      btnComposite.classList.toggle('active', sub === 'composite');
+      btnComponent.classList.toggle('active', sub === 'component');
+
+      if(currentMain === 'beat' && sub === 'composite') {
+        // 拍音複合波形(與振幅調變複合波形一樣)
+        const wave = generateBeatComposite();
+        showWaveform();
+        clearWaveformCanvas();
+        drawWaveform(wave.x, wave.y, '#007acc');
+      }
+      else if(currentMain === 'am' && sub === 'composite') {
+        // 振幅調變複合波形
+        const wave = generateAMComposite();
+        showWaveform();
+        clearWaveformCanvas();
+        drawWaveform(wave.x, wave.y, '#e67300');
+      }
+      else if(currentMain === 'beat' && sub === 'component') {
+        // 拍音組成波 - 用柱狀圖顯示兩個頻率
+        const data = getBeatComponentData();
+        showBarChart();
+        initBarChart(data.labels, data.data, ['#d14a61', '#1e90ff']);
+      }
+      else if(currentMain === 'am' && sub === 'component') {
+        // 振幅調變組成波 - 用柱狀圖顯示載波及調變頻率
+        const data = getAMComponentData();
+        showBarChart();
+        initBarChart(data.labels, data.data, ['#8964ca', '#ca6442']);
+      }
+    }
+
+    // 綁定主按鈕事件
+    btnBeat.addEventListener('click', () => {
+      setMainActive('beat');
+    });
+    btnAM.addEventListener('click', () => {
+      setMainActive('am');
+    });
+
+    // 綁定子按鈕事件
+    btnComposite.addEventListener('click', () => {
+      if(currentMain) setSubActive('composite');
+    });
+    btnComponent.addEventListener('click', () => {
+      if(currentMain) setSubActive('component');
+    });
+
+    // 預設 - 拍音與複合波形圖
+    setMainActive('beat');
+    setSubActive('composite');
+  </script>
+</body>
+</html>

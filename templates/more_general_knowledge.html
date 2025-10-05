@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>課程評分詳情</title>
+  <style>
+    body {
+      background-color: #faf3e0;
+      color: #eee;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+    }
+    .course-detail {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #222;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+    .rating-form {
+      margin-top: 20px;
+    }
+    textarea {
+      width: 100%;
+      padding: 8px;
+      border-radius: 4px;
+      background-color: #333;
+      color: #eee;
+      border: 1px solid #555;
+    }
+    input[type="number"] {
+      width: 60px;
+      padding: 5px;
+      border-radius: 4px;
+      background-color: #333;
+      color: #eee;
+      border: 1px solid #555;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      background-color: #5a82f0;
+      border: none;
+      border-radius: 4px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .reviews {
+      margin-top: 30px;
+    }
+    .review-item {
+      background-color: #333;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+    .review-item .rating {
+      color: gold;
+    }
+    .knowledge-list {
+      max-width: 600px;
+      margin: 20px auto;
+      background-color: #222;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      color: #eee;
+    }
+    .knowledge-item {
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #555;
+    }
+    .knowledge-item h3 {
+      margin: 0 0 5px 0;
+      font-weight: bold;
+    }
+    .knowledge-item p {
+      margin: 0;
+    }
+    /* 新增返回按鈕樣式 */
+    .back-to-general {
+      display: block;
+      max-width: 600px;
+      margin: 0 auto 20px auto;
+      padding: 10px 20px;
+      background-color: transparent;
+      color: #5a82f0;
+      font-weight: bold;
+      text-align: center;
+      border: 2px solid #5a82f0;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      user-select: none;
+    }
+    .back-to-general:hover {
+      background-color: #5a82f0;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <a href="general_knowledge.html" class="back-to-general" aria-label="返回通識課程">返回通識課程</a>
+
+  <div class="course-detail">
+    <h2>課程名稱：<span id="courseName">語言與社會</span></h2>
+
+    <form class="rating-form">
+      <label for="rating">評分（1-5）:</label>
+      <input type="number" id="rating" min="1" max="5" required>
+
+      <label for="comment">留言：</label>
+      <textarea id="comment" rows="4" placeholder="留下你的看法..."></textarea>
+
+      <button type="button" onclick="submitReview()">送出評價</button>
+    </form>
+
+    <div class="reviews" id="reviews">
+      <h3>他人評價</h3>
+    </div>
+  </div>
+
+  <div class="knowledge-list" id="knowledgeList">
+    <h2>常識資料列表</h2>
+    {% if knowledge_list and knowledge_list|length > 0 %}
+      {% for item in knowledge_list %}
+        <div class="knowledge-item">
+          <h3>{{ item.title | e }}</h3>
+          <p>{{ item.content | e }}</p>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>尚無常識資料。</p>
+    {% endif %}
+  </div>
+
+  <script>
+    function getCourseNameFromURL() {
+      const pathParts = window.location.pathname.split('/');
+      return decodeURIComponent(pathParts[pathParts.length - 1]);
+    }
+
+    const courseName = getCourseNameFromURL();
+    document.getElementById('courseName').textContent = courseName;
+
+    let reviews = [];
+
+    function fetchReviews() {
+      fetch(`/get_general_knowledge_review/${encodeURIComponent(courseName)}` , {credentials: 'include'})
+        .then(response => {
+          if (!response.ok) throw new Error('讀取課程資料失敗');
+          return response.json();
+        })
+        .then(data => {
+          if (data.success && Array.isArray(data.data.reviews)) {
+            reviews = data.data.reviews;
+          } else {
+            reviews = [];
+          }
+          displayReviews();
+        })
+        .catch(err => {
+          console.error(err);
+          reviews = [];
+          displayReviews();
+        });
+    }
+
+    function displayReviews() {
+      const container = document.getElementById('reviews');
+      container.innerHTML = '<h3>他人評價</h3>';
+      if (reviews.length === 0) {
+        container.innerHTML += '<p>尚無評價，快來成為第一位評論者！</p>';
+        return;
+      }
+      container.innerHTML += reviews.map(r => `
+        <div class="review-item">
+          <div class="rating">評分：${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
+          <div class="comment">${r.comment}</div>
+        </div>
+      `).join('');
+    }
+
+    function submitReview() {
+      const rating = parseInt(document.getElementById('rating').value);
+      const comment = document.getElementById('comment').value.trim();
+      if (!rating || rating < 1 || rating > 5 || comment === '') {
+        alert("請填寫有效評分與留言");
+        return;
+      }
+
+      const newReview = { rating, comment };
+
+      fetch('/save_general_knowledge', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          course_name: courseName,
+          review: newReview
+        })
+      })
+      .then(response => {
+        if (!response.ok) throw new Error("儲存失敗");
+        return response.json();
+      })
+      .then(result => {
+        if (result.success) {
+          reviews.unshift(newReview);
+          document.getElementById('rating').value = '';
+          document.getElementById('comment').value = '';
+          displayReviews();
+        } else {
+          alert("儲存失敗：" + result.message);
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert("發生錯誤，無法儲存資料");
+      });
+    }
+
+    window.onload = () => {
+      fetchReviews();
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>課程詳情與評分 - 馬偕聽語系</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC&display=swap" rel="stylesheet"/>
+  <style>
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      max-width: 800px; margin: 20px auto;
+      background: #fff;
+      color: #333;
+    }
+    h1, h2, h3 {
+      text-align: center;
+    }
+    #backBtn {
+      display: inline-block;
+      margin-bottom: 20px;
+      padding: 8px 12px;
+      background: #000;
+      color: white;
+      border-radius: 6px;
+      text-decoration: none;
+    }
+    label {
+      display: block;
+      margin: 10px 0 5px;
+    }
+    /* 新增星星評分樣式 */
+    .star-rating {
+      display: flex;
+      flex-direction: row-reverse;
+      justify-content: flex-start;
+      font-size: 2rem;
+      padding: 5px 0 15px 0;
+      user-select: none;
+      width: max-content;
+      margin-bottom: 10px;
+    }
+    .star-rating input {
+      display: none;
+    }
+    .star-rating label {
+      color: #ccc;
+      cursor: pointer;
+      padding: 0 5px;
+      transition: color 0.2s ease;
+    }
+    .star-rating label:hover,
+    .star-rating label:hover ~ label,
+    .star-rating input:checked ~ label {
+      color: #ffd700;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      margin-top: 5px;
+      padding: 8px;
+      font-size: 1rem;
+      box-sizing: border-box;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      resize: vertical;
+    }
+    button {
+      background: #000;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 15px;
+      font-size: 1rem;
+    }
+    button:hover {
+      background: #444;
+    }
+    #ratingSummary {
+      margin-top: 20px;
+      text-align: center;
+    }
+    #commentsList {
+      margin-top: 20px;
+      border: 1px solid #ccc;
+      max-height: 250px;
+      overflow-y: auto;
+      padding: 10px;
+      border-radius: 6px;
+      background: #fafafa;
+    }
+    .comment-item {
+      border-bottom: 1px solid #ddd;
+      padding: 5px 0;
+    }
+    .comment-item:last-child {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+  <a href="general_knowledge" id="backBtn">返回通識課程</a>
+
+  <h1 id="courseTitle">課程名稱載入中...</h1>
+
+  <section id="feedbackSection">
+    <h2>課程評分與留言</h2>
+    <form id="feedbackForm">
+      <label>請選擇評分星數:</label>
+      <div class="star-rating" id="starRating">
+        <input type="radio" id="star5" name="rating" value="5"><label for="star5" title="5 星">★</label>
+        <input type="radio" id="star4" name="rating" value="4"><label for="star4" title="4 星">★</label>
+        <input type="radio" id="star3" name="rating" value="3"><label for="star3" title="3 星">★</label>
+        <input type="radio" id="star2" name="rating" value="2"><label for="star2" title="2 星">★</label>
+        <input type="radio" id="star1" name="rating" value="1"><label for="star1" title="1 星">★</label>
+      </div>
+
+      <label for="commentInput">留言內容:</label>
+      <textarea id="commentInput" name="comment" placeholder="留下你的留言..."></textarea>
+
+      <button type="submit">送出評分與留言</button>
+    </form>
+    <div id="ratingSummary">
+      <!-- 顯示評分統計 -->
+    </div>
+  </section>
+
+  <section id="commentSection">
+    <h2>課程留言</h2>
+    <div id="commentsList">
+      <!-- 留言列出 -->
+    </div>
+  </section>
+
+<script>
+  // 從網址參數取得課程名稱
+  function getQueryParam(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name) || '';
+  }
+
+  // 避免XSS攻擊escape函式
+  function escapeHtml(text) {
+    return text.replace(/&/g, "&amp;")
+               .replace(/</g, "&lt;")
+               .replace(/>/g, "&gt;")
+               .replace(/"/g, "&quot;")
+               .replace(/'/g, "&#039;");
+  }
+
+  const courseName = decodeURIComponent(getQueryParam('course'));
+  const courseTitleEl = document.getElementById('courseTitle');
+  const feedbackForm = document.getElementById('feedbackForm');
+  const ratingSummary = document.getElementById('ratingSummary');
+  const commentInput = document.getElementById('commentInput');
+  const commentsList = document.getElementById('commentsList');
+
+  courseTitleEl.textContent = courseName || '未知課程';
+
+  if (!courseName) {
+    alert('未指定課程名稱，將返回通識課程頁');
+    window.location.href = 'general_knowledge';
+  }
+
+  // 顯示評分統計資料
+  function renderRatingSummary(ratingData) {
+    if (!ratingData || ratingData.count === 0) {
+      ratingSummary.innerHTML = '尚無評分';
+      return;
+    }
+    const avg = (ratingData.total / ratingData.count).toFixed(2);
+    ratingSummary.innerHTML = `
+      <p>平均評分：${avg} 星（${ratingData.count} 人評分）</p>
+    `;
+  }
+
+  // 載入課程留言與評分，只使用後端已合併的資料API計算平均分並呈現
+  async function loadCommentsAndRatings() {
+    try {
+      const feedbackRes = await fetch(`/get_course_feedback?course=${encodeURIComponent(courseName)}`);
+      if (!feedbackRes.ok) throw new Error('讀取留言評分失敗');
+      const feedbackData = await feedbackRes.json();
+      if (!feedbackData.success) throw new Error(feedbackData.message || '未知錯誤');
+
+      // 從API回傳的資料直接取得留言與評分
+      const allComments = feedbackData.comments || [];
+      const allRatings = feedbackData.ratings || [];
+
+      // 計算平均評分
+      const ratingData = allRatings.reduce((acc, val) => {
+        acc.count++;
+        acc.total += val;
+        return acc;
+      }, {count: 0, total: 0});
+
+      renderRatingSummary(ratingData);
+
+      if (allComments.length === 0) {
+        commentsList.innerHTML = '<p>尚無留言，快來成為第一位留言者吧！</p>';
+      } else {
+        commentsList.innerHTML = allComments.map(c => `<div class="comment-item">${escapeHtml(c)}</div>`).join('');
+      }
+    } catch (err) {
+      ratingSummary.textContent = '';
+      commentsList.innerHTML = `<p style="color:red;">錯誤：${escapeHtml(err.message)}</p>`;
+    }
+  }
+
+  // 送出評分與留言（合併一起送）
+  feedbackForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    // 取得評分與留言
+    const ratingValue = feedbackForm.rating.value;
+    const commentText = commentInput.value.trim();
+
+    if (!ratingValue) {
+      alert('請選擇評分星數');
+      return;
+    }
+    if (!commentText) {
+      alert('請輸入留言內容');
+      return;
+    }
+
+    try {
+      const res = await fetch('/add_course_feedback', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          course: courseName,
+          rating: Number(ratingValue),
+          comment: commentText
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('評分與留言已送出，謝謝你的回饋！');
+        feedbackForm.reset();
+        commentInput.value = '';
+        await loadCommentsAndRatings();
+      } else {
+        alert('送出失敗：' + (data.message || '未知錯誤'));
+      }
+    } catch (err) {
+      alert('送出失敗：' + err);
+    }
+  });
+
+  // 頁面載入時讀取留言與評分
+  loadCommentsAndRatings();
+</script>
+</body>
+</html>

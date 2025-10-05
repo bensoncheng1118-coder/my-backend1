@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>正弦波與複雜波波形繪製器（含調變訊號）</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 30px auto;
+      padding: 20px;
+      background: #faf3e0;
+      color: #222;
+      position: relative;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .button-group {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .button-group button {
+      padding: 10px 20px;
+      margin: 0 10px;
+      font-size: 1rem;
+      border: 2px solid #007bff;
+      background: white;
+      color: #007bff;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .button-group button.active,
+    .button-group button:hover {
+      background: #007bff;
+      color: white;
+    }
+    #modulationTypeBtns {
+      text-align: center;
+      margin-top: 10px;
+      margin-bottom: 20px;
+      display: none; /* 預設隱藏 */
+    }
+    #modulationTypeBtns button {
+      padding: 8px 16px;
+      margin: 0 10px;
+      font-size: 1rem;
+      border: 2px solid #28a745;
+      background: white;
+      color: #28a745;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    #modulationTypeBtns button.active,
+    #modulationTypeBtns button:hover {
+      background: #28a745;
+      color: white;
+    }
+    #inputsContainer {
+      display: flex;
+      flex-direction: column;
+      max-width: 480px;
+      margin: 0 auto 20px auto;
+      gap: 10px;
+    }
+    .freq-input-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .freq-input-row label {
+      font-weight: bold;
+      width: 90px;
+      flex-shrink: 0;
+    }
+    .freq-input-row input[type="number"] {
+      flex: 1;
+      padding: 6px 8px;
+      font-size: 1rem;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    .freq-input-row button.remove-btn {
+      background: #dc3545;
+      border: none;
+      color: white;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #addFreqBtn {
+      display: block;
+      margin: 0 auto 10px auto;
+      background: #28a745;
+      border: none;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    #drawBtn {
+      display: block;
+      margin: 0 auto 30px auto;
+      background: #007bff;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background: white;
+      border: 1px solid #ccc;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+      max-width: 100%;
+    }
+    /* 修改返回首頁按鈕樣式為透明底黑字，懸停黑底白字 */
+    #backBtn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      padding: 8px 16px;
+      background-color: transparent;
+      color: black;
+      border: none;
+      border-radius: 50px;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 10000;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      user-select: none;
+      text-decoration: none;
+    }
+    #backBtn:hover {
+      background-color: black;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <a href="/" id="backBtn" title="返回首頁">返回首頁</a>
+
+  <h1>正弦波與複雜波波形繪製器（含調變訊號）</h1>
+
+  <div class="button-group">
+    <button id="btnSine" class="active">正弦波</button>
+    <button id="btnComplex">複雜波</button>
+    <button id="btnModulation">調變訊號</button>
+  </div>
+
+  <!-- 調變類型按鈕區 -->
+  <div id="modulationTypeBtns">
+    <button id="btnAM">振幅調變 (AM)</button>
+    <button id="btnFM">頻率調變 (FM)</button>
+  </div>
+
+  <div id="inputsContainer">
+    <!-- 頻率輸入欄位依模式動態產生 -->
+  </div>
+
+  <button id="addFreqBtn" style="display:none;">新增頻率</button>
+  <button id="drawBtn">繪製波形</button>
+
+  <canvas id="waveCanvas" width="760" height="300"></canvas>
+
+<script>
+  const btnSine = document.getElementById('btnSine');
+  const btnComplex = document.getElementById('btnComplex');
+  const btnModulation = document.getElementById('btnModulation');
+
+  const modulationTypeBtns = document.getElementById('modulationTypeBtns');
+  const btnAM = document.getElementById('btnAM');
+  const btnFM = document.getElementById('btnFM');
+
+  const inputsContainer = document.getElementById('inputsContainer');
+  const addFreqBtn = document.getElementById('addFreqBtn');
+  const drawBtn = document.getElementById('drawBtn');
+  const canvas = document.getElementById('waveCanvas');
+  const ctx = canvas.getContext('2d');
+
+  const backBtn = document.getElementById('backBtn');
+  backBtn.addEventListener('click', () => {
+    window.location.href = 'index.html';
+  });
+
+  // 目前主模式：'sine','complex','modulation'
+  let mode = 'sine';
+  // 調變子類型：'AM','FM'，跟modulation type buttons同步
+  let modulationType = null;
+
+  // ----------- 模式設定函式 -----------
+
+  function setupSineMode() {
+    inputsContainer.innerHTML = '';
+    addFreqBtn.style.display = 'none';
+    modulationTypeBtns.style.display = 'none';
+    modulationType = null;
+
+    const div = document.createElement('div');
+    div.classList.add('freq-input-row');
+    const label = document.createElement('label');
+    label.textContent = '頻率(Hz):';
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.min = '0.1';
+    input.step = '0.1';
+    input.placeholder = '輸入頻率 (例如 5)';
+    input.value = '5';
+    div.appendChild(label);
+    div.appendChild(input);
+    inputsContainer.appendChild(div);
+  }
+
+  function setupComplexMode() {
+    inputsContainer.innerHTML = '';
+    addFreqBtn.style.display = 'block';
+    modulationTypeBtns.style.display = 'none';
+    modulationType = null;
+
+    addFreqInput();
+    addFreqInput();
+  }
+
+  function setupModulationMode() {
+    inputsContainer.innerHTML = '';
+    addFreqBtn.style.display = 'none';
+    modulationTypeBtns.style.display = 'block';
+    modulationType = null;
+    clearModulationTypeSelection();
+  }
+
+  // ----------- 頻率輸入欄位操作 -----------
+
+  function clearModulationTypeSelection() {
+    btnAM.classList.remove('active');
+    btnFM.classList.remove('active');
+  }
+
+  // 載波＆調變頻率輸入欄位（調變模式共用）
+  function setupModulationInputs() {
+    inputsContainer.innerHTML = '';
+
+    // 載波頻率
+    const carrierDiv = document.createElement('div');
+    carrierDiv.classList.add('freq-input-row');
+    let carrierLabel = document.createElement('label');
+    carrierLabel.textContent = '載波頻率(Hz):';
+    let carrierInput = document.createElement('input');
+    carrierInput.type = 'number';
+    carrierInput.min = '0.1';
+    carrierInput.step = '0.1';
+    carrierInput.placeholder = '載波頻率';
+    carrierInput.value = '10';
+    carrierDiv.appendChild(carrierLabel);
+    carrierDiv.appendChild(carrierInput);
+
+    // 調變頻率
+    const modDiv = document.createElement('div');
+    modDiv.classList.add('freq-input-row');
+    let modLabel = document.createElement('label');
+    modLabel.textContent = '調變頻率(Hz):';
+    let modInput = document.createElement('input');
+    modInput.type = 'number';
+    modInput.min = '0.1';
+    modInput.step = '0.1';
+    modInput.placeholder = '調變頻率';
+    modInput.value = '1';
+    modDiv.appendChild(modLabel);
+    modDiv.appendChild(modInput);
+
+    inputsContainer.appendChild(carrierDiv);
+    inputsContainer.appendChild(modDiv);
+  }
+
+  // -------------- 按鈕事件綁定 ---------------------
+
+  btnSine.addEventListener('click', () => {
+    if (mode === 'sine') return;
+    mode = 'sine';
+    clearModulationTypeSelection();
+    btnSine.classList.add('active');
+    btnComplex.classList.remove('active');
+    btnModulation.classList.remove('active');
+    modulationTypeBtns.style.display = 'none';
+    setupSineMode();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  });
+
+  btnComplex.addEventListener('click', () => {
+    if (mode === 'complex') return;
+    mode = 'complex';
+    clearModulationTypeSelection();
+    btnComplex.classList.add('active');
+    btnSine.classList.remove('active');
+    btnModulation.classList.remove('active');
+    modulationTypeBtns.style.display = 'none';
+    setupComplexMode();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  });
+
+  btnModulation.addEventListener('click', () => {
+    if (mode === 'modulation') return;
+    mode = 'modulation';
+    modulationType = null;
+    btnModulation.classList.add('active');
+    btnSine.classList.remove('active');
+    btnComplex.classList.remove('active');
+    modulationTypeBtns.style.display = 'block';
+    clearModulationTypeSelection();
+    inputsContainer.innerHTML = '';
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  });
+
+  // 調變類型選擇事件
+  btnAM.addEventListener('click', () => {
+    if (mode !== 'modulation') return;
+    modulationType = 'AM';
+    btnAM.classList.add('active');
+    btnFM.classList.remove('active');
+    setupModulationInputs();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  });
+
+  btnFM.addEventListener('click', () => {
+    if (mode !== 'modulation') return;
+    modulationType = 'FM';
+    btnFM.classList.add('active');
+    btnAM.classList.remove('active');
+    setupModulationInputs();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  });
+
+  // 新增頻率按鈕（複雜波用）
+  addFreqBtn.addEventListener('click', () => {
+    addFreqInput();
+  });
+
+  // 新增頻率輸入欄（複雜波模式用）
+  function addFreqInput(value = '') {
+    const div = document.createElement('div');
+    div.classList.add('freq-input-row');
+
+    const label = document.createElement('label');
+    label.textContent = '頻率(Hz):';
+
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.min = '0.1';
+    input.step = '0.1';
+    input.placeholder = '頻率 (例如 5)';
+    input.value = value;
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'remove-btn';
+    removeBtn.textContent = '×';
+    removeBtn.title = '移除此頻率';
+    removeBtn.onclick = () => {
+      inputsContainer.removeChild(div);
+    };
+
+    div.appendChild(label);
+    div.appendChild(input);
+    div.appendChild(removeBtn);
+    inputsContainer.appendChild(div);
+  }
+
+  // ----------- 繪圖函式 ------------
+
+  function drawWave(frequencies) {
+    const width = canvas.width;
+    const height = canvas.height;
+    const midY = height / 2;
+
+    ctx.clearRect(0, 0, width, height);
+
+    // 畫坐標軸
+    ctx.strokeStyle = '#aaa';
+    ctx.beginPath();
+    ctx.moveTo(0, midY);
+    ctx.lineTo(width, midY);
+    ctx.stroke();
+
+    const samples = width; // 寬度採樣點數
+    const scaleX = 4 * Math.PI / width;  // 控制橫軸頻率感覺
+    const amplitude = midY * 0.8; // 振幅
+
+    const yValues = new Array(samples);
+    for (let x = 0; x < samples; x++) {
+      let y = 0;
+      for (const f of frequencies) {
+        y += Math.sin(f * x * scaleX);
+      }
+      yValues[x] = y;
+    }
+
+    const maxY = Math.max(...yValues.map(v => Math.abs(v)));
+    ctx.strokeStyle = '#007bff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let x = 0; x < samples; x++) {
+      let y = midY - (yValues[x] / maxY) * amplitude;
+      x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
+  // -------- 調變繪圖 -------
+
+  // 讀取載波與調變頻率（調變模式專用）
+  function getCarrierAndModFreq() {
+    const inputs = inputsContainer.querySelectorAll('input[type=number]');
+    if (inputs.length < 2) return null;
+
+    const carrierFreq = parseFloat(inputs[0].value);
+    const modFreq = parseFloat(inputs[1].value);
+
+    if (
+      isNaN(carrierFreq) || carrierFreq <= 0 ||
+      isNaN(modFreq) || modFreq <= 0
+    ) {
+      alert('請輸入有效且大於0的載波頻率與調變頻率');
+      return null;
+    }
+    return { carrierFreq, modFreq };
+  }
+
+  // 繪製振幅調變波形
+  // AM公式： y = (1 + m*sin(2π*fm*t)) * sin(2π*fc*t)
+  // 其中m調變指數我們取0.7固定，可以調整
+  function drawAM(carrierFreq, modFreq) {
+    const width = canvas.width;
+    const height = canvas.height;
+    const midY = height / 2;
+
+    ctx.clearRect(0, 0, width, height);
+
+    // 坐標軸
+    ctx.strokeStyle = '#aaa';
+    ctx.beginPath();
+    ctx.moveTo(0, midY);
+    ctx.lineTo(width, midY);
+    ctx.stroke();
+
+    const samples = width;
+    const amplitude = midY * 0.8;
+    const scaleX = 4 * Math.PI / width; // 控制橫軸比例
+    const m = 0.7; // 調變指數
+
+    ctx.strokeStyle = '#28a745'; // 綠色代表振幅調變
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let x = 0; x < samples; x++) {
+      const t = x * scaleX / (2 * Math.PI); // 對應時間單位(純為頻率計算)
+      const modSignal = 1 + m * Math.sin(2 * Math.PI * modFreq * t);
+      const yVal = modSignal * Math.sin(2 * Math.PI * carrierFreq * t);
+      const y = midY - yVal * amplitude;
+      x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
+  // 繪製頻率調變波形
+  // FM公式較複雜，此處用簡單近似
+  // y = sin(2π * fc * t + beta * sin(2π * fm * t))
+  // beta 調頻指數給固定值 5
+  function drawFM(carrierFreq, modFreq) {
+    const width = canvas.width;
+    const height = canvas.height;
+    const midY = height / 2;
+
+    ctx.clearRect(0, 0, width, height);
+
+    // 坐標軸
+    ctx.strokeStyle = '#aaa';
+    ctx.beginPath();
+    ctx.moveTo(0, midY);
+    ctx.lineTo(width, midY);
+    ctx.stroke();
+
+    const samples = width;
+    const amplitude = midY * 0.8;
+    const scaleX = 4 * Math.PI / width; // 控制橫軸比例
+    const beta = 5; // 調頻指數
+
+    ctx.strokeStyle = '#ff5733'; // 橙色代表頻率調變
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let x = 0; x < samples; x++) {
+      const t = x * scaleX / (2 * Math.PI);
+      const yVal = Math.sin(2 * Math.PI * carrierFreq * t + beta * Math.sin(2 * Math.PI * modFreq * t));
+      const y = midY - yVal * amplitude;
+      x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
+  // ---------- 從輸入欄取得頻率（複雜波與正弦波共用） -----------
+
+  function getFrequenciesFromInputs() {
+    const inputs = inputsContainer.querySelectorAll('input[type=number]');
+    const freqs = [];
+    for (const input of inputs) {
+      const val = parseFloat(input.value);
+      if (isNaN(val) || val <= 0) {
+        alert('請輸入有效且大於0的頻率');
+        return null;
+      }
+      freqs.push(val);
+    }
+    return freqs;
+  }
+
+  // --------- 繪製按鈕事件 ---------
+
+  drawBtn.addEventListener('click', () => {
+    if (mode === 'sine' || mode === 'complex') {
+      const freqs = getFrequenciesFromInputs();
+      if (!freqs) return;
+      drawWave(freqs);
+    } else if (mode === 'modulation') {
+      if (!modulationType) {
+        alert('請先選擇調變類型（振幅調變或頻率調變）');
+        return;
+      }
+      const freqs = getCarrierAndModFreq();
+      if (!freqs) return;
+      if (modulationType === 'AM') {
+        drawAM(freqs.carrierFreq, freqs.modFreq);
+      } else if (modulationType === 'FM') {
+        drawFM(freqs.carrierFreq, freqs.modFreq);
+      }
+    }
+  });
+
+  // ---- 頁面初始設定 -----
+  setupSineMode();
+
+
+</script>
+</body>
+</html>

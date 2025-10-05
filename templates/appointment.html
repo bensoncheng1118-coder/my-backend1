@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-TW"> 
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>預約系統</title>
+  
+  <!-- 新增外部CSS引入 -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, Arial, "Microsoft JhengHei", sans-serif;
+      padding: 30px 20px;
+      background-color: #faf3e0; /* 背景改白 */
+      /* 背景素材移除 */
+      margin: 0;
+      color: #000; /* 文字顏色改成黑色 */
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #000; /* 標題黑色 */
+    }
+    form {
+      max-width: 400px;
+      margin: 0 auto 30px auto;
+      background: transparent; /* 透明底 */
+      padding: 20px;
+      border-radius: 8px;
+      /* 弱化陰影保留層次 */
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      color: #000; /* 文字黑色 */
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: 600;
+      color: #444; /* 深灰色文字 */
+    }
+    input[type="text"], input[type="tel"], input[type="datetime-local"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 6px;
+      border: 1px solid #888; /* 寬鬆的灰色邊框 */
+      border-radius: 4px;
+      box-sizing: border-box;
+      background-color: transparent; /* 透明底 */
+      color: #000; /* 字體黑色 */
+    }
+    textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 6px;
+      border: 1px solid #888;
+      border-radius: 4px;
+      box-sizing: border-box;
+      background-color: transparent; /* 透明底 */
+      color: #000;
+      resize: vertical;
+      min-height: 80px;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, Arial, "Microsoft JhengHei", sans-serif;
+    }
+    input::placeholder,
+    textarea::placeholder {
+      color: #aaa; /* 淺灰色提示文字 */
+    }
+    button {
+      margin-top: 15px;
+      width: 100%;
+      padding: 10px;
+      background-color: transparent; /* 透明底 */
+      border: 1px solid #888; /* 灰色邊框 */
+      color: #666; /* 透明底灰色文字 */
+      font-weight: 700;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+    }
+    button:hover {
+      background-color: #000; /* 黑底 */
+      color: #fff; /* 白字 */
+      border-color: #000;
+    }
+    .flash {
+      max-width: 400px;
+      margin: 0 auto 20px auto;
+      padding: 10px;
+      background-color: transparent; /* 透明底 */
+      border: 1px solid #ccc; /* 淺灰邊框 */
+      color: #c00; /* 紅色文字 */
+      border-radius: 6px;
+      text-align: center;
+      font-weight: 600;
+    }
+    #calendar {
+      max-width: 400px;
+      margin: 0 auto;
+      background: transparent; /* 透明底 */
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      color: #000;
+    }
+    #calendar h2 {
+      text-align: center;
+      margin-bottom: 10px;
+      color: #000;
+    }
+    #calendar ul {
+      list-style: none;
+      padding: 0;
+      color: #000;
+    }
+    #calendar li {
+      padding: 6px 10px;
+      border-bottom: 1px solid #ccc;
+      color: #000;
+    }
+    #calendar li:last-child {
+      border-bottom: none;
+    }
+
+    /* 返回首頁按鈕改為超圓潤透明底黑字，滑鼠懸停時黑底白字 */
+    .back-home-button {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background-color: transparent;
+      color: #000;
+      font-weight: bold;
+      padding: 10px 16px;
+      border-radius: 30px; /* 超圓潤 */
+      text-decoration: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      z-index: 1000;
+      border: 1px solid transparent; /* 預留邊框空間以防抖動 */
+      display: inline-block;
+    }
+    .back-home-button:hover {
+      background-color: #000;
+      color: #fff;
+      border-color: #000;
+    }
+  </style>
+</head>
+<body class="appointment-page">
+
+  <a href="{{ url_for('index') }}" class="back-home-button">返回首頁</a>
+  <h1>預約系統</h1>
+
+  <!-- 顯示 Flash 訊息 -->
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="flash">
+        {% for msg in messages %}
+          <div>{{ msg }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- 預約表單 -->
+  <form method="POST" action="{{ url_for('appointment') }}">
+    <label for="name">姓名：</label>
+    <input type="text" id="name" name="name" required placeholder="請輸入姓名" />
+
+    <label for="phone">電話：</label>
+    <input type="tel" id="phone" name="phone" required placeholder="請輸入電話" pattern="[0-9\-+\s]+" />
+
+    <label for="datetime">預約時間：</label>
+    <input type="datetime-local" id="datetime" name="datetime" required />
+
+    <label for="request_note">預約需求：</label>
+    <textarea id="request" name="request" placeholder="請輸入您的預約需求（選填）"></textarea>
+
+    <button type="submit">送出預約</button>
+  </form>
+
+</body>
+</html>

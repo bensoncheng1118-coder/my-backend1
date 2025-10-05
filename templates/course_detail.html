@@ -1,0 +1,439 @@
+<!DOCTYPE html> 
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8" />
+    <title>{{ title }} - 課程詳細介紹</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <style>
+      body.course-detail-page {
+        background: #faf3e0; /* 改成純白，移除紋理素材 */
+        color: #555;  /* 全局文字改成灰色 */
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, Arial, "Microsoft JhengHei", sans-serif;
+        margin: 0;
+        padding: 20px;
+      }
+      /* 最上方三個切換按鈕容器 */
+      .switch-buttons {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        margin: 10px 0 20px 0;
+        z-index: 1001;
+      }
+      /* 共用按鈕樣式（課程介紹、檔案上傳、留言按鈕）*/
+      .switch-buttons button {
+        background-color: transparent;
+        color: #666;
+        border: none;
+        padding: 10px 22px;
+        font-weight: 600;
+        border-radius: 9999px; /* 超圓潤 */
+        cursor: pointer;
+        transition: background-color 0.3s ease, color 0.3s ease;
+        font-size: 1rem;
+        user-select: none;
+      }
+      .switch-buttons button:hover,
+      .switch-buttons button.active {
+        background-color: #000;
+        color: #fff;
+      }
+      /* 返回首頁按鈕 */
+      .back-home-button {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background-color: transparent;
+        color: #000;
+        padding: 10px 16px;
+        /* border: 1.5px solid #000; 移除邊框 */
+        border-radius: 9999px;
+        font-weight: bold;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background-color 0.3s ease, color 0.3s ease;
+        z-index: 1100;
+      }
+      .back-home-button:hover {
+        background-color: #000;
+        color: #fff;
+      }
+      /* 所有區塊共用透明背景灰字樣式 */
+      .content-block {
+        display: none; /* 預設隱藏 */
+        max-width: 700px;
+        margin: 0 auto 40px auto;
+        background-color: transparent;
+        color: #666;
+        padding: 15px 20px;
+        border-radius: 20px;
+        border: 1.5px solid #ccc;
+        box-sizing: border-box;
+      }
+      /* 顯示中的區塊 */
+      .content-block.active {
+        display: block;
+      }
+      /* 課程介紹區塊字色加強 */
+      .course-content {
+        color: #666;
+        font-size: 1.05rem;
+        line-height: 1.6;
+        white-space: pre-wrap; /* 保留換行 */
+        position: relative;
+      }
+      /* 檔案上傳區 */
+      .upload-section > div {
+        border: none;
+        background-color: transparent;
+        color: #666;
+        box-shadow: none;
+        padding: 0;
+        margin-bottom: 50px; /* 類別區塊間距拉大 */
+      }
+      .upload-section h4 {
+        color: #666;
+        margin-bottom: 8px;
+        text-align: center;
+      }
+      input[type="file"],
+      form button {
+        background-color: transparent;
+        color: #666;
+        border: 1.5px solid #888;
+        padding: 8px 14px;
+        border-radius: 20px; /* 跟模塊框線一樣圓潤 */
+        cursor: pointer;
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+      }
+      input[type="file"]:hover,
+      form button:hover {
+        background-color: #000;
+        color: #fff;
+        border-color: #000;
+        transform: translateY(-2px);
+      }
+      /* 已上傳檔案列表樣式調整 */
+      .uploaded-files {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px dashed #bbb;
+        font-size: 0.9em;
+        color: #999;
+      }
+      .uploaded-files a {
+        background-color: transparent;
+        border: 1.5px solid #888;
+        color: #666;
+        padding: 6px 10px;
+        border-radius: 9999px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        margin-right: 16px; /* 間距拉大 */
+        margin-bottom: 8px; /* 新增垂直間距防止重疊 */
+        display: inline-block; /* 確保 margin 有效 */
+      }
+      .uploaded-files a:hover {
+        background-color: #000;
+        color: #fff;
+        border-color: #000;
+      }
+      /* 留言區 */
+      .comment-section {
+        background-color: transparent;
+        color: #666;
+        border: none;
+        padding: 0;
+      }
+      .comment-section label {
+        color: #666;
+        font-weight: 600;
+      }
+      .comment-section input,
+      .comment-section textarea {
+        background-color: transparent;
+        color: #666;
+        border: 1.5px solid #aaa;
+        border-radius: 50px; /* 更方一點 */
+        padding: 10px 14px;
+        resize: vertical;
+        width: 100%;
+        box-sizing: border-box;
+        font-size: 1rem;
+        transition: border-color 0.3s ease;
+        
+      }
+      .comment-section input:focus,
+      .comment-section textarea:focus {
+        border-color: #000;
+        outline: none;
+      }
+      .comment-section button {
+        margin-top: 15px;
+        width: 100%;
+        padding: 12px 0;
+        background-color: transparent;
+        color: #666;
+        font-weight: 700;
+        border: 1.5px solid #888;
+        border-radius: 9999px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        font-size: 1rem;
+      }
+      .comment-section button:hover {
+        background-color: #000;
+        color: #fff;
+        border-color: #000;
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 10px;
+        color: #333;
+      }
+      /* 上傳留言區標題區不要顯示(因新增切換按鈕了) */
+      .upload-comment-titles {
+        display: none;
+      }
+      /* 編輯區塊樣式 */
+      #edit-area-container {
+        max-width: 700px;
+        margin: 0 auto 40px auto;
+        padding: 15px 20px;
+        border-radius: 20px;
+        border: 1.5px solid #ccc;
+        box-sizing: border-box;
+        color: #666;
+        background-color: transparent;
+        display: none;
+        max-height: 500px;
+        overflow-y: auto;
+      }
+      #edit-textarea {
+        width: 100%;
+        height: 250px;
+        padding: 10px;
+        font-size: 1rem;
+        border-radius: 10px;
+        border: 1.5px solid #ccc;
+        resize: vertical;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, Arial, "Microsoft JhengHei", sans-serif;
+        color: #555;
+      }
+      #edit-buttons {
+        margin-top: 12px;
+        text-align: right;
+      }
+      #edit-buttons button {
+        background-color: transparent;
+        color: #666;
+        border: 1.5px solid #888;
+        padding: 9px 20px;
+        border-radius: 9999px;
+        font-weight: 700;
+        cursor: pointer;
+        font-size: 1rem;
+        margin-left: 10px;
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+      }
+      #edit-buttons button:hover {
+        background-color: #000;
+        color: #fff;
+        border-color: #000;
+      }
+      /* 編輯按鈕 */
+      #edit-course-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: transparent;
+        border: 1.5px solid #888;
+        border-radius: 9999px;
+        padding: 6px 14px;
+        font-weight: 700;
+        cursor: pointer;
+        color: #666;
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        user-select: none;
+      }
+      #edit-course-btn:hover {
+        background-color: #000;
+        color: #fff;
+        border-color: #000;
+      }
+      .comment-display {
+    text-align: center;  /* 置中 */
+    font-size: 1rem;
+    margin: 8px 0;
+}
+    </style>
+</head>
+<body class="course-detail-page">
+    <!-- 返回首頁按鈕 -->
+    <a href="{{ url_for('t_course') }}" class="back-home-button">返回首頁</a>
+    <!-- 頁面標題 -->
+    <h1>{{ title }}</h1>
+    <!-- 頁面頂部切換按鈕 -->
+    <div class="switch-buttons">
+      <button id="btn-course" class="active" type="button">課程介紹區塊</button>
+      <button id="btn-upload" type="button">檔案上傳區</button>
+      <button id="btn-comment" type="button">留言區</button>
+    </div>
+    <!-- 課程介紹區塊 -->
+    <div id="course-block" class="content-block active course-content">
+        載入中...
+        <button id="edit-course-btn" type="button">編輯</button>
+    </div>
+    <!-- 編輯區塊 -->
+    <div id="edit-area-container">
+      <textarea id="edit-textarea" placeholder="請輸入課程介紹內容..."></textarea>
+      <div id="edit-buttons">
+        <button id="cancel-edit" type="button">取消</button>
+        <button id="save-edit" type="button">完成</button>
+      </div>
+    </div>
+    <!-- 檔案上傳區 -->
+    <div id="upload-block" class="content-block upload-section">
+        {% for category in categories %}
+        <div>
+            <h4>{{ category }}</h4>
+            <form action="" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="category" value="{{ category }}" />
+                <input type="file" name="file" required />
+                <button type="submit">上傳</button>
+            </form>
+            {% if uploaded_files.get(category) %}
+            <div class="uploaded-files">
+                <strong>已上傳檔案：</strong>
+                <ul>
+                    {% for file in uploaded_files[category] %}
+                    <li><a href="{{ url_for('uploaded_file', course=title, category=category, filename=file) }}" target="_blank">{{ file }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    <!-- 留言區 -->
+    <div id="comment-block" class="content-block comment-section">
+        <form action="" method="POST">
+            
+            
+            <textarea id="comment" name="comment" rows="5" placeholder="" required></textarea>
+            <!-- 隱藏欄位：課程名稱 -->
+            <input type="hidden" name="course_name" value="{{ title }}">
+            <button type="submit">送出留言</button>
+        </form>
+    </div>
+    <script>
+      // 拿到按鈕與區塊元素
+      const btnCourse = document.getElementById('btn-course');
+      const btnUpload = document.getElementById('btn-upload');
+      const btnComment = document.getElementById('btn-comment');
+      const blockCourse = document.getElementById('course-block');
+      const blockUpload = document.getElementById('upload-block');
+      const blockComment = document.getElementById('comment-block');
+      // 編輯相關元素
+      const editBtn = document.getElementById('edit-course-btn');
+      const editAreaContainer = document.getElementById('edit-area-container');
+      const editTextarea = document.getElementById('edit-textarea');
+      const cancelEditBtn = document.getElementById('cancel-edit');
+      const saveEditBtn = document.getElementById('save-edit');
+
+      // 建立函式切換區塊與按鈕 active 狀態
+      function switchSection(target) {
+        [blockCourse, blockUpload, blockComment, editAreaContainer].forEach(b => {
+          if(b) b.classList.remove('active');
+          if (b === editAreaContainer) b.style.display = 'none';
+        });
+        [btnCourse, btnUpload, btnComment].forEach(b => b.classList.remove('active'));
+        if(target === 'course') {
+          blockCourse.classList.add('active');
+          btnCourse.classList.add('active');
+          blockCourse.style.display = "block";
+        } else if(target === 'upload') {
+          blockUpload.classList.add('active');
+          btnUpload.classList.add('active');
+        } else if(target === 'comment') {
+          blockComment.classList.add('active');
+          btnComment.classList.add('active');
+        }
+      }
+      // 綁定切換按鈕事件
+      btnCourse.addEventListener('click', () => switchSection('course'));
+      btnUpload.addEventListener('click', () => switchSection('upload'));
+      btnComment.addEventListener('click', () => switchSection('comment'));
+
+      // 按編輯按鈕事件
+      editBtn.addEventListener('click', () => {
+        // 用純文字取代 HTML，保留換行
+        let content = blockCourse.innerText || blockCourse.textContent;
+        editTextarea.value = content.trim();
+        // 隱藏課程介紹區
+        blockCourse.style.display = 'none';
+        // 顯示編輯區
+        editAreaContainer.style.display = 'block';
+      });
+      // 取消編輯按鈕事件
+      cancelEditBtn.addEventListener('click', () => {
+        editAreaContainer.style.display = 'none';
+        blockCourse.style.display = 'block';
+      });
+      // 儲存完成按鈕事件
+      saveEditBtn.addEventListener('click', () => {
+        const newContent = editTextarea.value.trim();
+        if (newContent === "") {
+          alert("課程介紹內容不可為空！");
+          return;
+        }
+        // 發送 POST 請求到後端API，永久保存到 JSON 檔案 (位置: data/content_data/{title}.json)
+        fetch('{{ url_for("update_course_content") }}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+                      },
+          body: JSON.stringify({
+            course_name: "{{ title }}",
+            content: newContent
+          }),
+        })
+        .then(res => {
+          if (!res.ok) throw new Error('儲存失敗，請稍後再試');
+          return res.json();
+        })
+        .then(data => {
+          if (data.success) {
+            // 直接更新頁面內容並跳回課程介紹區塊
+            blockCourse.innerText = newContent;
+            editAreaContainer.style.display = 'none';
+            blockCourse.style.display = 'block';
+          } else {
+            alert("儲存失敗: " + (data.message || ""));
+          }
+        })
+        .catch(err => alert(err.message));
+      });
+
+      // 載入並顯示儲存在 data/content_data 資料夾中 JSON 檔案的文字資料
+      fetch('{{ url_for("show_course_info", course_name=title) }}')
+        .then(res => {
+          if (!res.ok) throw new Error('載入儲存內容失敗');
+          return res.json();
+        })
+        .then(data => {
+          // 假設 JSON 中有欄位 content，顯示並替換課程介紹區塊內容，保留換行
+          if (data.content && data.content.trim() !== "") {
+            blockCourse.innerText = data.content;
+          } else {
+            blockCourse.innerText = "此課程尚無儲存的介紹內容。";
+          }
+        })
+        .catch(err => {
+          blockCourse.innerText = "讀取課程儲存介紹失敗：" + err.message;
+        });
+    </script>
+</body>
+</html>

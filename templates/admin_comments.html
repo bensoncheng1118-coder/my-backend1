@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <title>留言管理</title>
+  <style>
+    /* 背景白色，取消背景素材 */
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, Arial, "Microsoft JhengHei", sans-serif;
+      padding: 30px 20px;
+      margin: 0;
+      background-color: #faf3e0; /* 改成純白 */
+      color: #121821;          /* 字體改深色，對比背景 */
+    }
+
+    h2 {
+      color: #121821;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+      max-width: 600px;
+      margin: 0;
+    }
+
+    li {
+      background-color: transparent; /* 透明底 */
+      padding: 10px 15px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      /* 取消陰影改透明底，字色改深色 */
+      box-shadow: none;
+      color: #121821;
+      border: 1px solid #ddd; /* 留一點邊界分隔 */
+      cursor: pointer;
+    }
+
+    /* 返回首頁按鈕調整 */
+    .back-button {
+      display: inline-block;
+      margin-bottom: 20px;
+      padding: 10px 20px;
+      background-color: transparent; /* 透明底 */
+      color: #000;                   /* 黑字 */
+      text-decoration: none;
+      border-radius: 9999px;         /* 超圓潤 */
+      font-size: 16px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      border: none;                  /* 無邊框 */
+      cursor: pointer;
+      user-select: none;
+      box-shadow: none;
+    }
+    .back-button:hover {
+      background-color: #000;
+      color: #fff;
+      box-shadow: none;
+      text-decoration: none;
+    }
+
+    /* 下拉選單通用調整 */
+    select {
+      margin: 5px 10px 20px 0;
+      padding: 10px 14px;
+      border-radius: 9999px;        /* 超圓潤 */
+      border: 1px solid #ccc;       /* 軟邊框 */
+      font-size: 16px;
+      background-color: transparent; /* 透明底 */
+      color: #666;                  /* 灰字 */
+      cursor: pointer;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+      -webkit-appearance: none;     /* 移除預設樣式 */
+      -moz-appearance: none;
+      appearance: none;
+      box-shadow: none;
+    }
+    select:hover, select:focus {
+      border-color: #000;
+      box-shadow: none;
+      background-color: #000;       /* 黑底 */
+      color: #fff;                  /* 白字 */
+      outline: none;
+    }
+    select:disabled {
+      background-color: transparent;
+      color: #aaa;                  /* 淺灰字 */
+      cursor: not-allowed;
+      border-color: #ccc;
+      box-shadow: none;
+    }
+
+    /* 用戶選擇字潤滑避免文字選擇問題 */
+    select, option {
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+    }
+
+    /* 保持整體文字為深色 */
+    label {
+      color: #121821;
+      font-weight: bold;
+      user-select: none;
+    }
+
+    /* 保留強度，用深色標題 */
+    h2 {
+      color: #121821;
+    }
+
+    /* 編輯按鈕 */
+    .edit-btn {
+      color: white;               /* 文字白色 */
+      background-color: #888888;  /* 灰色背景 */
+      padding: 5px 10px;
+      border-radius: 4px;
+      text-decoration: none;      /* 去底線 */
+      cursor: pointer;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      display: inline-block;
+      margin-left: 10px;
+    }
+    .edit-btn:hover {
+      background-color: #3498db;  /* 滑鼠碰到變藍 */
+      color: white;
+    }
+  </style>
+</head>
+<body>
+    <a href="{{ url_for('index') }}" class="back-button">返回首頁</a>
+
+    <h2>問題回覆區</h2>
+
+    <!-- 年級、學期、科目下拉選單 -->
+    <div>
+        <label for="grade-select">年級：</label>
+        <select id="grade-select">
+            <option value="">請選擇年級</option>
+            {% for grade in ['大一', '大二', '大三'] %}
+            <option value="{{ grade }}">{{ grade }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="semester-select">學期：</label>
+        <select id="semester-select">
+            <option value="">請選擇學期</option>
+            {% for semester in ['上學期', '下學期'] %}
+            <option value="{{ semester }}">{{ semester }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="subject-select">科目：</label>
+        <select id="subject-select" disabled>
+            <option value="">請先選擇年級與學期</option>
+        </select>
+    </div>
+
+    <!-- 留言列表 -->
+    <ul id="comments-list">
+        <li>請選擇科目以查看留言。</li>
+    </ul>
+
+<script>
+    // 模擬後端課程資料，實際可改成由後端傳入
+    const allCourses = {
+        "大一_上學期": ["溝通障礙學導論", "普通心理學", "語言學概論", "聽語科學導論", "解剖學"],
+        "大一_下學期": ["基礎聽力科學", "言語科學", "生理學", "聽語神經解剖機轉", "基礎臨床實務論(二)", "兒童語言發展學", "語音音韻學"],
+        "大二_上學期": ["未知"],
+        "大二_下學期": ["未知"],
+        "大三_上學期": ["未知"],
+        "大三_下學期": ["未知"]
+    };
+
+    const gradeSelect = document.getElementById('grade-select');
+    const semesterSelect = document.getElementById('semester-select');
+    const subjectSelect = document.getElementById('subject-select');
+    const commentsList = document.getElementById('comments-list');
+
+    function clearComments() {
+        commentsList.innerHTML = '<li>請選擇科目以查看留言。</li>';
+    }
+
+    function loadSubjects() {
+        const grade = gradeSelect.value;
+        const semester = semesterSelect.value;
+        subjectSelect.innerHTML = '';
+        if (!grade || !semester) {
+            subjectSelect.disabled = true;
+            subjectSelect.innerHTML = '<option value="">請先選擇年級與學期</option>';
+            clearComments();
+            return;
+        }
+
+        const key = grade + '_' + semester;
+        const subjects = allCourses[key] || [];
+        if (subjects.length === 0) {
+            subjectSelect.disabled = true;
+            subjectSelect.innerHTML = '<option value="">無可用科目</option>';
+            clearComments();
+            return;
+        }
+
+        subjectSelect.disabled = false;
+        subjectSelect.innerHTML = '<option value="">請選擇科目</option>';
+        subjects.forEach(subject => {
+            const option = document.createElement('option');
+            option.value = subject;
+            option.textContent = subject;
+            subjectSelect.appendChild(option);
+        });
+        clearComments();
+    }
+
+    async function loadComments(subject) {
+        if (!subject) {
+            clearComments();
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/comments/${encodeURIComponent(subject)}`);
+            if (!response.ok) throw new Error('無法取得留言');
+            const data = await response.json();
+            const comments = data.comments || [];
+
+            if (!comments.length) {
+                commentsList.innerHTML = '<li>該科目尚無留言。</li>';
+                return;
+            }
+
+            commentsList.innerHTML = '';
+            comments.forEach(comment => {
+                const li = document.createElement('li');
+                const time = new Date(comment.time);
+                const formattedTime = time.getFullYear() + '-' +
+                    String(time.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(time.getDate()).padStart(2, '0') + ' ' +
+                    String(time.getHours()).padStart(2, '0') + ':' +
+                    String(time.getMinutes()).padStart(2, '0');
+                // 加上編輯按鈕連結
+                li.innerHTML = `<strong>${comment.name || '匿名'}</strong> （${formattedTime}）: ${comment.content || ''} <a href="/edit_comment/${encodeURIComponent(subjectSelect.value)}/${encodeURIComponent(comment.time)}" class="edit-btn">編輯</a>`;
+                // 點擊整個 li 跳轉
+                li.style.cursor = "pointer";
+                li.addEventListener('click', () => {
+                    // 跳轉到 comment_comment.html 並帶參數，如留言時間與科目
+                    const url = `/comment/${encodeURIComponent(subjectSelect.value)}/${comment.time}`;                    window.location.href = url;
+                });
+                commentsList.appendChild(li);
+            });
+        } catch (error) {
+            commentsList.innerHTML = '<li>載入留言時發生錯誤。</li>';
+            console.error(error);
+        }
+    }
+
+    gradeSelect.addEventListener('change', loadSubjects);
+    semesterSelect.addEventListener('change', loadSubjects);
+    subjectSelect.addEventListener('change', () => {
+        loadComments(subjectSelect.value);
+    });
+</script>
+
+</body>
+</html>

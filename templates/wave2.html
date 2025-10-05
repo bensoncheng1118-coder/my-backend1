@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>聲強與聲壓計算器與衰減器</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 480px;
+      margin: 2rem auto;
+      padding: 20px;
+      background: #faf3e0;
+      color: #222;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    label {
+      display: block;
+      margin: 12px 0 6px;
+      font-weight: bold;
+    }
+    input[type="number"], select {
+      width: 100%;
+      padding: 8px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 16px;
+      /* 按鈕寬度改為固定，移除 margin-right，改用 flex 容器 中設定間距 */
+      width: 32%;
+      padding: 10px;
+      font-size: 1.1rem;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      white-space: nowrap; /* 防止文字換行 */
+      overflow: hidden;
+      text-overflow: ellipsis;
+      box-sizing: border-box;
+    }
+    button:hover {
+      background-color: #2c80b4;
+    }
+    button.active {
+      background-color: #2c80b4;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 1.2rem;
+      background: #eef5fc;
+      padding: 12px;
+      border-radius: 6px;
+      min-height: 2.4em;
+      white-space: pre-line;
+    }
+    .input-section {
+      margin-top: 20px;
+      display: none;
+    }
+    /* 說明彈跳視窗樣式 */
+    #instructionModal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 90%;
+      max-width: 480px;
+      max-height: 70vh;
+      overflow-y: auto;
+      transform: translate(-50%, -50%);
+      background: white;
+      border: 2px solid #3498db;
+      border-radius: 8px;
+      padding: 20px 25px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      z-index: 1000;
+    }
+    #instructionModal pre {
+      white-space: pre-wrap;
+      font-family: "Microsoft JhengHei", Arial, sans-serif;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: #333;
+    }
+    #modalOverlay {
+      display: none;
+      position: fixed;
+      top:0; left:0; right:0; bottom:0;
+      background: rgba(0,0,0,0.3);
+      z-index: 999;
+    }
+    #closeInstructionBtn {
+      margin-top: 12px;
+      background-color: #e74c3c;
+      width: 100%;
+    }
+    #closeInstructionBtn:hover {
+      background-color: #c0392b;
+    }
+    .button-row {
+      display: flex;
+      justify-content: center;
+      gap: 3%; /* 按鈕間距 */
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>聲強與聲壓計算器與衰減器</h1>
+
+<div class="button-row">
+  <button id="btnInstruction" type="button" aria-pressed="false" title="點擊查看分貝考題計算方法">分貝考題計算方法</button>
+  <button id="btnDbCalc" type="button" aria-pressed="false">分貝計算器</button>
+  <button id="btnDecayCalc" type="button" aria-pressed="false">分貝變化器</button>
+</div>
+
+<!-- 分貝計算器區塊 -->
+<div id="dbCalcSection" class="input-section" aria-hidden="true">
+  <label for="dbInputType">選擇輸入類型</label>
+  <select id="dbInputType" aria-label="分貝計算器選擇輸入類型">
+    <option value="intensity">聲強 (強度值 W/m²)</option>
+    <option value="pressure">聲壓 (壓力值 Pa)</option>
+  </select>
+
+  <label for="dbInputValue">輸入聲強或聲壓數值</label>
+  <input type="number" id="dbInputValue" step="any" min="0" placeholder="請輸入正數" aria-label="輸入聲強或聲壓數值" required />
+
+  <button id="dbCalculateBtn" type="button" aria-label="計算分貝值">計算分貝值</button>
+</div>
+
+<!-- 分貝衰減器區塊 -->
+<div id="decayCalcSection" class="input-section" aria-hidden="true">
+  <label for="decayInputType">選擇輸入類型</label>
+  <select id="decayInputType" aria-label="分貝衰減器選擇輸入類型">
+    <option value="intensity">聲強 (Power P)</option>
+    <option value="pressure">聲壓 (Pressure p)</option>
+  </select>
+
+  <label for="decayDistance1">輸入距離 1 (公尺，必須 > 0)</label>
+  <input type="number" id="decayDistance1" step="any" min="0.001" placeholder="請輸入距離1 (>0)" aria-label="輸入距離1" required />
+  
+  <label for="decayDistance2">輸入距離 2 (公尺，必須 > 0)</label>
+  <input type="number" id="decayDistance2" step="any" min="0.001" placeholder="請輸入距離2 (>0)" aria-label="輸入距離2" required />
+
+  <button id="decayCalculateBtn" type="button" aria-label="計算距離2相較距離1的分貝差">計算分貝差</button>
+</div>
+
+<div id="result" aria-live="polite" aria-atomic="true"></div>
+
+<!-- 說明彈窗 -->
+<div id="modalOverlay"></div>
+<div id="instructionModal" role="dialog" aria-modal="true" aria-labelledby="instructionTitle">
+  <h2 id="instructionTitle">分貝考題計算方法</h2>
+  <pre>
+一、        分貝數值計算:
+(一)先看給的是聲強(I)還是聲壓(p)?
+1.      聲強:10*logI1/I0(I0=10-12 W/m²)
+*如果給功率(P)或距離(r)，先用I = K(P/4πr2 )計算出I，再算出分貝(通常不會這樣考)
+2.      聲壓:20*logp1/p0(p0=20μPa)
+*如果給功率(P)或距離(r)，先用I = K(P/4πr2 )計算出I，再用
+p=K√I=K√K(P/4πr2 )計算出p，再算出分貝(如果只是要算分貝就直接用I算即可)(通常不會這樣考)
+二、        分貝數值變化計算:
+(一)用反比來計算:
+1.      聲強:
+(1)   公式: I = K(P/4πr2 )
+(2)   結論:I ∝1/ r2(聲強與距離平方成反比)，並套入10*logI2/I1，算出相差多少分貝
+2.      聲壓:
+(1)   公式: p=K√I= K√K(P/4πr2 )
+(2)   結論:p∝1/r(聲壓與距離成反比)，並套入20*logp2/p1，算出相差多少分貝
+3.      問法:題目給I1或p1或分貝1，問分貝2(不管題目給的是I1或p1或分貝1)
+(二)例題:
+1.      在距離聲源10公尺處聲音為20分貝，則距離聲源100公尺處聲音為幾分貝?
+(1)   距離變10倍，題目給分貝可以用聲強或聲壓(選聲強就要用聲強記算分貝的公式10*logI2/I1；選聲壓就要用聲壓計算分貝的公式20*logp2/p1)
+A.     聲強:聲強與距離平方成反比，聲強變1/100倍，套入10*logI2/I1，相差-20分貝(10*log1/100=-20)，20+(-20)=0(分貝)
+B.     聲壓:聲壓與距離成反比，聲壓變1/10倍，套入20*logp2/p1，相差-20分貝(20*log1/10=-20)，20+(-20)=0(分貝)
+*一與二可用分貝計算器與分貝變化器做計算或驗算
+  </pre>
+  <button id="closeInstructionBtn" type="button">關閉</button>
+</div>
+
+<script>
+(() => {
+  // 按鈕與區塊元素
+  const btnInstruction = document.getElementById('btnInstruction');
+  const btnDbCalc = document.getElementById('btnDbCalc');
+  const btnDecayCalc = document.getElementById('btnDecayCalc');
+  const dbCalcSection = document.getElementById('dbCalcSection');
+  const decayCalcSection = document.getElementById('decayCalcSection');
+  const resultEl = document.getElementById('result');
+  const modalOverlay = document.getElementById('modalOverlay');
+  const instructionModal = document.getElementById('instructionModal');
+  const closeInstructionBtn = document.getElementById('closeInstructionBtn');
+
+  // 分貝計算器元素
+  const dbInputTypeEl = document.getElementById('dbInputType');
+  const dbInputValueEl = document.getElementById('dbInputValue');
+  const dbCalculateBtn = document.getElementById('dbCalculateBtn');
+
+  // 衰減器元素
+  const decayInputTypeEl = document.getElementById('decayInputType');
+  const decayDistance1El = document.getElementById('decayDistance1');
+  const decayDistance2El = document.getElementById('decayDistance2');
+  const decayCalculateBtn = document.getElementById('decayCalculateBtn');
+
+  // 參考值
+  const I0 = 1e-12;       // 參考聲強（瓦特/平方米）
+  const p0 = 20e-6;       // 參考聲壓（帕斯卡）
+
+  // 功能：切換顯示某區塊並標記按鈕狀態
+  function showSection(sectionToShow) {
+    if (sectionToShow === 'db') {
+      dbCalcSection.style.display = 'block';
+      dbCalcSection.setAttribute('aria-hidden', 'false');
+      decayCalcSection.style.display = 'none';
+      decayCalcSection.setAttribute('aria-hidden', 'true');
+      btnDbCalc.classList.add('active');
+      btnDecayCalc.classList.remove('active');
+      btnDbCalc.setAttribute('aria-pressed', 'true');
+      btnDecayCalc.setAttribute('aria-pressed', 'false');
+      btnInstruction.setAttribute('aria-pressed', 'false');
+      hideInstructionModal();
+      resultEl.textContent = '';
+    } else if (sectionToShow === 'decay') {
+      decayCalcSection.style.display = 'block';
+      decayCalcSection.setAttribute('aria-hidden', 'false');
+      dbCalcSection.style.display = 'none';
+      dbCalcSection.setAttribute('aria-hidden', 'true');
+      btnDecayCalc.classList.add('active');
+      btnDbCalc.classList.remove('active');
+      btnDecayCalc.setAttribute('aria-pressed', 'true');
+      btnDbCalc.setAttribute('aria-pressed', 'false');
+      btnInstruction.setAttribute('aria-pressed', 'false');
+      hideInstructionModal();
+      resultEl.textContent = '';
+    }
+  }
+
+  // 初始不顯示任何區塊
+  dbCalcSection.style.display = 'none';
+  decayCalcSection.style.display = 'none';
+
+  // 綁定按鈕切換
+  btnDbCalc.addEventListener('click', () => showSection('db'));
+  btnDecayCalc.addEventListener('click', () => showSection('decay'));
+
+  // 顯示說明彈窗
+  function showInstructionModal() {
+    instructionModal.style.display = 'block';
+    modalOverlay.style.display = 'block';
+    btnInstruction.classList.add('active');
+    btnInstruction.setAttribute('aria-pressed', 'true');
+    // 隱藏其他區塊與取消其 active 狀態
+    dbCalcSection.style.display = 'none';
+    decayCalcSection.style.display = 'none';
+    btnDbCalc.classList.remove('active');
+    btnDecayCalc.classList.remove('active');
+    btnDbCalc.setAttribute('aria-pressed', 'false');
+    btnDecayCalc.setAttribute('aria-pressed', 'false');
+    resultEl.textContent = '';
+  }
+
+  // 隱藏說明彈窗
+  function hideInstructionModal() {
+    instructionModal.style.display = 'none';
+    modalOverlay.style.display = 'none';
+    btnInstruction.classList.remove('active');
+    btnInstruction.setAttribute('aria-pressed', 'false');
+  }
+
+  btnInstruction.addEventListener('click', () => {
+    if(instructionModal.style.display === 'block') {
+      hideInstructionModal();
+    } else {
+      showInstructionModal();
+    }
+  });
+
+  closeInstructionBtn.addEventListener('click', hideInstructionModal);
+  modalOverlay.addEventListener('click', hideInstructionModal);
+
+  // 輸入變更清除結果
+  [dbInputTypeEl, dbInputValueEl, decayInputTypeEl, decayDistance1El, decayDistance2El]
+    .forEach(el => {
+      el.addEventListener('input', () => {
+        resultEl.textContent = '';
+      });
+    });
+
+  // 分貝計算器按鈕處理：輸入強度或聲壓值，計算分貝
+  dbCalculateBtn.addEventListener('click', () => {
+    const type = dbInputTypeEl.value;
+    const val = parseFloat(dbInputValueEl.value);
+
+    if (isNaN(val) || val <= 0) {
+      resultEl.textContent = '請輸入有效的正數聲強或聲壓數值';
+      return;
+    }
+
+    let dB = null;
+    if (type === 'intensity') {
+      // 聲強 dB = 10 log10(I / I0)
+      dB = 10 * Math.log10(val / I0);
+    } else if (type === 'pressure') {
+      // 聲壓 dB = 20 log10(p / p0)
+      dB = 20 * Math.log10(val / p0);
+    }
+
+    if (dB !== null && isFinite(dB)) {
+      resultEl.textContent = `計算得分貝值 (dB): ${dB.toFixed(2)} dB`;
+    } else {
+      resultEl.textContent = '計算結果無效，請確認輸入數值';
+    }
+  });
+
+  // 衰減器按鈕處理：輸入距離1與距離2，計算分貝差
+  decayCalculateBtn.addEventListener('click', () => {
+    const type = decayInputTypeEl.value;
+    const r1 = parseFloat(decayDistance1El.value);
+    const r2 = parseFloat(decayDistance2El.value);
+
+    if (isNaN(r1) || r1 <= 0) {
+      resultEl.textContent = '請輸入有效的正數距離 1';
+      return;
+    }
+    if (isNaN(r2) || r2 <= 0) {
+      resultEl.textContent = '請輸入有效的正數距離 2';
+      return;
+    }
+
+    // 計算分貝差
+    let diffDb = null;
+    if (type === 'intensity') {
+      // 聲強與距離平方成反比，分貝差 = 10 * log10((r1/r2)^2) = 20*log10(r1/r2)
+      diffDb = 20 * Math.log10(r1 / r2);
+    } else if (type === 'pressure') {
+      // 聲壓與距離成反比，分貝差 = 20 * log10(r1 / r2)
+      diffDb = 20 * Math.log10(r1 / r2);
+    }
+
+    if (diffDb !== null && isFinite(diffDb)) {
+      const signText = diffDb > 0 ? '增加' : (diffDb < 0 ? '減少' : '無變化');
+      resultEl.textContent =
+        `距離 1 到 距離 2 的分貝差為: ${diffDb.toFixed(2)} dB (${signText})`;
+    } else {
+      resultEl.textContent = '計算結果無效，請確認輸入數值';
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <title>編輯留言</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            padding: 30px;
+            background-image: url('https://www.transparenttextures.com/patterns/climpek.png');
+            background-repeat: repeat;
+            background-size: auto;
+            background-attachment: fixed;
+            background-color: #121821; /* 深色補色 */
+            color: #ddd;
+        }
+        h2 {
+            color: #eee;
+        }
+        form {
+            max-width: 600px;
+            background: #000000; /* 深色背景 */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.8);
+            color: #eee;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+            color: #ccc;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-top: 8px;
+            padding: 8px;
+            font-size: 1rem;
+            border-radius: 4px;
+            border: 1px solid #555;
+            resize: vertical;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #777;
+            color: #ddd;
+        }
+        input[type="submit"], input[type="button"] {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #888888; /* 灰底 */
+            border: none;
+            color: white;
+            font-size: 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: background-color 0.3s ease;
+        }
+        input[type="submit"]:hover, input[type="button"]:hover {
+            background-color: #3498db; /* 滑鼠碰到變藍 */
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #3498db;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <script>
+        // 增加按下刪除按鈕後，直接以 POST 請求刪除留言功能
+        function deleteComment() {
+            if (!confirm('確定要刪除此留言嗎？')) {
+                return;
+            }
+            fetch('{{ url_for("delete_comment", course_name=course_name, comment_time=comment_time) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            }).then(response => {
+                if (response.ok) {
+                    // 刪除成功後導回留言管理頁
+                    window.location.href = '{{ url_for("view_comments", course=course_name) }}';
+                } else {
+                    alert('刪除失敗，請稍後再試。');
+                }
+            }).catch(error => {
+                console.error('刪除留言發生錯誤:', error);
+                alert('刪除失敗，請稍後再試。');
+            });
+        }
+    </script>
+</head>
+<body>
+    <h2>編輯留言 - {{ course_name }}</h2>
+
+    <form method="post" action="{{ url_for('edit_comment', course_name=course_name, comment_time=comment_time) }}">
+        <label for="comment-text">留言內容：</label>
+        <textarea id="comment-text" name="comment" required>{{ comment.text }}</textarea>
+
+        <input type="submit" value="儲存" />
+        <input type="button" value="刪除" onclick="deleteComment()" />
+    </form>
+
+    <a href="{{ url_for('view_comments', course=course_name) }}" class="back-link">返回留言管理</a>
+</body>
+</html>

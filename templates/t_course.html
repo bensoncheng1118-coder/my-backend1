@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<title>課程列表 - 馬偕聽語系</title>
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    padding: 20px 40px;
+    background: #faf3e0;
+    color: #000;
+  }
+  h1.grade-title {
+    font-size: 3rem;
+    margin-top: 40px;
+    margin-bottom: 8px;
+    border-bottom: 3px solid black;
+    padding-bottom: 4px;
+  }
+  h2.semester-title {
+    font-size: 1.8rem;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    border-bottom: 2px solid #666;
+    padding-bottom: 4px;
+  }
+  .course-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 0; /* 只上下間距，不左右 */
+    margin-bottom: 30px;
+  }
+  .course-list button {
+    background-color: transparent;
+    color: black;
+    border: none;
+    cursor: pointer;
+    padding: 8px 0; /* 上下邊界，不要左右 */
+    font-size: 1rem;
+    transition: background-color 0.3s, color 0.3s, transform 0.2s;
+    min-width: 200px; /* 方便按鈕大小一致，可自行調 */
+    text-align: center;
+  }
+  .course-list button:hover,
+  .course-list button:focus {
+    background-color: black;
+    color: white;
+    transform: scale(1.05);
+    outline: none;
+  }
+  /* 新增左上角返回首頁按鈕 */
+  .back-to-index {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background-color: transparent;
+    color: black;
+    border: none;
+    border-radius: 9999px;
+    padding: 8px 16px;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none;
+    z-index: 1000;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  .back-to-index:hover {
+    background-color: black;
+    color: white;
+  }
+</style>
+</head>
+<body>
+  <a href="{{ url_for('index') }}" class="back-to-index">返回首頁</a>
+
+  <!-- 大一 -->
+  <h1 class="grade-title">大一</h1>
+  <h2 class="semester-title">上學期</h2>
+  <div class="course-list">
+    <button type="button" onclick="location.href='/course/溝通障礙學導論'">溝通障礙學導論</button>
+    <button type="button" onclick="location.href='/course/普通心理學'">普通心理學</button>
+    <button type="button" onclick="location.href='/course/語言學概論'">語言學概論</button>
+    <button type="button" onclick="location.href='/course/聽語科學導論'">聽語科學導論</button>
+    <button type="button" onclick="location.href='/course/解剖學'">解剖學</button>
+  </div>
+  <h2 class="semester-title">下學期</h2>
+  <div class="course-list">
+    <button type="button" onclick="location.href='/course/基礎聽力科學'">基礎聽力科學</button>
+    <button type="button" onclick="location.href='/course/言語科學'">言語科學</button>
+    <button type="button" onclick="location.href='/course/生理學'">生理學</button>
+    <button type="button" onclick="location.href='/course/聽語神經解剖機轉'">聽語神經解剖機轉</button>
+    <button type="button" onclick="location.href='/course/基礎臨床實務論(二)'">基礎臨床實務論(二)</button>
+    <button type="button" onclick="location.href='/course/兒童語言發展學'">兒童語言發展學</button>
+    <button type="button" onclick="location.href='/course/語音音韻學'">語音音韻學</button>
+  </div>
+  <!-- 大二 -->
+  <h1 class="grade-title">大二</h1>
+  <h2 class="semester-title">上學期</h2>
+  <div class="course-list">
+    <button type="button" onclick="location.href='/course/行為治療原理與技術'">行為治療原理與技術</button>
+    <button type="button" onclick="location.href='/course/語音聲學'">語音聲學</button>
+    <button type="button" onclick="location.href='/course/嬰幼兒與學前兒童語言障礙學'">嬰幼兒與學前兒童語言障礙學</button>
+    <button type="button" onclick="location.href='/course/生物統計學'">生物統計學</button>
+    <button type="button" onclick="location.href='/course/構音與音韻異常'">構音與音韻異常</button>
+      </div>
+  <h2 class="semester-title">下學期</h2>
+  <div class="course-list">
+    <button type="button" onclick="alert('尚未更新')">尚未更新</button>
+    <button type="button" onclick="alert('尚未更新')">尚未更新</button>
+    <button type="button" onclick="alert('尚未更新')">尚未更新</button>
+  </div>
+  <!-- 大三 -->
+  <h1 class="grade-title">大三</h1>
+  <h2 class="semester-title">上學期</h2>
+  <div class="course-list">
+    <button type="button" onclick="alert('尚未更新')">尚未更新</button>
+    <button type="button" onclick="alert('尚未更新')">尚未更新</button>
+    <button type="button" onclick="alert('尚未更新')">尚未更新</button>
+  </div>
+  <h2 class="semester-title">下學期</h2>
+  <div class="course-list">
+    <button type="button" onclick="alert('尚未更新')">尚未更新</button>
+    <button type="button" onclick="alert('尚未更新')">尚未更新</button>
+    <button type="button" onclick="alert('尚未更新')">尚未更新</button>
+  </div>
+</body>
+</html>

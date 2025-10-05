@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>通識課程評分</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC&display=swap" rel="stylesheet"/>
+  <style>
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background-color: #faf3e0;
+      color: #333;
+      margin: 0; padding: 20px;
+      max-width: 800px; margin-left: auto; margin-right: auto;
+    }
+    /* 新增返回首頁按鈕樣式 */
+    #homeBtn {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      padding: 8px 16px;
+      color: #000;
+      background-color: transparent;
+      border: none;
+      border-radius: 9999px;
+      font-weight: bold;
+      text-decoration: none;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      z-index: 1000;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #homeBtn:hover {
+      background-color: #000;
+      color: #fff;
+      text-decoration: none;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    .category-buttons {
+      display: flex; justify-content: center; gap: 12px; margin-bottom: 20px;
+    }
+    .category-buttons button {
+      flex: 1;
+      max-width: 100px;
+      cursor: pointer;
+      border: 2px solid black; /* 邊框移除 */
+      border-radius: 50px;
+      padding: 8px;
+      font-size: 1rem;
+      background: transparent;
+      color: #333;
+      transition: all 0.3s ease;
+    }
+    .category-buttons button:hover {
+      background-color: #000;
+      color: #fff;
+    }
+    .category-buttons button.active {
+      background-color: #000;
+      color: #fff;
+      cursor: default;
+    }
+    #addCourseSection {
+      margin-top: 30px;
+      border: 1px solid #999;
+      padding: 18px;
+      border-radius: 10px;
+      background-color: #f9f9f9;
+    }
+    #addCourseSection input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+    }
+    button#submitCourse {
+      background-color: #000;
+      color: #fff;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button#submitCourse:hover {
+      background-color: #444;
+    }
+    #courseList {
+      margin-top: 20px;
+    }
+    /* 調整課程項目為可點擊鏈結形式樣式 */
+    .course-item {
+      padding: 12px;
+      border: 1px solid #aaa;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      background-color: transparent;
+      color: #333;
+      transition: background-color 0.3s ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .course-item:hover {
+      background-color: #000;
+      color: #fff;
+      border-color: #000;
+    }
+    .course-link {
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+    }
+    .course-link:hover {
+      color: inherit;
+    }
+  </style>
+</head>
+<body>
+  <a href="/" id="homeBtn" title="返回首頁">返回首頁</a>
+  <h1>通識課程評分</h1>
+  <div class="category-buttons" id="categoryButtons">
+    <button data-value="語言">語言</button>
+    <button data-value="天">天</button>
+    <button data-value="地">地</button>
+    <button data-value="人">人</button>
+    <button data-value="心">心</button>
+  </div>
+  <div id="addCourseSection" style="display:none;">
+    <input type="text" placeholder="輸入課程名稱" id="newCourseName" />
+    <!-- 星級評分區塊已移除 -->
+    <button id="submitCourse">新增課程</button>
+  </div>
+  <div id="courseList">
+    <!-- 載入課程清單 -->
+  </div>
+<script>
+  const categoryButtons = document.getElementById('categoryButtons');
+  const addCourseSection = document.getElementById('addCourseSection');
+  const submitCourseBtn = document.getElementById('submitCourse');
+  const newCourseNameInput = document.getElementById('newCourseName');
+  const courseListDiv = document.getElementById('courseList');
+  let selectedCategory = null;
+  // 監聽分類按鈕點擊
+  categoryButtons.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.classList.contains('active')) return; // 已是 active 不動作
+      categoryButtons.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedCategory = btn.dataset.value;
+      addCourseSection.style.display = 'block';
+      clearForm();
+      loadCourses(selectedCategory);
+    });
+  });
+  // 清空輸入表單
+  function clearForm() {
+    newCourseNameInput.value = '';
+    // 星級評分狀態清除已移除
+  }
+  // 送出新課程
+  submitCourseBtn.addEventListener('click', () => {
+    const courseName = newCourseNameInput.value.trim();
+    // 星級評分取得和檢查已移除
+    if (!selectedCategory) {
+      alert('請先選擇領域');
+      return;
+    }
+    if (!courseName) {
+      alert('請輸入課程名稱');
+      return;
+    }
+    // 移除 star 等級欄位
+    const postData = {
+      domain: selectedCategory,
+      course: {
+        course_name: courseName
+        // rating 欄位已移除
+      }
+    };
+    fetch('/add_course', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(postData)
+    }).then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert('課程儲存成功！');
+          clearForm();
+          loadCourses(selectedCategory);
+        } else {
+          alert('儲存失敗：' + (data.message || '未知錯誤'));
+        }
+      }).catch(err => {
+        alert('儲存失敗：' + err);
+      });
+  });
+  // 載入該分類課程清單
+  function loadCourses(category) {
+    courseListDiv.innerHTML = '讀取中...';
+    fetch(`/get_courses?domain=${encodeURIComponent(category)}`)
+      .then(res => {
+        if (!res.ok) throw new Error('讀取課程失敗');
+        return res.json();
+      })
+      .then(data => {
+        if (!data.success) {
+          courseListDiv.innerHTML = `<p>錯誤：${data.message || '未知錯誤'}</p>`;
+          return;
+        }
+        const courses = data.courses;
+        if (!Array.isArray(courses) || courses.length === 0) {
+          courseListDiv.innerHTML = '<p>此分類尚無課程資料。</p>';
+          return;
+        }
+        let html = '';
+        courses.forEach(course => {
+          const name = course.course_name || '(無名稱)';
+          // 移除顯示評分部分
+          const encodedName = encodeURIComponent(name);
+          html += `<div class="course-item">
+                    <a class="course-link" href="m_general_knowledge?course=${encodedName}"><strong>${name}</strong></a>
+                  </div>`;
+        });
+        courseListDiv.innerHTML = html;
+      })
+      .catch(err => {
+        courseListDiv.innerHTML = `<p>錯誤：${err.message}</p>`;
+      });
+  }
+</script>
+</body>
+</html>

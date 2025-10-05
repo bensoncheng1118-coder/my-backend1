@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>PST Histogram Demo</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: "Microsoft JhengHei", sans-serif; padding: 20px; background:#faf3e0;}
+    button { margin: 10px 5px; padding: 10px 20px; font-size: 16px; }
+    #chart-container { max-width: 700px; margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <h1>雙音抑制(同向抑制)&對向抑制</h1>
+  <button id="btnToneA">音調A</button>
+  <button id="btnToneAB">音調A + 音調B(如果是雙音抑制則為同向音刺激；如果是對向抑制則為對向音刺激)</button>
+  <div id="chart-container">
+    <canvas id="pstChart"></canvas>
+  </div>
+  <script>
+    // 建立空的Chart實例先，稍後更新
+    const ctx = document.getElementById('pstChart').getContext('2d');
+    // 模擬 PST histogram 時間區間 (例如0~100ms，以10ms為bin寬)
+    const bins = Array.from({length: 10}, (_, i) => (i * 10) + 5); // 5, 15, ..., 95 (bin中心點代表時間)
+
+    // 模擬Tone A的放電率資料 (spikes count per bin)，模擬開始時放電高，後面逐漸下降以模擬適應
+    const toneA_data = [100, 75, 60, 45, 30, 20, 15, 10, 5, 3];
+
+    // 模擬Tone A + Tone B時雙音抑制後的放電率 (明顯下降)
+    const toneAB_data = toneA_data.map(v => Math.round(v * 0.4)); // 放電率降低到 40%
+
+    // 建立 Chart 實例，並設定 bars 間隙為0使直方圖連在一起
+    let pstChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: bins.map(b => b + ' ms'),
+        datasets: [{
+          label: '音調A',
+          data: toneA_data,
+          backgroundColor: 'rgba(54, 162, 235, 0.7)',
+          borderWidth: 0,
+          barPercentage: 1.0,
+          categoryPercentage: 1.0,
+        }, {
+          label: '音調A + 音調B',
+          data: toneAB_data,
+          backgroundColor: 'rgba(255, 99, 132, 0.7)',
+          borderWidth: 0,
+          barPercentage: 1.0,
+          categoryPercentage: 1.0,
+        }]
+      },
+      options: {
+        scales: {
+          x: {
+            stacked: true,
+            title: {
+              display: true,
+              text: '時間 (ms)'
+            },
+            grid: {
+              offset: false,
+              drawBorder: true
+            }
+          },
+          y: {
+            stacked: false,
+            beginAtZero: true,
+            max: 100,
+            title: {
+              display: true,
+              text: '放電次數 (0~100)'
+            },
+            ticks: {
+              stepSize: 10,
+              callback: function(value) { return value; }
+            }
+          }
+        },
+        plugins: {
+          tooltip: {
+            mode: 'index',
+            intersect: false
+          },
+          legend: {
+            display: true,
+            labels: {
+              boxWidth: 18,
+              padding: 10
+            }
+          }
+        },
+        responsive: true,
+        maintainAspectRatio: false,
+        barPercentage: 1.0,
+        categoryPercentage: 1.0,
+        animation: false
+      }
+    });
+
+    // 顯示ToneA資料（ToneA按鈕）
+    function showToneA() {
+      pstChart.data.datasets[0].hidden = false;
+      pstChart.data.datasets[1].hidden = true;
+      pstChart.update();
+    }
+
+    // 顯示ToneA+ToneB資料且有明顯下降（ToneA + ToneB按鈕）
+    function showToneAB() {
+      pstChart.data.datasets[0].hidden = true;
+      pstChart.data.datasets[1].hidden = false;
+      pstChart.update();
+    }
+
+    // 預設先顯示ToneA
+    showToneA();
+
+    // 綁定按鈕事件
+    document.getElementById('btnToneA').addEventListener('click', () => {
+      showToneA();
+    });
+    document.getElementById('btnToneAB').addEventListener('click', () => {
+      showToneAB();
+    });
+  </script>
+</body>
+</html>

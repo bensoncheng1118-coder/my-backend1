@@ -1,0 +1,305 @@
+<!DOCTYPE html> 
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>聲音頻率與耳蝸電位波形模擬</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    background: #faf3e0;
+    color: #222;
+  }
+  h1, h2 {
+    text-align: center;
+  }
+  .input-group {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  input[type="number"] {
+    font-size: 1.2rem;
+    padding: 0.3rem 0.6rem;
+    width: 140px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+  canvas {
+    width: 100%;
+    height: auto;
+    background: white;
+    border: 1px solid #bbb;
+    border-radius: 6px;
+    margin-bottom: 0.2rem; /* 稍微縮小底部距離給按鈕 */
+    box-sizing: border-box;
+  }
+  #topWaveform {
+    height: 160px;
+    margin-bottom: 2rem;
+  }
+  /* 調整三個小圖的canvas高度與統一大小 */
+  #cmspWaveform, #apWaveform, #combinedWaveform {
+    height: 160px  !important; /* 對齊上方topWaveform的高度 */
+  }
+  .label {
+    font-weight: bold;
+    margin-bottom: 0.2rem;
+    text-align: center;
+  }
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch; 
+    gap: 1rem;
+  }
+  .col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  /* 新增：將左邊兩張圖往下移動對齊右邊圖，改為9px向上1px */
+  .col:first-child,
+  .col:nth-child(2) {
+    margin-top: 5px; /* 上移1px */
+  }
+  .btn-reason {
+    background-color: #007acc;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 14px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    user-select: none;
+    transition: background-color 0.25s;
+  }
+  .btn-reason:hover {
+    background-color: #005999;
+  }
+  .reason-text {
+    max-width: 100px;
+    overflow-y: auto;  
+    font-size: 0.9rem;
+    color: #444;
+    display: none;
+    padding: 0 0.5rem 1rem 0.5rem;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<h1>聲音頻率與耳蝸電位波形模擬</h1>
+<div class="input-group">
+  <label for="freqInput">輸入頻率 (Hz): </label>
+  <input id="freqInput" type="number" min="20" max="20000" value="1000" step="1" />
+</div>
+
+<div class="container">
+
+  <div>
+    <div class="label">輸入頻率聲波波形</div>
+    <canvas id="topWaveform" width="800" height="160"></canvas>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <div class="label">CM + SP</div>
+      <canvas id="cmspWaveform" width="260" height="160"></canvas>
+      <button class="btn-reason" id="reasonBtn1">原因</button>
+      <div class="reason-text" id="reasonText1">外毛細胞對低頻與高頻皆敏感；內毛細胞只對低頻敏感，所以在低頻時是內毛細胞主導SP，而在高頻時是外毛細胞主導SP。低頻時可以完整去極化甚至去極化時間過長，所以圖形會出現正向偏移；高頻時還沒去極化完就馬上過極化，甚至過極化時間過長，所以圖形會出現負向偏移</div>
+    </div>
+    <div class="col">
+      <div class="label">AP</div>
+      <canvas id="apWaveform" width="260" height="160"></canvas>
+      <button class="btn-reason" id="reasonBtn2">原因</button>
+      <div class="reason-text" id="reasonText2">在基底膜向上偏移時毛細胞會去極化，並釋放神經傳遞物質使聽神經去極化(即放電)；在基底膜向下偏移時毛細胞會過極化，停止釋放神經傳遞物質使聽神經過極化，因此會出現在聲波波峰時會放電，在聲波波谷時會停止放電(即相位鎖定phase lock)。但需注意時間上的頻譜分析(相位鎖定)只有在5000hz以下才完整(可同時進行位置上的頻譜分析與時間上的頻譜分析)，高於5000Hz的聲波毛細胞來不及進行時間上的頻譜分析(相位鎖定)，只能進行位置上的頻譜分析(即耳蝸基底部偵測高頻；耳蝸頂部偵測低頻)</div>
+    </div>
+    <div class="col">
+      <div class="label">CM+SP+AP之綜合波形</div>
+      <canvas id="combinedWaveform" width="260" height="160"></canvas>
+      <button class="btn-reason" id="reasonBtn3">原因</button>
+      <div class="reason-text" id="reasonText3">在聲音刺激的最一開始會同時產生CM、SP與AP，但因為一開始的AP太大進而蓋過CM與SP，所以綜合圖形的一開始為AP的波峰(先負再正)，後面AP的大小會逐漸變小與穩定，CM與SP就會逐漸顯現出來</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 取得 canvas 與 context
+  const topCanvas = document.getElementById('topWaveform');
+  const topCtx = topCanvas.getContext('2d');
+  const cmspCanvas = document.getElementById('cmspWaveform');
+  const cmspCtx = cmspCanvas.getContext('2d');
+  const apCanvas = document.getElementById('apWaveform');
+  const apCtx = apCanvas.getContext('2d');
+  const combinedCanvas = document.getElementById('combinedWaveform');
+  const combinedCtx = combinedCanvas.getContext('2d');
+  const freqInput = document.getElementById('freqInput');
+
+  // 常數
+  const sampleRate = 44100;
+  const duration = 0.01; // 10ms 顯示時間
+
+  // 清空畫布
+  function clearCanvas(ctx, width, height) {
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, width, height);
+  }
+
+  // 畫水平軸
+  function drawAxis(ctx, width, height) {
+    ctx.strokeStyle = '#aaa';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, height / 2);
+    ctx.lineTo(width, height / 2);
+    ctx.stroke();
+  }
+
+  // 畫正弦波函式，cmsp根據頻率分段偏移：
+  // 4000Hz以下明顯正向偏移 +0.2，5000Hz以上明顯負向偏移 -0.2，中間線性過渡
+  function drawSineWave(ctx, width, height, frequency, amplitude=1, phase=0, offset=0, color='#0066cc') {
+    if (ctx === cmspCtx) {
+      if (frequency <= 4000) {
+        offset = 0.2;  // 明顯正向偏移
+      } else if (frequency >= 5000) {
+        offset = -0.2; // 明顯負向偏移
+      } else {
+        // 4000-5000Hz 線性插值偏移，從 +0.2 過渡到 -0.2
+        offset = 0.2 - (frequency - 4000)/(5000 - 4000) * 0.4;
+      }
+    }
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+
+    for(let i=0; i < width; i++) {
+      const t = i / width * duration;
+      const val = amplitude * Math.sin(2 * Math.PI * frequency * t + phase) + offset;
+      const y = height / 2 - val * (height / 2) * 0.9;
+      if(i === 0) ctx.moveTo(i, y);
+      else ctx.lineTo(i, y);
+    }
+    ctx.stroke();
+  }
+
+  // 動作電位 (AP) 脈衝波
+  function drawActionPotential(ctx, width, height, frequency, spikeWidth=4) {
+    ctx.strokeStyle = '#cc3300';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+
+    const samplesPerPeriod = width / (frequency * duration);
+    for(let i = 0; i < width; i++) {
+      let val = 0;
+      if ((i % samplesPerPeriod) < spikeWidth) val = 1;
+      const y = height / 2 - val * (height / 2) * 0.9;
+      if(i === 0) ctx.moveTo(i, height / 2);
+      if(val === 1) {
+        ctx.lineTo(i, y);
+        ctx.lineTo(i + 1, y);
+      } else {
+        ctx.lineTo(i, height / 2);
+      }
+    }
+    ctx.stroke();
+  }
+
+  // 綜合波形繪製 - 最前面只留 1 個 AP 脈衝波形
+  function drawCombined(ctx, width, height, frequency) {
+    ctx.strokeStyle = '#339900';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+
+    const samplesPerPeriod = width / (frequency * duration);
+    const apSpikeWidth = 4;
+
+    const apPeakAmplitude = 0.8;
+    const cmAmplitude = 0.25;
+
+    for(let i = 0; i < width; i++) {
+      const t = i / width * duration;
+
+      // 只留最前面一個 AP 脈衝波
+      let ap = 0;
+      if (i < apSpikeWidth) {
+        ap = -apPeakAmplitude;
+      }
+
+      const cm = cmAmplitude * Math.sin(2 * Math.PI * frequency * t);
+      const sp = 0.15 * Math.sin(4 * Math.PI * frequency * t) + 0.1;
+
+      let val = 0;
+      if(i < samplesPerPeriod) {
+        val = ap + sp;
+        if(val > 0) val = Math.min(val, 0.1);
+        if(val < ap) val = ap;
+      } else {
+        val = cm + sp;
+        if(val > apPeakAmplitude) val = apPeakAmplitude;
+        if(val < -apPeakAmplitude) val = -apPeakAmplitude;
+      }
+
+      const y = height / 2 - val * (height / 2) * 0.9;
+      if(i === 0) ctx.moveTo(i, y);
+      else ctx.lineTo(i, y);
+    }
+    ctx.stroke();
+  }
+
+  // 原因按鈕點擊事件 - 用 alert 彈出文字視窗
+  function addReasonAlert(buttonId, textId) {
+    const btn = document.getElementById(buttonId);
+    const textDiv = document.getElementById(textId);
+    btn.addEventListener('click', () => {
+      alert(textDiv.textContent.trim());
+    });
+  }
+
+  // 更新繪圖畫面
+  function updateWaveforms() {
+    const freq = parseFloat(freqInput.value);
+    if (!(freq >= 20 && freq <= 20000)) return;
+
+    clearCanvas(topCtx, topCanvas.width, topCanvas.height);
+    drawAxis(topCtx, topCanvas.width, topCanvas.height);
+    drawSineWave(topCtx, topCanvas.width, topCanvas.height, freq);
+
+    clearCanvas(cmspCtx, cmspCanvas.width, cmspCanvas.height);
+    drawAxis(cmspCtx, cmspCanvas.width, cmspCanvas.height);
+    drawSineWave(cmspCtx, cmspCanvas.width, cmspCanvas.height, freq, 0.7, 0, 0, '#800080');
+
+    clearCanvas(apCtx, apCanvas.width, apCanvas.height);
+    drawAxis(apCtx, apCanvas.width, apCanvas.height);
+    drawActionPotential(apCtx, apCanvas.width, apCanvas.height, freq);
+
+    clearCanvas(combinedCtx, combinedCanvas.width, combinedCanvas.height);
+    drawAxis(combinedCtx, combinedCanvas.width, combinedCanvas.height);
+    drawCombined(combinedCtx, combinedCanvas.width, combinedCanvas.height, freq);
+  }
+
+  // 綁定原因按鈕事件
+  addReasonAlert('reasonBtn1', 'reasonText1');
+  addReasonAlert('reasonBtn2', 'reasonText2');
+  addReasonAlert('reasonBtn3', 'reasonText3');
+
+  freqInput.addEventListener('input', updateWaveforms);
+
+  // 初始繪圖
+  updateWaveforms();
+
+</script>
+
+</body>
+</html>

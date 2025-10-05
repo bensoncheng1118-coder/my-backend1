@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>不趕快去讀書是在看三小</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    /* 背景改成空 */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      color: #ddd;
+      overflow: hidden;
+      position: relative;
+    }
+    /* 影片全螢幕背景樣式 */
+    #bgVideo {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      min-width: 100vw;
+      min-height: 100vh;
+      width: 80vw;
+      height: 80vh;
+      z-index: -1;
+      transform: translate(-50%, -50%);
+      object-fit: cover;
+      cursor: pointer;
+    }
+    /* 移除原本圓形按鈕的 CSS */
+    #bgButtons {
+      display: none !important;
+    }
+    /* 以下為原樣式，不變 */
+    .menu-icon {
+      font-size: 28px;
+      cursor: pointer;
+      padding: 12px 20px;
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      color: gray !important;
+      background-color: white !important;
+      z-index: 10000;
+      user-select: none;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: none !important;
+      border-radius: 20px;
+    }
+    .menu-icon:hover,
+    .menu-icon:active {
+      background-color: black !important;
+      transform: scale(1.05);
+      box-shadow: none !important;
+    }
+    .menu-icon:hover span,
+    .menu-icon:hover span::before,
+    .menu-icon:hover span::after {
+      background-color: gray !important;
+    }
+    .menu-icon span,
+    .menu-icon span::before,
+    .menu-icon span::after {
+      display: block;
+      background-color: gray !important;
+      height: 3px;
+      width: 24px;
+      border-radius: 2px;
+      position: relative;
+      transition: all 0.3s ease-in-out;
+    }
+    .menu-icon span::before,
+    .menu-icon span::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      background-color: gray !important;
+    }
+    .menu-icon span::before {
+      top: -8px;
+    }
+    .menu-icon span::after {
+      top: 8px;
+    }
+    .menu-icon.active span {
+      background-color: transparent !important;
+    }
+    .menu-icon.active span::before {
+      transform: rotate(45deg);
+      top: 0;
+    }
+    .menu-icon.active:hover span::before,
+    .menu-icon.active:hover span::after {
+      background-color: white !important;
+    }
+    .menu-icon.active span::after {
+      transform: rotate(-45deg);
+      top: 0;
+    }
+    .top-nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background-color: transparent !important;
+      box-shadow: none !important;
+      z-index: 1200;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr) auto; /* 改成六等分加auto */
+      align-items: center;
+      padding: 8px 200px 8px 200px;
+      box-sizing: border-box;
+      gap: 24px;
+      color: #ddd;
+    }
+
+    .top-nav .page-banner {
+      padding: 0;
+      margin: 0;
+      height: 36px;
+      display: flex;
+      align-items: center;
+    }
+    .top-nav .page-banner img {
+      background-color: transparent !important;
+      height: 36px;
+      width: auto;
+      display: block;
+      border-radius: 8px;
+      box-shadow: none !important;
+      user-select: none;
+    }
+    .top-nav form {
+      margin-left: 0;
+      display: flex;
+      align-items: center;
+      height: 36px;
+      flex-shrink: 0;
+    }
+
+    
+    /* 調整上排六個按鈕 a 樣式 */
+    .top-nav > .nav-item a {
+      background-color: transparent !important;
+      box-shadow: none !important;
+      color: gray !important;
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      transition: all 0.3s ease;
+      font-weight: bold;
+      height: 36px;
+      line-height: 20px;
+      display: flex;
+      align-items: center;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      justify-content: center;
+      position: relative;
+      user-select: none;
+      cursor: pointer;
+    }
+    /* 滑鼠懸停變黑底白字 */
+    .top-nav > .nav-item a:hover {
+      background-color: black !important;
+      color: white !important;
+      text-shadow: none !important;
+      transform: translateY(-3px);
+      box-shadow: none !important;
+    }
+    .top-nav > .nav-item {
+      display: flex;
+      justify-content: center;
+      position: relative;
+    }
+    .top-nav > .logo-search {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 10px;
+      margin-left: auto;
+      padding_right: 0;
+      width: auto;
+    }
+    
+    /* 對搜尋輸入框新增語音輸入按鈕的尺寸微調 */
+    .top-nav input[type="text"] {
+      background-color: transparent !important;
+      padding: 6px 10px;
+      font-size: 1rem;
+      border-radius: 4px 0 0 4px;
+      border: none!important;
+      outline: none;
+      height: 28px;
+      color: black !important;
+      width: 160px;
+      box-sizing: border-box;
+      text-shadow: none;
+    }
+    .top-nav input[type="text"]::-webkit-input-placeholder {
+      color: #ccc;
+    }
+    /* 修改搜尋按鈕 */
+    .top-nav button {
+      padding: 6px 14px;
+      font-size: 1rem;
+      border: none!important;
+      border-radius: 0 4px 4px 0;
+      background-color: transparent !important;
+      color: white !important;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s;
+      height: 28px;
+      box-sizing: border-box;
+      border-top: none;
+      border-bottom: none;
+      border-left: 1px solid #555;
+      display: flex;
+      align-items: flex-start;
+      padding-top: 2px;
+      text-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+    }
+    .top-nav button:hover {
+      background-color: black !important;
+      color: white !important;
+    }
+    .dropdown-selects {
+      position: absolute;
+      top: 44px;
+      left: 0;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      padding: 12px 16px;
+      display: none;
+      z-index: 1300;
+      color: black;
+      min-width: 280px;
+      user-select: none;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .dropdown-selects:hover {
+      background-color: black;
+      color: white;
+    }
+    .dropdown-selects select {
+      width: 80px;
+      margin-right: 8px;
+      padding: 6px 8px;
+      font-size: 1rem;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+      background-color: white;
+      color: black;
+      cursor: pointer;
+      transition: background-color 0.3s, color 0.3s;
+      user-select: none;
+    }
+    .dropdown-selects select:hover:not(:disabled),
+    .dropdown-selects select:focus:not(:disabled) {
+      background-color: black;
+      color: white;
+      outline: none;
+    }
+    .dropdown-selects select:disabled {
+      background-color: #eee;
+      color: #aaa;
+      cursor: not-allowed;
+    }
+    .dropdown-selects select option {
+      border-radius: 20px;
+      padding: 6px;
+    }
+    
+    .sidebar {
+    width: 190px;
+    height: 100vh;
+    background-color: #faf3e0;
+    padding: 50px 10px 10px 10px; /* 上50px，左右10px */
+    overflow-y: auto;
+    position: fixed;   /* 保持固定定位 */
+    top: 0;
+    left: -300px;      /* 初始隱藏在畫面左邊 */
+    transition: left 0.3s ease;
+    border-radius: 20px;
+    z-index: 9999;
+}
+    .sidebar.active {
+      left: 0;
+    }
+    .sidebar a {
+      padding: 12px 20px;
+      text-decoration: none;
+      font-size: 1rem;
+      color: black;
+      display: block;
+      transition: 0.3s;
+      position: relative;
+      overflow: hidden;
+      border-radius: 20px;
+    }
+    .sidebar a::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 0%;
+      height: 100%;
+      background-color: black;
+      z-index: -1;
+      transition: width 0.3s ease;
+      color: white;
+    }
+    .sidebar a:hover{
+      color: #f5f5f5!important;
+    }
+    .sidebar a:hover::after {
+      width: 100%;
+    }
+    .experience-wrapper {
+      display: none !important;
+    }
+    /* 新增波形繪製按鈕樣式 */
+    #waveBtn {
+      grid-column: 6; /* 放第6格 */
+      background: transparent !important;
+      border: 1px solid gray;
+      border-radius: 20px;
+      color: gray;
+      font-weight: bold;
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      height: 36px;
+      align-self: center;
+      justify-self: center;
+    }
+    #waveBtn:hover {
+      background-color: black !important;
+      color: white !important;
+    }
+    /* 新增登入與註冊按鈕樣式 */
+    #authButtons {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: center;
+      margin-left: 16px;
+      text-decoration: none; /* 去除底線 */
+    }
+    
+    #authButtons a {
+  text-decoration: none; /* 去除 a 預設底線 */
+}
+    #authButtons button {
+      display: flex;               /* 使用 flex 排列 */
+      justify-content: center;     /* 文字水平置中 */
+      align-items: center;         /* 文字垂直置中 */
+      white-space: nowrap;         /* 防止換行 */
+      width: auto;                 /* 或固定寬度，看你需求 */
+      background-color: transparent;
+      border: 1px solid gray;
+      color: gray;
+      border-radius: 20px;
+      padding: 6px 16px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      height: 36px;
+      text-decoration: none; /* 去除底線 */
+    }
+    #authButtons button:hover {
+      background-color: black;
+      color: white;
+    }
+    /* 登入/註冊表單模態視窗 */
+    #login-form, #register-form {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(30, 30, 30, 0.95);
+      color: #ddd;
+      padding: 24px 36px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.7);
+      z-index: 1500;
+      width: 320px;
+      box-sizing: border-box;
+    }
+    #login-form input, #register-form input {
+      width: 100%;
+      margin: 8px 0 16px 0;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #555;
+      background: #111;
+      color: #ddd;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    #login-form button, #register-form button {
+      width: 100%;
+      margin-bottom: 8px;
+    }
+    #authSwitchButton {
+      background: none;
+      border: none;
+      color: #89c9ff;
+      text-decoration: underline;
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 0;
+      margin-top: 8px;
+      width: auto;
+    }
+    #accountManagement {
+  display: none;
+  color: white;
+  background: #222;
+  padding: 10px;
+  border-radius: 8px;
+  position: absolute;
+  top: 100%;     /* 調整讓區塊跑到使用者名稱下方 */
+  left: 0;
+  z-index: 1001; /* 確保層級比使用者名稱高 */
+  white-space: nowrap; /* 如果內容不要換行 */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5); /* 可加陰影提升視覺分離 */
+}
+    #userNameDisplay {
+    cursor: pointer;
+    position: relative;
+    display: inline-block;
+    z-index: 1000;
+}
+   
+.dropdown {
+    position: relative;    /* 參考父元素定位 */
+}
+.dropbtn {
+    display: block;
+    padding: 8px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #000;
+}
+.dropdown-content {
+    display: none;
+    position: absolute;      /* 相對父元素定位 */
+    top: 100%;               /* 緊貼父按鈕下方 */
+    left: 0;                 /* 與父按鈕左對齊 */
+    min-width: 200px;
+    background-color: #fff;
+    border-radius: 12px 12px 12px 12px; /* 下方圓角 */
+    box-shadow:none;
+    z-index: 1000;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 5px 0;
+}
+.dropdown-content a {
+    display: block;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: #000;
+}
+.dropdown-content a:hover {
+    background-color: #555;  /* 深灰底 */
+    color: #000;             /* 黑字 */
+}
+/* 懸停顯示 */
+.dropdown:hover .dropdown-content,
+.dropdown-content:hover {
+    display: flex;
+}
+  </style>
+</head>
+<body>
+  <!-- 將原 #bgButtons 整組刪除，保留空的 bgContainer -->
+
+  <div id="bgContainer"></div>
+
+  <!-- 新增全螢幕影片，點擊跳轉 t_course.html -->
+  <video id="bgVideo" autoplay muted loop playsinline>
+    <source src="/static/video/vg1.mp4" type="video/mp4" />
+    您的瀏覽器不支援影片播放。
+  </video>
+
+  <script>
+    // 點擊影片跳轉
+    document.getElementById('bgVideo').addEventListener('click', function() {
+      window.location.href = '/t_course';
+    });
+  </script>
+
+  <!-- 原本內容照貼，不動 -->
+  <div class="menu-icon" id="menuIcon"><span></span></div>
+  <div class="top-nav">
+    <div class="page-banner"><a href="https://aud-slp.mmc.edu.tw/">
+    <img src="/static/image/logo.png" alt="馬偕聽語系橫幅圖" />
+  </a></div>
+
+    <div class="nav-item"><a href="/general_knowledge" id="generalKnowledgeBtn">通識</a></div>
+    <div class="nav-item"><a href="#" onclick="location.href='/admin/comments'">問題回覆區</a></div>
+    <div class="nav-item"><a href="/grade_calculator">成績計算機</a></div>
+    <div class="nav-item"><a href="/teach">網站使用說明</a></div>
+    <div class="logo-search">
+      
+      <form action="/search" method="get" id="searchForm">
+        <input 
+          type="text" 
+          name="q" 
+          placeholder="輸入關鍵字搜尋..." 
+          required 
+          id="searchInput" 
+          x-webkit-speech 
+          lang="zh-TW"
+          autocomplete="off"
+        />
+        <!-- 新增語音輸入按鈕 -->
+        <button type="button" id="voiceBtn" title="語音輸入" aria-label="語音輸入" style="border:none; background:transparent; color:white; font-size:20px; cursor:pointer; padding:0 6px;">
+          🎤
+        </button>
+        <button type="submit">搜尋</button>
+      </form>
+      <!-- 新增登入註冊按鈕容器 -->
+      <div id="authButtons">
+  {% if username %}
+    <span id="userNameDisplay" style="color: gray; font-weight: bold; cursor: pointer;">{{ username }}
+    <div id="accountManagement" style="display:none; color: white; background: #222; padding: 10px; border-radius: 8px; position: absolute;">
+      <p>帳號管理頁面</p>
+      <a href="{{ url_for('logout') }}" id="logoutLink" style="display: block; width: 100px; margin: 0 auto; text-align: center; text-decoration: none; color:white; ">
+    登出
+</a>
+
+
+    </div>
+   </span>
+  {% else %}
+    <a href="{{ url_for('login') }}"><button>登入</button></a>
+    <a href="{{ url_for('register') }}"><button>註冊</button></a>
+  {% endif %}
+    </div>   
+    </div>
+  </div>
+  <!-- 登入表單 -->
+  <div id="login-form" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+    <h2 id="loginTitle">登入</h2>
+    <input type="text" id="login-username" placeholder="帳號" required />
+    <input type="password" id="login-password" placeholder="密碼" required />
+    <button id="submit-login">提交登入</button>
+    <button id="to-register-from-login" type="button" id="authSwitchButton">尚未註冊？點此註冊</button>
+  </div>
+  <!-- 註冊表單 -->
+  <div id="register-form" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="registerTitle">
+    <h2 id="registerTitle">註冊</h2>
+    <input type="text" id="reg-name" placeholder="名稱" required />
+    <input type="text" id="reg-username" placeholder="帳號" required />
+    <input type="password" id="reg-password" placeholder="密碼" required />
+    <button id="submit-register">提交註冊</button>
+    <button id="to-login-from-register" type="button" id="authSwitchButton">已有帳號？點此登入</button>
+  </div>
+  <div id="sidebar" class="sidebar">
+    
+    <a href="{{ url_for('static', filename='calendar.pdf') }}" target="_blank">校園行事曆</a>
+    <a href="/appointment">預約系統</a>
+    <a href="/speech_translate">英文即時字幕</a>
+   
+    <!-- 新增純音聽力檢查模擬器按鈕 -->
+    <a href="check">純音聽力檢查模擬器</a>
+    
+    <!-- 新增跳轉到 ear.html 按鈕 -->
+    
+    
+    <!-- 新增基礎聽力科學按鈕 -->
+    <div class="dropdown">
+        <a href="#" class="dropbtn">基礎聽力科學圖形工具</a>
+        <div class="dropdown-content">
+            <a href="/wave">波型繪製</a>
+            <a href="/wave4">拍音與振幅調變</a>
+            <a href="/wave2">聲強與聲壓衰減</a>
+            <a href="/wave3">耳蝸電位</a>
+            <a href="/two_tone">雙音抑制(同向抑制)&對向抑制</a>
+            <a href="/cochlear">rate-level function</a>
+        </div>
+    </div>
+    <!-- 言語科學 -->
+  <div class="dropdown">
+    <a href="#" class="dropbtn">言語科學圖形工具</a>
+    <div class="dropdown-content">
+      <a href="/vowels">母音特性</a>
+    </div>
+  </div>
+  </div>
+  <div class="top-section" id="topSection"></div>
+  <div class="bottom-section">
+    <div class="select-wrapper" id="noteSection" style="display:none;">
+      <select id="gradeSelectBottom" style="display:none; border-radius: 20px;">
+        <option value="">請選擇年級</option>
+        <option value="大一">大一</option>
+        <option value="大二">大二</option>
+        <option value="大三">大三</option>
+      </select>
+      <select id="semesterSelectBottom" disabled style="display:none; border-radius: 20px;">
+        <option value="">請選擇學期</option>
+      </select>
+      <select id="subjectSelectBottom" disabled style="display:none; border-radius: 20px;">
+        <option value="">請選擇科目</option>
+      </select>
+    </div>
+    <div class="experience-wrapper" id="experienceSection">
+      <!-- 隱藏狀態，不會顯示 -->
+      <button onclick="alert('學歷頁面建置中')">學歷</button>
+      <button onclick="alert('經歷頁面建置中')">經歷</button>
+      <button onclick="alert('專業證照頁面建置中')">專業證照</button>
+    </div>
+  </div>
+  <script>
+    window.addEventListener('load', () => {
+      const sidebar = document.getElementById("sidebar");
+      const menuIcon = document.getElementById("menuIcon");
+      const notesDropdown = document.getElementById("notesDropdown");
+      const gradeSelect = document.getElementById("gradeSelect");
+      const semesterSelect = document.getElementById("semesterSelect");
+      const subjectSelect = document.getElementById("subjectSelect");
+      // 原 images 輪播已無用，以下仍保留不動
+      const images = [
+        '/static/image/bg1.jpg',
+      ];
+      const bgContainer = document.createElement('div');
+      bgContainer.id = 'bgContainer';
+      document.body.prepend(bgContainer);
+      const bgDivs = images.map((src, idx) => {
+        const div = document.createElement('div');
+        div.classList.add('bg-image');
+        if (idx === 0) div.classList.add('active');
+        div.style.backgroundImage = `url('${src}')`;
+        bgContainer.appendChild(div);
+        return div;
+      });
+      let currentIndex = 0;
+      setInterval(() => {
+        bgDivs[currentIndex].classList.remove('active');
+        currentIndex = (currentIndex + 1) % bgDivs.length;
+        bgDivs[currentIndex].classList.add('active');
+      }, 5000);
+      menuIcon.addEventListener("click", () => {
+        sidebar.classList.toggle("active");
+        menuIcon.classList.toggle("active");
+      });
+      document.body.addEventListener("click", (event) => {
+        if (
+          sidebar.classList.contains("active") &&
+          (sidebar.contains(event.target) || menuIcon.contains(event.target))
+        )
+          return;
+        if (
+          notesDropdown.style.display === "block" &&
+          (notesDropdown.contains(event.target))
+        )
+          return;
+        if (sidebar.classList.contains("active")) {
+          sidebar.classList.remove("active");
+          menuIcon.classList.remove("active");
+        }
+        if (notesDropdown.style.display === "block") {
+          notesDropdown.style.display = "none";
+        }
+      });
+      gradeSelect.addEventListener("change", () => {
+        semesterSelect.innerHTML = '<option value="">請選擇學期</option>';
+        subjectSelect.innerHTML = '<option value="">請選擇科目</option>';
+        const grade = gradeSelect.value;
+        if (grade && semesterData[grade]) {
+          semesterData[grade].forEach((sem) => {
+            const opt = document.createElement("option");
+            opt.value = sem;
+            opt.textContent = sem;
+            semesterSelect.appendChild(opt);
+          });
+          semesterSelect.disabled = false;
+        } else {
+          semesterSelect.disabled = true;
+        }
+        subjectSelect.disabled = true;
+      });
+      semesterSelect.addEventListener("change", () => {
+        subjectSelect.innerHTML = '<option value="">請選擇科目</option>';
+        const key = `${gradeSelect.value}-${semesterSelect.value}`;
+        if (subjectData[key]) {
+          subjectData[key].forEach((subj) => {
+            const opt = document.createElement("option");
+            opt.value = subj;
+            opt.textContent = subj;
+            subjectSelect.appendChild(opt);
+          });
+          subjectSelect.disabled = false;
+        } else {
+          subjectSelect.disabled = true;
+        }
+      });
+      // 新增點擊課程後跳轉到course_detail.html
+      subjectSelect.addEventListener("change", () => {
+        const subject = subjectSelect.value;
+        if (subject) {
+          // 使用 encodeURIComponent 進行 URL 編碼防止錯誤
+          const encodedSubject = encodeURIComponent(subject);
+          // 導向 /course/<course_name> 路由
+          window.location.href = `/course/${encodedSubject}`;
+        }
+      });
+      const sidebarNotesBtn = document.getElementById("sidebarNotesBtn");
+      sidebarNotesBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (sidebar.classList.contains("active")) {
+          sidebar.classList.remove("active");
+          menuIcon.classList.remove("active");
+        }
+      });
+      const semesterData = {
+        大一: ["上學期", "下學期"],
+        大二: ["上學期", "下學期"],
+        大三: ["上學期", "下學期"],
+      };
+      const subjectData = {
+        "大一-上學期": [
+          "溝通障礙學導論",
+          "普通心理學",
+          "語言學概論",
+          "聽語科學導論",
+          "解剖學",
+        ],
+        "大一-下學期": [
+          "基礎聽力科學",
+          "言語科學",
+          "生理學",
+          "聽語神經解剖機轉",
+          "基礎臨床實務論(二)",
+          "兒童語言發展學",
+          "語音音韻學",
+        ],
+        "大二-上學期": ["未知", "未知", "未知"],
+        "大二-下學期": ["未知", "未知", "未知"],
+        "大三-上學期": ["未知", "未知", "未知"],
+        "大三-下學期": ["未知", "未知", "未知"],
+      };
+      // 新增語音辨識功能，並在辨識結束後直接提交搜尋表單
+      const voiceBtn = document.getElementById('voiceBtn');
+      const searchInput = document.getElementById('searchInput');
+      const searchForm = document.getElementById('searchForm');
+      let recognition;
+      if ('webkitSpeechRecognition' in window) {
+        recognition = new webkitSpeechRecognition();
+      } else if ('SpeechRecognition' in window) {
+        recognition = new SpeechRecognition();
+      } else {
+        recognition = null;
+      }
+      if (recognition) {
+        recognition.lang = 'zh-TW';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.onstart = () => {
+          voiceBtn.style.color = 'red'; // 語音輸入中變紅色提示
+        };
+        recognition.onresult = (event) => {
+          if(event.results.length > 0) {
+            searchInput.value = event.results[0][0].transcript;
+          }
+        };
+        recognition.onerror = (event) => {
+          console.error('語音辨識錯誤:', event.error);
+        };
+        recognition.onend = () => {
+          voiceBtn.style.color = 'white'; // 結束恢復白色
+          // 語音輸入完畢自動提交搜尋表單
+          if (searchInput.value.trim() !== "") {
+            searchForm.submit();
+          }
+        };
+        voiceBtn.addEventListener('click', () => {
+          if(voiceBtn.style.color === 'red') {
+            recognition.stop();
+          } else {
+            recognition.start();
+          }
+        });
+      } else {
+        // 若不支持語音API，按鈕點擊喊提醒
+        voiceBtn.addEventListener('click', () => {
+          alert('此瀏覽器不支援語音辨識功能');
+        });
+      }
+      // 新增波形繪製按鈕跳轉事件
+      const waveBtn = document.getElementById('waveBtn');
+      if (waveBtn) {
+        waveBtn.addEventListener('click', () => {
+          window.location.href = '/wave';  // 路由名稱對應 flask 路由
+        });
+      }
+      // 登入與註冊按鈕及表單邏輯
+      const loginBtn = document.getElementById('login-btn');
+      const registerBtn = document.getElementById('register-btn');
+      const loginForm = document.getElementById('login-form');
+      const registerForm = document.getElementById('register-form');
+      const submitLoginBtn = document.getElementById('submit-login');
+      const submitRegisterBtn = document.getElementById('submit-register');
+      const toRegisterFromLoginBtn = document.getElementById('to-register-from-login');
+      const toLoginFromRegisterBtn = document.getElementById('to-login-from-register');
+      const authButtonsDiv = document.getElementById('authButtons');
+      // 顯示登入表單
+      loginBtn.onclick = () => {
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+      };
+      // 顯示註冊表單
+      registerBtn.onclick = () => {
+        registerForm.style.display = 'block';
+        loginForm.style.display = 'none';
+      };
+      // 登入頁面切換到註冊頁面
+      toRegisterFromLoginBtn.onclick = () => {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'block';
+      };
+      // 註冊頁面切換到登入頁面
+      toLoginFromRegisterBtn.onclick = () => {
+        registerForm.style.display = 'none';
+        loginForm.style.display = 'block';
+      };
+      // 註冊用戶並儲存資料
+      submitRegisterBtn.onclick = () => {
+        const name = document.getElementById('reg-name').value.trim();
+        const username = document.getElementById('reg-username').value.trim();
+        const password = document.getElementById('reg-password').value.trim();
+        if (!name || !username || !password) {
+          alert('請填寫所有欄位');
+          return;
+        }
+        let users = JSON.parse(localStorage.getItem('users') || '{}');
+        if (users[username]) {
+          alert('帳號已存在');
+          return;
+        }
+        users[username] = { name, password, actions: [] };
+        localStorage.setItem('users', JSON.stringify(users));
+        alert('註冊成功，請登入');
+        registerForm.style.display = 'none';
+        loginForm.style.display = 'block';
+      };
+      // 登入驗證與切換按鈕為用戶名稱
+      submitLoginBtn.onclick = () => {
+        const username = document.getElementById('login-username').value.trim();
+        const password = document.getElementById('login-password').value.trim();
+        let users = JSON.parse(localStorage.getItem('users') || '{}');
+        if (!users[username]) {
+          alert('帳號不存在，請先註冊');
+          return;
+        }
+        if (users[username].password !== password) {
+          alert('密碼錯誤');
+          return;
+        }
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'none';
+        // 將登入及註冊按鈕改為用戶名稱顯示
+        authButtonsDiv.innerHTML = `<span style="color: gray; font-weight: bold; cursor: default;">${users[username].name}</span>`;
+        // 還原操作
+  const actions = users[username].actions || [];
+  restoreUserActions(actions);
+};
+  // 監聽操作、記錄並存在 localStorage
+  function recordUserAction(username, action) {
+    let users = JSON.parse(localStorage.getItem('users') || '{}');
+    if (!users[username]) users[username] = {name: username, password: '', actions: []};
+    users[username].actions = users[username].actions || [];
+    users[username].actions.push(action);
+    localStorage.setItem('users', JSON.stringify(users));
+  }
+  // 還原操作的示範函式
+  function restoreUserActions(actions) {
+    actions.forEach(action => {
+      if (action.type === 'selectChange') {
+        const element = document.getElementById(action.elementId);
+        if (element) {
+          element.value = action.value;
+          // 可觸發 change 事件，使介面同步更新
+          element.dispatchEvent(new Event('change'));
+        }
+      }
+      // 其他操作類型依需求增加
+    });
+  }
+  // 監聽年級/學期/科目選擇改變，並紀錄
+  window.addEventListener('load', () => {
+    const username = document.getElementById('login-username')?.value.trim() || '';
+    ['gradeSelect', 'semesterSelect', 'subjectSelect', 'gradeSelectBottom', 'semesterSelectBottom', 'subjectSelectBottom'].forEach(selectId => {
+      const selectElem = document.getElementById(selectId);
+      if (selectElem) {
+        selectElem.addEventListener('change', (e) => {
+          if(username){
+            recordUserAction(username, {
+              type: 'selectChange',
+              elementId: selectId,
+              value: e.target.value,
+              timestamp: new Date().toISOString(),
+            });
+          }
+        });
+      }
+    });
+  });
+</script>
+<script>
+  // 漢堡選單控制
+  const menuIcon = document.getElementById("menuIcon");
+  const sidebar = document.getElementById("sidebar");
+  menuIcon.addEventListener("click", () => {
+    menuIcon.classList.toggle("active");
+    sidebar.classList.toggle("active");
+  });
+  // 帳號名稱控制
+  const userNameDisplay = document.getElementById("userNameDisplay");
+  const accountManagement = document.getElementById("accountManagement");
+  if (userNameDisplay && accountManagement) {
+    userNameDisplay.addEventListener("click", (e) => {
+      e.stopPropagation(); // 避免冒泡
+      accountManagement.style.display =
+        accountManagement.style.display === "block" ? "none" : "block";
+    });
+    // 點擊外部區域關閉
+    document.addEventListener("click", (e) => {
+      if (!userNameDisplay.contains(e.target)) {
+        accountManagement.style.display = "none";
+      }
+    });
+  }
+document.querySelectorAll('.dropdown').forEach(drop => {
+    const btn = drop.querySelector('.dropbtn');
+    const menu = drop.querySelector('.dropdown-content');
+    btn.addEventListener('click', (e) => {
+        e.preventDefault(); // 防止跳頁
+        // 判斷目前是否已經顯示
+        const isVisible = menu.style.display === 'flex';
+        // 收起其他子選單
+        document.querySelectorAll('.dropdown-content').forEach(m => {
+            if (m !== menu) m.style.display = 'none';
+        });
+        // 切換當前子選單顯示/收起
+        menu.style.display = isVisible ? 'none' : 'flex';
+    });
+});
+// 點擊頁面其他地方收起所有子選單
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.dropdown')) {
+        document.querySelectorAll('.dropdown-content').forEach(m => m.style.display = 'none');
+    }
+});
+</script>
+</body>
+</html>

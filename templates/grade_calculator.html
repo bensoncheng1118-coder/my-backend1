@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>成績計算機</title>
+  <style>
+    /* 全頁面白色背景 */
+    body {
+      font-family: "Microsoft JhengHei", Arial, sans-serif;
+      background-color: #faf3e0; /* 白底 */
+      background-image: none; /* 不用背景素材 */
+      background-repeat: no-repeat;
+      background-attachment: initial;
+      margin: 0;
+      padding: 40px 20px;
+      color: #555555; /* 文字改成灰色較適合白底 */
+      position: relative;
+    }
+
+    /* 返回首頁按鈕 - 透明底黑字，超圓潤 */
+    .back-home-button {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background-color: transparent;
+      color: #000000;
+      font-weight: bold;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 30px; /* 超圓潤 */
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-block;
+      line-height: 1.2;
+    }
+
+    .back-home-button:hover {
+      background-color: #000000; /* 滑鼠懸停黑底 */
+      color: #ffffff; /* 白字 */
+    }
+
+    /* 內容區塊透明底 */
+    .content-wrapper {
+      background: transparent;
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 900px;
+      margin: auto;
+      box-shadow: none; /* 去除陰影 */
+      color: #555555;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333333;
+      margin-bottom: 20px;
+    }
+
+    .btn-group {
+      margin: 10px 0;
+      text-align: center;
+    }
+
+    /* 其餘按鈕（年級、學期及提交）透明底灰字 */
+    .btn-group button,
+    button[type="submit"] {
+      padding: 8px 16px;
+      margin: 0 5px;
+      cursor: pointer;
+      border: 1px solid #888888;
+      background-color: transparent;
+      color: #777777;
+      border-radius: 50px;
+      transition: all 0.3s ease;
+      font-size: 1rem;
+      font-weight: normal;
+    }
+
+    /* 按鈕啟用狀態字色和邊框較黑 */
+    .btn-group button.active {
+      color: #333333;
+      border-color: #333333;
+      font-weight: bold;
+    }
+
+    /* 滑鼠懸停按鈕變黑底白字 */
+    .btn-group button:hover,
+    button[type="submit"]:hover {
+      background-color: #000000;
+      color: #ffffff;
+      border-color: #000000;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      color: #555555;
+    }
+
+    th, td {
+      border: 1px solid #cccccc;
+      padding: 6px;
+      text-align: center;
+    }
+
+    input[type="text"] {
+      width: 60px;
+      text-align: center;
+      background-color: #f3f3f3;
+      border: 1px solid #ccc;
+      color: #333333;
+      border-radius: 4px;
+      padding: 3px;
+      transition: all 0.3s ease;
+    }
+
+    input[type="text"]::placeholder {
+      color: #999999;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #000000;
+      background-color: #ffffff;
+      color: #000000;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 1.3em;
+      font-weight: bold;
+      text-align: center;
+      color: #444444;
+      text-shadow: none;
+    }
+  </style>
+</head>
+<body>
+
+  <a href="{{ url_for('index') }}" class="back-home-button">返回首頁</a>
+  <div class="content-wrapper">
+    <h1>成績計算機</h1>
+
+    <!-- 年級選擇 -->
+    <div class="btn-group" id="yearButtons">
+      <button onclick="selectYear('大一')" class="active">大一</button>
+      <button onclick="selectYear('大二')">大二</button>
+      <button onclick="selectYear('大三')">大三</button>
+    </div>
+
+    <!-- 學期選擇 -->
+    <div class="btn-group" id="semesterButtons">
+      <button onclick="selectSemester('上學期')" class="active">上學期</button>
+      <button onclick="selectSemester('下學期')">下學期</button>
+    </div>
+
+    <form id="gradeForm" onsubmit="calculateAverage(event)">
+      <div id="subjectTableContainer"></div>
+      <div style="text-align: center;">
+        <button type="submit">接受現實</button>
+      </div>
+    </form>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const subjects = {
+      "大一": {
+        "上學期": [
+          { name: "溝通障礙學導論", credit: 2 },
+          { name: "普通心理學", credit: 2 },
+          { name: "語言學概論", credit: 2 },
+          { name: "聽語科學導論", credit: 1 },
+          { name: "基礎臨床實務論(一)", credit: 2 },
+          { name: "解剖學", credit: 2 },
+          { name: "解剖學實驗", credit: 1 },
+          { name: "馬偕講座", credit: 2 },
+          { name: "通識", credit: 2 },
+          { name: "通識", credit: 2 },
+          { name: "英文(一)", credit: 2 },
+          { name: "中文閱讀與思辯", credit: 2 },
+          { name: "健康體適能運動操作", credit: 1 }
+        ],
+        "下學期": [
+          { name: "語音視讀與聽辨轉錄", credit: 1 },
+          { name: "基礎聽力科學", credit: 3 },
+          { name: "言語科學", credit: 2 },
+          { name: "生理學", credit: 3 },
+          { name: "生理學實驗", credit: 1 },
+          { name: "聽語神經解剖機轉", credit: 2 },
+          { name: "基礎臨床實務論(二)", credit: 1 },
+          { name: "兒童語言發展學", credit: 3 },
+          { name: "語音音韻學", credit: 2 },
+          { name: "通識", credit: 2 },
+          { name: "通識", credit: 2 },
+          { name: "英文(二)", credit: 2 },
+          { name: "中文閱讀與寫作", credit: 2 },
+          { name: "普通體育", credit: 1 }
+        ]
+      },
+      "大二": {
+        "上學期": [],
+        "下學期": []
+      },
+      "大三": {
+        "上學期": [],
+        "下學期": []
+      }
+    };
+
+    let currentYear = "大一";
+    let currentSemester = "上學期";
+
+    function selectYear(year) {
+      currentYear = year;
+      document.querySelectorAll("#yearButtons button").forEach(btn => {
+        btn.classList.toggle("active", btn.textContent === year);
+      });
+      updateSubjects();
+    }
+
+    function selectSemester(semester) {
+      currentSemester = semester;
+      document.querySelectorAll("#semesterButtons button").forEach(btn => {
+        btn.classList.toggle("active", btn.textContent === semester);
+      });
+      updateSubjects();
+    }
+
+    function updateSubjects() {
+      const container = document.getElementById("subjectTableContainer");
+      const currentSubjects = subjects[currentYear][currentSemester];
+
+      if (!currentSubjects || currentSubjects.length === 0) {
+        container.innerHTML = "<p style='text-align:center; color: #555555;'>尚未輸入此學期科目</p>";
+        return;
+      }
+
+      let tableHTML = `<table><thead><tr><th>科目名稱</th><th>學分</th><th>成績 (可填無)</th></tr></thead><tbody>`;
+      currentSubjects.forEach((subj, index) => {
+        tableHTML += `<tr>
+          <td>${subj.name}</td>
+          <td>${subj.credit}</td>
+          <td><input type="text" name="score${index}" placeholder="成績" /></td>
+        </tr>`;
+      });
+      tableHTML += "</tbody></table>";
+      container.innerHTML = tableHTML;
+    }
+
+    function calculateAverage(event) {
+      event.preventDefault();
+      const currentSubjects = subjects[currentYear][currentSemester];
+      let total = 0;
+      let totalCredits = 0;
+
+      currentSubjects.forEach((subj, index) => {
+        const input = document.querySelector(`[name='score${index}']`).value.trim();
+        if (input && input.toLowerCase() !== "無") {
+          const score = parseFloat(input);
+          if (!isNaN(score)) {
+            total += score * subj.credit;
+            totalCredits += subj.credit;
+          }
+        }
+      });
+
+      const resultDiv = document.getElementById("result");
+      if (totalCredits === 0) {
+        resultDiv.textContent = "請輸入有效成績後再計算。";
+      } else {
+        const avg = (total / totalCredits).toFixed(2);
+        resultDiv.textContent = `加權平均成績為：${avg}`;
+      }
+    }
+
+    window.onload = updateSubjects;
+  </script>
+</body>
+</html>

@@ -1066,7 +1066,9 @@ def teach():
 def google_verify():
     # __file__ 是 app.py 的路徑，dirname 可取得目前專案根目錄
     return send_from_directory(os.path.dirname(__file__), 'google7cbf2a4d23dab379.html')
-
+@app.route('/sitemap.xml')
+def sitemap():
+    return send_from_directory(os.path.dirname(__file__), 'sitemap.xml')
 
 print(app.url_map)
 if __name__ == '__main__':

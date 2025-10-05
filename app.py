@@ -1060,6 +1060,11 @@ def comments():
 def teach():
     return render_template('teach.html')
 
+@app.route("/googleabcdef1234567890.html")
+def google_verify():
+    return app.send_static_file("googleabcdef1234567890.html")
+
+
 print(app.url_map)
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

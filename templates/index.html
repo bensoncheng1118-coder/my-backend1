@@ -480,25 +480,7 @@
     display: flex;
 }
 
-/* 影片鋪滿整個畫面 */
-  #bg-video {
-    position: fixed;
-    top: 0;
-    left: 0;
-    min-width: 100%;
-    min-height: 100%;
-    width: auto;
-    height: auto;
-    z-index: -1; /* 讓影片在背景 */
-    object-fit: cover; /* 保持比例鋪滿 */
-  }
 
-  /* 讓頁面內容不被影片遮住 */
-  body {
-    margin: 0;
-    color: white; /* 視影片亮度可改為黑色 */
-    background: transparent;
-  }
     
   </style>
 </head>
@@ -507,11 +489,7 @@
 
   <div id="bgContainer"></div>
 
- <video autoplay muted loop id="bg-video">
-  <source src="https://raw.githubusercontent.com/bensoncheng1118-coder/my-backend1/main/videos/background.mp4
-" type="video/mp4">
-  你的瀏覽器不支援影片播放。
-</video>
+ 
 
 
   <script>
@@ -988,4 +966,5 @@ document.addEventListener('click', (e) => {
 </script>
 </body>
 </html>
+
 

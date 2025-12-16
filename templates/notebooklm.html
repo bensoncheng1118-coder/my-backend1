@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大學學期課程導航</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            /* White Glass Theme Variables - Neutral */
+            --glass-bg: rgba(255, 255, 255, 0.6);
+            --glass-border: rgba(255, 255, 255, 1);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.03);
+            --text-color: #333333;
+            --btn-bg: rgba(255, 255, 255, 0.7);
+            --btn-hover-bg: rgba(255, 255, 255, 0.95);
+            --btn-border: rgba(200, 200, 200, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            /* Pure White/Light Gray background */
+            background: #fcfcfc;
+            background-image: radial-gradient(#e6e6e6 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 2rem;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* Subtle neutral blobs for glass effect depth */
+        body::before,
+        body::after {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(80px);
+            opacity: 0.4;
+            animation: float 12s infinite ease-in-out alternate;
+        }
+
+        body::before {
+            background: #f0f0f0;
+            /* Light Gray */
+            top: -10%;
+            left: -10%;
+        }
+
+        body::after {
+            background: #e0e0e0;
+            /* Slightly Darker Gray */
+            bottom: -10%;
+            right: -10%;
+            animation-delay: -6s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(40px, 60px);
+            }
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 2rem;
+        }
+
+        .semester-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: var(--glass-shadow);
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .semester-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.08);
+            border-color: #ffffff;
+        }
+
+        .card-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        .card-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 3px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 2px;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            width: 100%;
+        }
+
+        .glass-btn {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 1rem 1.5rem;
+            background: var(--btn-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--btn-border);
+            border-radius: 16px;
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            min-height: 80px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        .glass-btn:hover {
+            background: var(--btn-hover-bg);
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+            border-color: #ffffff;
+        }
+
+        .glass-btn:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- Freshman 1st Semester (7 buttons) -->
+        <div class="semester-card">
+            <h2 class="card-title">大一上學期</h2>
+            <div class="button-grid">
+                <a href="#" class="glass-btn">科目待定</a>
+                <a href="#" class="glass-btn">科目待定</a>
+                <a href="#" class="glass-btn">科目待定</a>
+                <a href="#" class="glass-btn">科目待定</a>
+                <a href="#" class="glass-btn">科目待定</a>
+                <a href="#" class="glass-btn">科目待定</a>
+                <a href="#" class="glass-btn">科目待定</a>
+            </div>
+        </div>
+
+        <!-- Freshman 2nd Semester (8 buttons) -->
+        <div class="semester-card">
+            <h2 class="card-title">大一下學期</h2>
+            <div class="button-grid">
+                <a href="#" class="glass-btn">科目待定</a>
+                <a href="#" class="glass-btn">科目待定</a>
+                <a href="#" class="glass-btn">科目待定</a>
+                <a href="#" class="glass-btn">科目待定</a>
+                <a href="#" class="glass-btn">科目待定</a>
+                <a href="#" class="glass-btn">科目待定</a>
+                <a href="#" class="glass-btn">科目待定</a>
+                <a href="#" class="glass-btn">科目待定</a>
+            </div>
+        </div>
+
+        <!-- Sophomore 1st Semester (8 buttons total) -->
+        <div class="semester-card">
+            <h2 class="card-title">大二上學期</h2>
+            <div class="button-grid">
+                <a href="https://notebooklm.google.com/notebook/16b9fc21-f238-4297-80c3-7def50bc1b5a" target="_blank"
+                    class="glass-btn">語音聲學</a>
+                <a href="https://notebooklm.google.com/notebook/1b96720f-495f-4ba8-9753-b348d15190e3" target="_blank"
+                    class="glass-btn">嬰幼兒及學前兒童<br>語言障礙學</a>
+                <a href="https://notebooklm.google.com/notebook/be7cea7a-c194-45bf-91d3-5261848c1954" target="_blank"
+                    class="glass-btn">構音與音韻障礙</a>
+                <a href="#" class="glass-btn">科目待定</a>
+                <a href="#" class="glass-btn">科目待定</a>
+                <a href="#" class="glass-btn">科目待定</a>
+                <a href="#" class="glass-btn">科目待定</a>
+                <a href="#" class="glass-btn">科目待定</a>
+            </div>
+        </div>
+
+        <!-- Sophomore 2nd Semester -->
+        <div class="semester-card">
+            <h2 class="card-title">大二下學期</h2>
+            <div class="button-grid">
+                <a href="#" class="glass-btn">科目待定</a>
+                <a href="#" class="glass-btn">科目待定</a>
+                <a href="#" class="glass-btn">科目待定</a>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

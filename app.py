@@ -1070,6 +1070,10 @@ def google_verify():
 def sitemap():
     return send_from_directory(os.path.dirname(__file__), 'sitemap.xml')
 
+@app.route('/notebooklm')
+def notebooklm():
+    return render_template('notebooklm.html')
+
 print(app.url_map)
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

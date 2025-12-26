@@ -1,0 +1,56 @@
+[
+  {
+    "title": "兩個獨立樣本T檢定",
+    "description": "兩項類別變項vs等距變項",
+    "code": "proc ttest data=資料檔名(不用副檔名);\nclass 類別變項; \nvar 等距變項;\nrun ;\n",
+    "id": 1
+  },
+  {
+    "title": "ANOVA(平衡實驗設計，即每一組樣本數皆相同)",
+    "description": "三項或三項以上類別變項vs等距變項",
+    "code": "proc anova;\nclass 類別變項;\nmodel 等距變項 = 類別變項;\nmeans 類別變項 / 事後檢定方法;\nrun;\n",
+    "id": 2
+  },
+  {
+    "title": "ANOVA(不平衡實驗設計，即有一組以上樣本數不同)",
+    "description": "三項或三項以上類別變項vs等距變項",
+    "code": "proc glm;\nclass 類別變項;\nmodel 等距變項 = 類別變項;\nmeans 類別變項 / 事後檢定方法;\nrun;\n",
+    "id": 3
+  },
+  {
+    "title": "建立新檔案(保留或刪除現存檔案的某些資料)",
+    "description": "建立新檔案(保留或刪除現存檔案的某些資料)",
+    "code": "data 新檔名(不用副檔名); \nset 現存可用檔名(不用副檔名);\nif 保留的資料條件(如有多個資料條件可用\"and\"連接);\nif 刪除的資料條件(如有多個資料條件可用\"and\"連接) then delete;\nrun;",
+    "id": 4
+  },
+  {
+    "title": "建立新檔案(將現存可用的檔案依照某變項排序)",
+    "description": "建立新檔案(將現存可用的檔案依照某變項排序)",
+    "code": "data 新檔名(不用副檔名); \nset 現存可用的檔名(不用副檔名);  \nproc sort; \nby 變項名;\nrun;",
+    "id": 5
+  },
+  {
+    "title": "計算某個檔案中等距變項的平均值與標準差(整體分析)",
+    "description": "計算某個檔案中等距變項的平均值與標準差",
+    "code": "proc means data=檔案名稱(不用副檔名);\nvar 等距變項;\nrun;\n",
+    "id": 6
+  },
+  {
+    "title": "計算某個排序好的檔案中等距變項的平均值與標準差(分層分析)",
+    "description": "計算某個排序好的檔案中等距變項的平均值與標準差(分層分析)",
+    "code": "proc means data=依照類別變項排序過的檔名(不用副檔名);\nvar等距變項;\nby類別變項;\nrun;\n",
+    "id": 7
+  },
+  {
+    "title": "皮爾森相關係數分析法(統計相關係數)",
+    "description": "等距變項vs等距變項",
+    "code": "proc corr;\nvar 等距變項1 等距變項2;\nrun;\n",
+    "id": 8
+  },
+  {
+    "title": "皮爾森相關係數分析法(畫圖)",
+    "description": "等距變項vs等距變項",
+    "code": "proc gplot;\nplot 等距變項1*等距變項2;\nrun;",
+    "id": 9
+  }
+]

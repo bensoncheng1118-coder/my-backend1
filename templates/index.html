@@ -563,44 +563,7 @@
         </button>
         <button type="submit">搜尋</button>
       </form>
-      <!-- 新增登入註冊按鈕容器 -->
-      <div id="authButtons">
-  {% if username %}
-    <span id="userNameDisplay" style="color: gray; font-weight: bold; cursor: pointer;">{{ username }}
-    <div id="accountManagement" style="display:none; color: white; background: #222; padding: 10px; border-radius: 8px; position: absolute;">
-      <p>帳號管理頁面</p>
-      <a href="{{ url_for('logout') }}" id="logoutLink" style="display: block; width: 100px; margin: 0 auto; text-align: center; text-decoration: none; color:white; ">
-    登出
-</a>
-
-
-    </div>
-   </span>
-   {% else %}
-    <a href="{{ url_for('login') }}"><button>登入</button></a>
-    <a href="{{ url_for('register') }}"><button>註冊</button></a>
-  {% endif %}
-    </div>   
-    </div>
-  </div>
-  <!-- 登入表單 -->
-  <div id="login-form" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
-    <h2 id="loginTitle">登入</h2>
-    <input type="text" id="login-username" placeholder="帳號" required />
-    <input type="password" id="login-password" placeholder="密碼" required />
-    <button id="submit-login">提交登入</button>
-    <button id="to-register-from-login" type="button" id="authSwitchButton">尚未註冊？點此註冊</button>
-  </div>
-  <!-- 註冊表單 -->
-  <div id="register-form" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="registerTitle">
-    <h2 id="registerTitle">註冊</h2>
-    <input type="text" id="reg-name" placeholder="名稱" required />
-    <input type="text" id="reg-username" placeholder="帳號" required />
-    <input type="password" id="reg-password" placeholder="密碼" required />
-    <button id="submit-register">提交註冊</button>
-    <button id="to-login-from-register" type="button" id="authSwitchButton">已有帳號？點此登入</button>
-  </div>
-  
+     
   <div id="sidebar" class="sidebar">
     
     <a href="{{ url_for('static', filename='calendar.pdf') }}" target="_blank">校園行事曆</a>
@@ -1001,6 +964,7 @@ document.addEventListener('click', (e) => {
 </script>
 </body>
 </html>
+
 
 
 

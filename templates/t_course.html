@@ -1,497 +1,489 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Study Drive </title>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet" />
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
-<style>
-  body {
-    margin: 0;
-    font-family: 'Roboto', sans-serif;
-    background: #fff;
-    color: #202124;
-    overflow-x: hidden;
-  }
-  header {
-    display: flex;
-    align-items: center;
-    height: 56px;
-    background-color: #fff;
-    border-bottom: 1px solid #dadce0;
-    padding: 0 16px;
-    box-sizing: border-box;
-    position: relative;
-    z-index: 1001;
-  }
-  .material-icons {
-    font-size: 28px;
-    cursor: pointer;
-    user-select: none;
-  }
-  .logo {
-    font-weight: 500;
-    font-size: 20px;
-    margin-left: 12px;
-    color: #1967d2;
-    user-select: none;
-  }
-  .search-bar {
-    margin-left: 24px;
-    flex-grow: 1;
-    max-width: 600px;
-  }
-  input.search-input {
-    width: 100%;
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px solid #dadce0;
-    font-size: 16px;
-    outline: none;
-    transition: box-shadow 0.2s;
-  }
-  input.search-input:focus {
-    box-shadow: 0 0 4px #1967d2;
-    border-color: #1967d2;
-  }
-  main {
-    padding: 16px;
-  }
-  table.file-list {
-    border-collapse: collapse;
-    width: 100%;
-    margin-bottom: 24px;
-  }
-  table.file-list th, table.file-list td {
-    text-align: left;
-    padding: 12px 8px;
-    border-bottom: 1px solid #e8eaed;
-    vertical-align: middle;
-  }
-  table.file-list th {
-    font-weight: 500;
-    color: #5f6368;
-    font-size: 14px;
-    text-transform: uppercase;
-  }
-  table.file-list thead tr th:not(:first-child) {
-    display: none; /* 隱藏修改日期與大小表頭 */
-  }
-  .file-row {
-    cursor: pointer;
-    user-select: none;
-  }
-  .file-row:hover {
-    background-color: #f1f3f4;
-  }
-  .file-name {
-    font-size: 16px;
-    color: #202124;
-    display: inline-flex;
-    align-items: center;
-  }
-  .file-icon {
-    color: #5f6368;
-    vertical-align: middle;
-    font-size: 24px;
-    margin-right: 16px;
-  }
-  table.file-list tbody tr td:not(:first-child) {
-    display: none; /* 隱藏修改日期與大小欄位 */
-  }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Study Drive </title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background: #fff;
+            color: #202124;
+            overflow-x: hidden;
+        }
 
-  #apps-button {
-    position: fixed;
-    top: 12px;
-    right: 16px;
-    font-size: 28px;
-    cursor: pointer;
-    user-select: none;
-    color: #5f6368;
-    z-index: 1100;
-  }
+        header {
+            display: flex;
+            align-items: center;
+            height: 56px;
+            background-color: #fff;
+            border-bottom: 1px solid #dadce0;
+            padding: 0 16px;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 1001;
+        }
 
-  #modal {
-    display: none;
-    position: fixed;
-    z-index: 1200;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.4);
-  }
+        .material-icons {
+            font-size: 28px;
+            cursor: pointer;
+            user-select: none;
+        }
 
-  #modal-content {
-    background-color: #fff;
-    margin: 8% auto;
-    padding: 20px;
-    border-radius: 8px;
-    border: 1px solid #888;
-    max-width: 500px;
-    position: relative;
-  }
-  #modal-close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  #modal-close:hover,
-  #modal-close:focus {
-    color: black;
-    text-decoration: none;
-    outline: none;
-  }
+        .logo {
+            font-weight: 500;
+            font-size: 20px;
+            margin-left: 12px;
+            color: #1967d2;
+            user-select: none;
+            text-decoration: none;
+            cursor: pointer;
+        }
 
-  .course-btn {
-    background-color: transparent;
-    color: #1967d2;
-    border: 1px solid transparent;
-    cursor: pointer;
-    padding: 8px 16px;
-    font-size: 1rem;
-    border-radius: 4px;
-    transition: background-color 0.3s, color 0.3s;
-    margin: 4px 8px 8px 0;
-  }
-  .course-btn:hover,
-  .course-btn:focus {
-    background-color: #e8f0fe;
-    color: #174ea6;
-    border-color: #174ea6;
-    outline: none;
-  }
+        main {
+            padding: 16px;
+        }
 
-  #message-board {
-    display: none;
-    margin-top: 10px;
-  }
-  #message-board textarea {
-    width: 100%;
-    height: 120px;
-    resize: vertical;
-    padding: 8px;
-    font-size: 14px;
-    box-sizing: border-box;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    font-family: 'Roboto', sans-serif;
-  }
-  #message-board button {
-    margin-top: 8px;
-    padding: 8px 18px;
-    background-color: #1967d2;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 500;
-  }
-  #message-board button:hover {
-    background-color: #174ea6;
-  }
+        table.file-list {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 24px;
+        }
 
-  #back-button {
-    position: absolute;
-    bottom: 1px;
-    right: 20px;
-    background-color: transparent;
-    border: 1px solid transparent;
-    color: #1967d2;
-    font-weight: 500;
-    font-size: 1rem;
-    cursor: pointer;
-    padding: 8px 16px;       /* 與 .course-btn 一致 */
-    border-radius: 4px;
-    transition: background-color 0.3s, color 0.3s;
-  }
-  #back-button:hover,
-  #back-button-message:hover {
-    background-color: #e8f0fe;
-    color: #174ea6;
-  }
+        table.file-list th,
+        table.file-list td {
+            text-align: left;
+            padding: 12px 8px;
+            border-bottom: 1px solid #e8eaed;
+            vertical-align: middle;
+        }
 
-#back-button-message{position: absolute;
-    bottom: 1px;
-    right: 20px;
-    background-color: transparent;
-    border: 1px solid transparent;
-    color: #1967d2;
-    font-weight: 500;
-    font-size: 1rem;
-    cursor: pointer;
-    padding: 8px 16px;       /* 與 .course-btn 一致 */
-    border-radius: 4px;
-    transition: background-color 0.3s, color 0.3s;
-}
-</style>
+        table.file-list th {
+            font-weight: 500;
+            color: #5f6368;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        table.file-list thead tr th:not(:first-child) {
+            display: none;
+            /* 隱藏修改日期與大小表頭 */
+        }
+
+        .file-row {
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-radius: 8px;
+        }
+
+        .file-row:hover {
+            background-color: #f1f3f4;
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1;
+            position: relative;
+        }
+
+        .file-name {
+            font-size: 16px;
+            color: #202124;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .file-icon {
+            color: #5f6368;
+            vertical-align: middle;
+            font-size: 24px;
+            margin-right: 16px;
+        }
+
+        table.file-list tbody tr td:not(:first-child) {
+            display: none;
+            /* 隱藏修改日期與大小欄位 */
+        }
+
+        #apps-button {
+            position: fixed;
+            top: 12px;
+            right: 16px;
+            font-size: 28px;
+            cursor: pointer;
+            user-select: none;
+            color: #5f6368;
+            z-index: 1100;
+        }
+
+        #modal {
+            display: none;
+            position: fixed;
+            z-index: 1200;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        #modal-content {
+            background-color: #fff;
+            margin: 8% auto;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #888;
+            max-width: 500px;
+            position: relative;
+        }
+
+        #modal-close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #modal-close:hover,
+        #modal-close:focus {
+            color: black;
+            text-decoration: none;
+            outline: none;
+        }
+
+        .course-btn {
+            background-color: transparent;
+            color: #1967d2;
+            border: 1px solid transparent;
+            cursor: pointer;
+            padding: 8px 16px;
+            font-size: 1rem;
+            border-radius: 20px;
+            transition: background-color 0.3s, color 0.3s, transform 0.2s;
+            margin: 4px 8px 8px 0;
+        }
+
+        .course-btn:hover,
+        .course-btn:focus {
+            background-color: #e8f0fe;
+            color: #174ea6;
+            border-color: #174ea6;
+            outline: none;
+            transform: translateY(-2px);
+        }
+
+        #message-board {
+            display: none;
+            margin-top: 10px;
+        }
+
+        #message-board textarea {
+            width: 100%;
+            height: 120px;
+            resize: vertical;
+            padding: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        #message-board button {
+            margin-top: 8px;
+            padding: 8px 18px;
+            background-color: #1967d2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        #message-board button:hover {
+            background-color: #174ea6;
+        }
+
+        #back-button {
+            position: absolute;
+            bottom: 1px;
+            right: 20px;
+            background-color: transparent;
+            border: 1px solid transparent;
+            color: #1967d2;
+            font-weight: 500;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        #back-button:hover,
+        #back-button-message:hover {
+            background-color: #e8f0fe;
+            color: #174ea6;
+        }
+
+        #back-button-message {
+            position: absolute;
+            bottom: 1px;
+            right: 20px;
+            background-color: transparent;
+            border: 1px solid transparent;
+            color: #1967d2;
+            font-weight: 500;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+    </style>
 </head>
+
 <body>
 
-<header>
-  <div class="logo">Study Drive</div>
-  <div class="search-bar">
-    <input class="search-input" type="search" placeholder="搜尋您的檔案" />
-  </div>
-  <span id="apps-button" class="material-icons" aria-label="應用程式" tabindex="0" role="button">apps</span>
-</header>
+    <header>
+        <a href="https://drive.google.com/drive/folders/1Sv4IFVYWN7cAfrSQWDR3ZvjMXkt7Vw9-" target="_blank"
+            style="text-decoration:none;">
+            <div class="logo">Study Drive</div>
+        </a>
+        <span id="apps-button" class="material-icons" aria-label="應用程式" tabindex="0" role="button"
+            style="margin-left: auto;">apps</span>
+    </header>
 
-<main>
-  <table class="file-list" role="grid" aria-label="檔案列表">
-    <thead>
-      <tr>
-        <th>檔案名稱</th>
-        <th>修改日期</th>
-        <th>大小</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr
-        class="file-row"
-        tabindex="0"
-        onclick="window.open('https://drive.google.com/drive/folders/1Quyg3y5d1vxp5Vzo7s6lgjfHTYMycInu', '_blank')"
-      >
-        <td>
-          <span class="material-icons file-icon" aria-hidden="true">folder</span>
-          <span class="file-name">大一上學期</span>
-        </td>
-        <td class="file-date">2025/9/28</td>
-        <td class="file-size">24 KB</td>
-      </tr>
-      <tr
-        class="file-row"
-        tabindex="0"
-        onclick="window.open('https://drive.google.com/drive/folders/1oKXgwixYfIOtqtlueijHH9pZsvgFUF1N', '_blank')"
-      >
-        <td>
-          <span class="material-icons file-icon" aria-hidden="true">folder</span>
-          <span class="file-name">大一下學期</span>
-        </td>
-        <td class="file-date">2025/8/15</td>
-        <td class="file-size">1.2 MB</td>
-      </tr>
-      <tr
-        class="file-row"
-        tabindex="0"
-        onclick="window.open('https://drive.google.com/drive/folders/1Aw30owh1LPhbzt4jAdO3O6tja5w0fjII', '_blank')"
-      >
-        <td>
-          <span class="material-icons file-icon" aria-hidden="true">folder</span>
-          <span class="file-name">大二上學期</span>
-        </td>
-        <td class="file-date">2025/7/28</td>
-        <td class="file-size">3.4 MB</td>
-      </tr>
-      <tr
-        class="file-row"
-        tabindex="0"
-        onclick="window.open('https://drive.google.com/drive/folders/1usbWiUDNFFiI3vLvJL4HfpCk_qUpqOla', '_blank')"
-      >
-        <td>
-          <span class="material-icons file-icon" aria-hidden="true">folder</span>
-          <span class="file-name">大二下學期</span>
-        </td>
-        <td class="file-date">2025/7/10</td>
-        <td class="file-size">2.0 MB</td>
-      </tr>
-      <tr
-        class="file-row"
-        tabindex="0"
-        onclick="window.open('https://drive.google.com/drive/folders/1WzBMse9GLYP4_PXlG0QTuOiII13g8Dy0', '_blank')"
-      >
-        <td>
-          <span class="material-icons file-icon" aria-hidden="true">folder</span>
-          <span class="file-name">大三上學期</span>
-        </td>
-        <td class="file-date">2025/6/10</td>
-        <td class="file-size">—</td>
-      </tr>
-      <tr
-        class="file-row"
-        tabindex="0"
-        onclick="window.open('https://drive.google.com/drive/folders/1IEusjwK1rZbOAceYKVH7lCj85DllSkOH', '_blank')"
-      >
-        <td>
-          <span class="material-icons file-icon" aria-hidden="true">folder</span>
-          <span class="file-name">大三下學期</span>
-        </td>
-        <td class="file-date">2025/5/15</td>
-        <td class="file-size">—</td>
-      </tr>
-       <tr
-        class="file-row"
-        tabindex="0"
-        onclick="window.open('https://drive.google.com/drive/folders/1WAScrWic5vHayJsIxxTBAXrakOVIrx98', '_blank')"
-      >
-        <td>
-          <span class="material-icons file-icon" aria-hidden="true">folder</span>
-          <span class="file-name">國考</span>
-        </td>
-        <td class="file-date">2025/9/28</td>
-        <td class="file-size">24 KB</td>
-      </tr>
-      <tr
-        class="file-row"
-        tabindex="0"
-        onclick="window.open('https://drive.google.com/drive/folders/1isU0xxrp17iHOUB4nekXwmrJmISp3xEd', '_blank')"
-      >
-        <td>
-          <span class="material-icons file-icon" aria-hidden="true">folder</span>
-          <span class="file-name">評估工具</span>
-        </td>
-        <td class="file-date">2025/9/28</td>
-        <td class="file-size">24 KB</td>
-      </tr>
-    </tbody>
-  </table>
-</main>
+    <main>
+        <table class="file-list" role="grid" aria-label="檔案列表">
+            <thead>
+                <tr>
+                    <th>檔案名稱</th>
+                    <th>修改日期</th>
+                    <th>大小</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="file-row" tabindex="0"
+                    onclick="window.open('https://drive.google.com/drive/folders/1Quyg3y5d1vxp5Vzo7s6lgjfHTYMycInu', '_blank')">
+                    <td>
+                        <span class="material-icons file-icon" aria-hidden="true">folder</span>
+                        <span class="file-name">大一上學期</span>
+                    </td>
+                    <td class="file-date">2025/9/28</td>
+                    <td class="file-size">24 KB</td>
+                </tr>
+                <tr class="file-row" tabindex="0"
+                    onclick="window.open('https://drive.google.com/drive/folders/1oKXgwixYfIOtqtlueijHH9pZsvgFUF1N', '_blank')">
+                    <td>
+                        <span class="material-icons file-icon" aria-hidden="true">folder</span>
+                        <span class="file-name">大一下學期</span>
+                    </td>
+                    <td class="file-date">2025/8/15</td>
+                    <td class="file-size">1.2 MB</td>
+                </tr>
+                <tr class="file-row" tabindex="0"
+                    onclick="window.open('https://drive.google.com/drive/folders/1Aw30owh1LPhbzt4jAdO3O6tja5w0fjII', '_blank')">
+                    <td>
+                        <span class="material-icons file-icon" aria-hidden="true">folder</span>
+                        <span class="file-name">大二上學期</span>
+                    </td>
+                    <td class="file-date">2025/7/28</td>
+                    <td class="file-size">3.4 MB</td>
+                </tr>
+                <tr class="file-row" tabindex="0"
+                    onclick="window.open('https://drive.google.com/drive/folders/1usbWiUDNFFiI3vLvJL4HfpCk_qUpqOla', '_blank')">
+                    <td>
+                        <span class="material-icons file-icon" aria-hidden="true">folder</span>
+                        <span class="file-name">大二下學期</span>
+                    </td>
+                    <td class="file-date">2025/7/10</td>
+                    <td class="file-size">2.0 MB</td>
+                </tr>
+                <tr class="file-row" tabindex="0"
+                    onclick="window.open('https://drive.google.com/drive/folders/1WzBMse9GLYP4_PXlG0QTuOiII13g8Dy0', '_blank')">
+                    <td>
+                        <span class="material-icons file-icon" aria-hidden="true">folder</span>
+                        <span class="file-name">大三上學期</span>
+                    </td>
+                    <td class="file-date">2025/6/10</td>
+                    <td class="file-size">—</td>
+                </tr>
+                <tr class="file-row" tabindex="0"
+                    onclick="window.open('https://drive.google.com/drive/folders/1IEusjwK1rZbOAceYKVH7lCj85DllSkOH', '_blank')">
+                    <td>
+                        <span class="material-icons file-icon" aria-hidden="true">folder</span>
+                        <span class="file-name">大三下學期</span>
+                    </td>
+                    <td class="file-date">2025/5/15</td>
+                    <td class="file-size">—</td>
+                </tr>
+                <tr class="file-row" tabindex="0"
+                    onclick="window.open('https://drive.google.com/drive/folders/1WAScrWic5vHayJsIxxTBAXrakOVIrx98', '_blank')">
+                    <td>
+                        <span class="material-icons file-icon" aria-hidden="true">folder</span>
+                        <span class="file-name">國考</span>
+                    </td>
+                    <td class="file-date">2025/9/28</td>
+                    <td class="file-size">24 KB</td>
+                </tr>
+                <tr class="file-row" tabindex="0"
+                    onclick="window.open('https://drive.google.com/drive/folders/1isU0xxrp17iHOUB4nekXwmrJmISp3xEd', '_blank')">
+                    <td>
+                        <span class="material-icons file-icon" aria-hidden="true">folder</span>
+                        <span class="file-name">評估工具</span>
+                    </td>
+                    <td class="file-date">2025/9/28</td>
+                    <td class="file-size">24 KB</td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
 
-<!-- modal 小視窗 -->
-<div id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-hidden="true" style="display:none;">
-  <div id="modal-content">
-    <span id="modal-close" aria-label="關閉">&times;</span>
-    <div id="course-list">
-      <h2 id="modalTitle">選擇課程</h2>
-      <button class="course-btn" onclick="showCourses('大一上學期')">大一上學期</button>
-      <button class="course-btn" onclick="showCourses('大一下學期')">大一下學期</button>
-      <button class="course-btn" onclick="showCourses('大二上學期')">大二上學期</button>
-      <button class="course-btn" onclick="showCourses('大二下學期')">大二下學期</button>
-      <button class="course-btn" onclick="showCourses('大三上學期')">大三上學期</button>
-      <button class="course-btn" onclick="showCourses('大三下學期')">大三下學期</button>
-      <button class="course-btn" onclick="showCourses('國考')">國考</button>
-      <button class="course-btn" onclick="showCourses('國考')">評估工具</button>
+    <!-- modal 小視窗 -->
+    <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-hidden="true"
+        style="display:none;">
+        <div id="modal-content">
+            <span id="modal-close" aria-label="關閉">&times;</span>
+            <div id="course-list">
+                <h2 id="modalTitle">選擇課程</h2>
+                <button class="course-btn" onclick="showCourses('大一上學期')">大一上學期</button>
+                <button class="course-btn" onclick="showCourses('大一下學期')">大一下學期</button>
+                <button class="course-btn" onclick="showCourses('大二上學期')">大二上學期</button>
+                <button class="course-btn" onclick="showCourses('大二下學期')">大二下學期</button>
+                <button class="course-btn" onclick="showCourses('大三上學期')">大三上學期</button>
+                <button class="course-btn" onclick="showCourses('大三下學期')">大三下學期</button>
+                <button class="course-btn" onclick="showCourses('國考')">國考</button>
+                <button class="course-btn" onclick="showCourses('國考')">評估工具</button>
+            </div>
+            <div id="specific-courses" style="display:none; position:relative;">
+                <h3 id="specific-title"></h3>
+                <div id="buttons-container"></div>
+                <button id="back-button" class="course-btn" onclick="backToCourseList()">返回</button>
+            </div>
+            <div id="message-board" style="display:none; margin-top: 10px; position:relative;">
+                <h2 id="board-title"></h2>
+                <textarea placeholder="請輸入留言..."></textarea>
+                <button onclick="alert('留言已送出')">送出留言</button>
+            </div>
+        </div>
     </div>
-    <div id="specific-courses" style="display:none; position:relative;">
-      <h3 id="specific-title"></h3>
-      <div id="buttons-container"></div>
-      <button id="back-button" class="course-btn" onclick="backToCourseList()">返回</button>
-    </div>
-    <div id="message-board" style="display:none; margin-top: 10px; position:relative;">
-      <h2 id="board-title"></h2>
-      <textarea placeholder="請輸入留言..."></textarea>
-      <button onclick="alert('留言已送出')">送出留言</button>
-    </div>
-  </div>
-</div>
 
-<script>
-  const appsButton = document.getElementById('apps-button');
-  const modal = document.getElementById('modal');
-  const modalClose = document.getElementById('modal-close');
-  const courseList = document.getElementById('course-list');
-  const specificCourses = document.getElementById('specific-courses');
-  const messageBoard = document.getElementById('message-board');
-  const boardTitle = document.getElementById('board-title');
-  const buttonsContainer = document.getElementById('buttons-container');
-  const specificTitle = document.getElementById('specific-title');
+    <script>
+        const appsButton = document.getElementById('apps-button');
+        const modal = document.getElementById('modal');
+        const modalClose = document.getElementById('modal-close');
+        const courseList = document.getElementById('course-list');
+        const specificCourses = document.getElementById('specific-courses');
+        const messageBoard = document.getElementById('message-board');
+        const boardTitle = document.getElementById('board-title');
+        const buttonsContainer = document.getElementById('buttons-container');
+        const specificTitle = document.getElementById('specific-title');
 
-  const courseData = {
-    '大一上學期': [
-      '溝通障礙學導論',
-      '普通心理學',
-      '語言學概論',
-      '聽語科學導論',
-      '解剖學'
-    ],
-    '大一下學期': [
-      '基礎聽力科學',
-      '言語科學',
-      '生理學',
-      '聽語神經解剖機轉',
-      '基礎臨床實務論(二)',
-      '兒童語言發展學',
-      '語音音韻學'
-    ],
-    '大二上學期': [
-      '行為治療原理與技術',
-      '語音聲學',
-      '嬰幼兒與學前兒童語言障礙學',
-      '生物統計學',
-      '構音與音韻異常'
-    ],
-    '大二下學期': [
-      '尚未更新',
-      '尚未更新',
-      '尚未更新'
-    ],
-    '大三上學期': [
-      '尚未更新',
-      '尚未更新',
-      '尚未更新'
-    ],
-    '大三下學期': [
-      '尚未更新',
-      '尚未更新',
-      '尚未更新'
-    ]
-  };
+        const courseData = {
+            '大一上學期': [
+                '溝通障礙學導論',
+                '普通心理學',
+                '語言學概論',
+                '聽語科學導論',
+                '解剖學'
+            ],
+            '大一下學期': [
+                '基礎聽力科學',
+                '言語科學',
+                '生理學',
+                '聽語神經解剖機轉',
+                '基礎臨床實務論(二)',
+                '兒童語言發展學',
+                '語音音韻學'
+            ],
+            '大二上學期': [
+                '行為治療原理與技術',
+                '語音聲學',
+                '嬰幼兒與學前兒童語言障礙學',
+                '生物統計學',
+                '構音與音韻異常'
+            ],
+            '大二下學期': [
+                '尚未更新',
+                '尚未更新',
+                '尚未更新'
+            ],
+            '大三上學期': [
+                '尚未更新',
+                '尚未更新',
+                '尚未更新'
+            ],
+            '大三下學期': [
+                '尚未更新',
+                '尚未更新',
+                '尚未更新'
+            ]
+        };
 
-  appsButton.addEventListener('click', () => {
-    modal.style.display = 'block';
-    courseList.style.display = 'block';
-    specificCourses.style.display = 'none';
-    messageBoard.style.display = 'none';
-  });
+        appsButton.addEventListener('click', () => {
+            modal.style.display = 'block';
+            courseList.style.display = 'block';
+            specificCourses.style.display = 'none';
+            messageBoard.style.display = 'none';
+        });
 
-  modalClose.addEventListener('click', () => {
-    modal.style.display = 'none';
-    clearSpecificCourses();
-  });
+        modalClose.addEventListener('click', () => {
+            modal.style.display = 'none';
+            clearSpecificCourses();
+        });
 
-  window.addEventListener('click', event => {
-    if(event.target === modal) {
-      modal.style.display = 'none';
-      clearSpecificCourses();
-    }
-  });
+        window.addEventListener('click', event => {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+                clearSpecificCourses();
+            }
+        });
 
-  function showCourses(grade) {
-    courseList.style.display = 'none';
-    specificCourses.style.display = 'block';
-    messageBoard.style.display = 'none';
-    specificTitle.textContent = grade + ' 課程';
-    buttonsContainer.innerHTML = '';
-    const courses = courseData[grade] || [];
-    courses.forEach(course => {
-      const btn = document.createElement('button');
-      btn.textContent = course;
-      btn.className = 'course-btn';
-      btn.onclick = () => {
-        showMessageBoard(course);
-      };
-      buttonsContainer.appendChild(btn);
-    });
-  }
+        function showCourses(grade) {
+            courseList.style.display = 'none';
+            specificCourses.style.display = 'block';
+            messageBoard.style.display = 'none';
+            specificTitle.textContent = grade + ' 課程';
+            buttonsContainer.innerHTML = '';
+            const courses = courseData[grade] || [];
+            courses.forEach(course => {
+                const btn = document.createElement('button');
+                btn.textContent = course;
+                btn.className = 'course-btn';
+                btn.onclick = () => {
+                    showMessageBoard(course);
+                };
+                buttonsContainer.appendChild(btn);
+            });
+        }
 
-  function showMessageBoard(courseName) {
-    specificCourses.style.display = 'none';
-    messageBoard.style.display = 'block';
-    boardTitle.textContent = courseName + ' 留言板';
-  }
+        function showMessageBoard(courseName) {
+            specificCourses.style.display = 'none';
+            messageBoard.style.display = 'block';
+            boardTitle.textContent = courseName + ' 留言板';
+        }
 
-  function backToCourseList() {
-    specificCourses.style.display = 'none';
-    courseList.style.display = 'block';
-  }
+        function backToCourseList() {
+            specificCourses.style.display = 'none';
+            courseList.style.display = 'block';
+        }
 
-  function backToSpecificCourses() {
-    messageBoard.style.display = 'none';
-    specificCourses.style.display = 'block';
-  }
+        function backToSpecificCourses() {
+            messageBoard.style.display = 'none';
+            specificCourses.style.display = 'block';
+        }
 
-  function clearSpecificCourses() {
-    buttonsContainer.innerHTML = '';
-    specificTitle.textContent = '';
-  }
-</script>
+        function clearSpecificCourses() {
+            buttonsContainer.innerHTML = '';
+            specificTitle.textContent = '';
+        }
+    </script>
 
 </body>
+
 </html>
-
-
-
-

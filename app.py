@@ -19,7 +19,7 @@ import time
 from flask import send_from_directory
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='.', static_url_path='')
 app.secret_key = "your_super_secret_key_123"  # 換成你自己的隨機字串
 
 # MongoDB 連線字串（請改成你實際的連線URI）
@@ -41,6 +41,7 @@ UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 DATA_FOLDER_A = 'data/comment_comment_data'
+DATA_FILE = 'data.json'
 
 # 模擬留言，可改成從DB或其他地方讀取
 comments = {
@@ -191,6 +192,19 @@ def get_course_comment_filepath(course):
 
 def format_time(ts):
     return datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
+
+def load_data():
+    if not os.path.exists(DATA_FILE):
+        return []
+    try:
+        with open(DATA_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except:
+        return []
+
+def save_data(data):
+    with open(DATA_FILE, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
 
 # 首頁（改成無登入限制）
 @app.route('/')
@@ -1077,6 +1091,29 @@ def notebooklm():
 @app.route('/biostatistics')
 def biostatistics():
     return render_template('biostatistics.html')
+
+@app.route('/')
+def biostatistics2():
+    return send_from_directory('.', 'biostatistics.html')
+
+@app.route('/api/codes', methods=['GET'])
+def get_codes():
+    data = load_data()
+    return jsonify(data)
+
+@app.route('/api/codes', methods=['POST'])
+def add_code():
+    new_code = request.json
+    if not new_code or 'title' not in new_code or 'code' not in new_code:
+        return jsonify({'error': 'Invalid data'}), 400
+    
+    data = load_data()
+    # Add a simple ID
+    new_code['id'] = len(data) + 1
+    data.append(new_code)
+    save_data(data)
+    return jsonify(new_code), 201
+
 
 print(app.url_map)
 if __name__ == '__main__':

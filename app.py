@@ -1074,6 +1074,10 @@ def sitemap():
 def notebooklm():
     return render_template('notebooklm.html')
 
+@app.route('/biostatistics')
+def biostatistics():
+    return render_template('biostatistics.html')
+
 print(app.url_map)
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

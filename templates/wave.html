@@ -1,549 +1,464 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
+
 <head>
   <meta charset="UTF-8" />
-  <title>正弦波與複雜波波形繪製器（含調變訊號）</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>波形繪製器</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    :root {
+      --primary-color: #4a90e2;
+      --success-color: #2ecc71;
+      --danger-color: #e74c3c;
+      --warning-color: #f39c12;
+      --bg-color: #f4f7f6;
+      --card-bg: #ffffff;
+      --text-color: #333;
+      --text-muted: #666;
+      --radius-pill: 50px;
+      --radius-card: 16px;
+      --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
     body {
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      max-width: 800px;
-      margin: 30px auto;
-      padding: 20px;
-      background: #faf3e0;
-      color: #222;
-      position: relative;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .button-group {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .button-group button {
-      padding: 10px 20px;
-      margin: 0 10px;
-      font-size: 1rem;
-      border: 2px solid #007bff;
-      background: white;
-      color: #007bff;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    .button-group button.active,
-    .button-group button:hover {
-      background: #007bff;
-      color: white;
-    }
-    #modulationTypeBtns {
-      text-align: center;
-      margin-top: 10px;
-      margin-bottom: 20px;
-      display: none; /* 預設隱藏 */
-    }
-    #modulationTypeBtns button {
-      padding: 8px 16px;
-      margin: 0 10px;
-      font-size: 1rem;
-      border: 2px solid #28a745;
-      background: white;
-      color: #28a745;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    #modulationTypeBtns button.active,
-    #modulationTypeBtns button:hover {
-      background: #28a745;
-      color: white;
-    }
-    #inputsContainer {
+      font-family: 'Noto Sans TC', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      max-width: 480px;
-      margin: 0 auto 20px auto;
-      gap: 10px;
-    }
-    .freq-input-row {
-      display: flex;
-      gap: 10px;
       align-items: center;
     }
-    .freq-input-row label {
-      font-weight: bold;
-      width: 90px;
-      flex-shrink: 0;
+
+    .container {
+      width: 90%;
+      max-width: 900px;
+      margin: 40px auto;
     }
-    .freq-input-row input[type="number"] {
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 5px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-md);
+      padding: 35px;
+      margin-bottom: 20px;
+    }
+
+    /* Mode Switcher - Pill Style */
+    .mode-switcher {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 35px;
+      flex-wrap: wrap;
+    }
+
+    .mode-btn {
+      padding: 12px 28px;
+      border: 2px solid #eee;
+      border-radius: var(--radius-pill);
+      background-color: #fff;
+      color: var(--text-muted);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      font-size: 1rem;
+    }
+
+    .mode-btn:hover {
+      border-color: var(--primary-color);
+      color: var(--primary-color);
+      transform: translateY(-2px);
+    }
+
+    .mode-btn.active {
+      background-color: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+      box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+    }
+
+    /* Controls Area */
+    .controls-area {
+      margin-bottom: 35px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .input-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #f9f9f9;
+      padding: 12px 20px;
+      border-radius: var(--radius-pill);
+      /* Rounded inputs area too */
+      border: 1px solid #eee;
+      width: 100%;
+      max-width: 550px;
+      transition: all 0.3s;
+    }
+
+    .input-group:focus-within {
+      background: #fff;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+    }
+
+    .input-group label {
+      font-weight: 600;
+      color: var(--text-muted);
+      white-space: nowrap;
+      font-size: 0.95rem;
+    }
+
+    .input-group input {
       flex: 1;
-      padding: 6px 8px;
-      font-size: 1rem;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-    }
-    .freq-input-row button.remove-btn {
-      background: #dc3545;
       border: none;
-      color: white;
-      padding: 6px 10px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: bold;
+      background: transparent;
+      padding: 5px;
+      font-size: 1.1rem;
+      outline: none;
+      color: var(--text-color);
     }
-    #addFreqBtn {
-      display: block;
-      margin: 0 auto 10px auto;
-      background: #28a745;
-      border: none;
-      color: white;
-      padding: 8px 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 1rem;
+
+    /* Pill Action Buttons */
+    .action-row {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 15px;
     }
-    #drawBtn {
-      display: block;
-      margin: 0 auto 30px auto;
-      background: #007bff;
+
+    .btn-pill {
+      padding: 14px 35px;
       border: none;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 6px;
+      border-radius: var(--radius-pill);
       font-size: 1.1rem;
       cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-    canvas {
-      display: block;
-      margin: 0 auto;
-      background: white;
-      border: 1px solid #ccc;
-      box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
-      max-width: 100%;
-    }
-    /* 修改返回首頁按鈕樣式為透明底黑字，懸停黑底白字 */
-    #backBtn {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      padding: 8px 16px;
-      background-color: transparent;
-      color: black;
-      border: none;
-      border-radius: 50px;
-      font-weight: bold;
-      cursor: pointer;
-      z-index: 10000;
-      transition: background-color 0.3s ease, color 0.3s ease;
-      user-select: none;
-      text-decoration: none;
-    }
-    #backBtn:hover {
-      background-color: black;
+
+    .btn-primary {
+      background-color: var(--primary-color);
       color: white;
+      box-shadow: 0 4px 10px rgba(74, 144, 226, 0.25);
+    }
+
+    .btn-primary:hover {
+      background-color: #357abd;
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 6px 15px rgba(74, 144, 226, 0.35);
+    }
+
+    .btn-success {
+      background-color: var(--success-color);
+      color: white;
+      box-shadow: 0 4px 10px rgba(46, 204, 113, 0.25);
+    }
+
+    .btn-success:hover {
+      background-color: #27ae60;
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 6px 15px rgba(46, 204, 113, 0.35);
+    }
+
+    .btn-outline-pill {
+      padding: 8px 20px;
+      border-radius: var(--radius-pill);
+      border: 2px solid #ddd;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-outline-pill.active {
+      background-color: var(--success-color);
+      color: white;
+      border-color: var(--success-color);
+    }
+
+    .btn-remove {
+      background-color: #fff;
+      color: var(--danger-color);
+      border: 2px solid #ffecec;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-remove:hover {
+      background-color: var(--danger-color);
+      color: white;
+      border-color: var(--danger-color);
+    }
+
+    .sub-mode-group {
+      display: none;
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+
+    /* Canvas Display */
+    .canvas-container {
+      background-color: #fff;
+      border-radius: var(--radius-card);
+      border: 1px solid #eee;
+      overflow: hidden;
+      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.02);
+    }
+
+    canvas {
+      width: 100%;
+      height: 420px;
+      display: block;
+    }
+
+    #backBtn {
+      position: absolute;
+      top: 25px;
+      left: 25px;
+      text-decoration: none;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: var(--radius-pill);
+      background: #fff;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #backBtn:hover {
+      color: var(--primary-color);
+      box-shadow: var(--shadow-md);
     }
   </style>
 </head>
+
 <body>
-  <a href="/" id="backBtn" title="返回首頁">返回首頁</a>
 
-  <h1>正弦波與複雜波波形繪製器（含調變訊號）</h1>
+  <a href="/" id="backBtn"><i class="fa-solid fa-arrow-left"></i> 返回首頁</a>
 
-  <div class="button-group">
-    <button id="btnSine" class="active">正弦波</button>
-    <button id="btnComplex">複雜波</button>
-    <button id="btnModulation">調變訊號</button>
+  <div class="container">
+    <div class="header">
+      <h1>波形繪製器</h1>
+      <p style="color: var(--text-muted);">簡單專業的聲學視覺化工具</p>
+    </div>
+
+    <div class="card">
+      <!-- Tabs -->
+      <div class="mode-switcher">
+        <button class="mode-btn active" id="btnSine" onclick="setMode('sine')">正弦波</button>
+        <button class="mode-btn" id="btnComplex" onclick="setMode('complex')">複雜波</button>
+        <button class="mode-btn" id="btnModulation" onclick="setMode('modulation')">調變訊號</button>
+      </div>
+
+      <div class="controls-area">
+
+        <!-- Sub-tabs for Modulation -->
+        <div id="modulationOptions" class="sub-mode-group">
+          <button class="btn-outline-pill" id="btnAM" onclick="setModulationType('AM')">振幅調變 (AM)</button>
+          <button class="btn-outline-pill" id="btnFM" onclick="setModulationType('FM')">頻率調變 (FM)</button>
+        </div>
+
+        <!-- Dynamic Inputs -->
+        <div id="inputsContainer"
+          style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+          <!-- Generated inputs here -->
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-row">
+          <button id="addFreqBtn" class="btn-pill btn-success" style="display: none;" onclick="addFreqInput()">
+            <i class="fa-solid fa-plus"></i> 新增頻率
+          </button>
+          <button class="btn-pill btn-primary" onclick="draw()">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> 繪製波形
+          </button>
+        </div>
+      </div>
+
+      <!-- Canvas -->
+      <div class="canvas-container">
+        <canvas id="waveCanvas" width="900" height="420"></canvas>
+      </div>
+    </div>
   </div>
 
-  <!-- 調變類型按鈕區 -->
-  <div id="modulationTypeBtns">
-    <button id="btnAM">振幅調變 (AM)</button>
-    <button id="btnFM">頻率調變 (FM)</button>
-  </div>
+  <script>
+    const canvas = document.getElementById('waveCanvas');
+    const ctx = canvas.getContext('2d');
+    const inputsContainer = document.getElementById('inputsContainer');
+    const addFreqBtn = document.getElementById('addFreqBtn');
+    const modulationOptions = document.getElementById('modulationOptions');
 
-  <div id="inputsContainer">
-    <!-- 頻率輸入欄位依模式動態產生 -->
-  </div>
+    let mode = 'sine';
+    let modulationType = null;
 
-  <button id="addFreqBtn" style="display:none;">新增頻率</button>
-  <button id="drawBtn">繪製波形</button>
+    function setMode(newMode) {
+      mode = newMode;
+      document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('btn' + newMode.charAt(0).toUpperCase() + newMode.slice(1)).classList.add('active');
 
-  <canvas id="waveCanvas" width="760" height="300"></canvas>
+      inputsContainer.innerHTML = '';
+      modulationOptions.style.display = 'none';
+      addFreqBtn.style.display = 'none';
+      modulationType = null;
+      document.querySelectorAll('.btn-outline-pill').forEach(btn => btn.classList.remove('active'));
 
-<script>
-  const btnSine = document.getElementById('btnSine');
-  const btnComplex = document.getElementById('btnComplex');
-  const btnModulation = document.getElementById('btnModulation');
-
-  const modulationTypeBtns = document.getElementById('modulationTypeBtns');
-  const btnAM = document.getElementById('btnAM');
-  const btnFM = document.getElementById('btnFM');
-
-  const inputsContainer = document.getElementById('inputsContainer');
-  const addFreqBtn = document.getElementById('addFreqBtn');
-  const drawBtn = document.getElementById('drawBtn');
-  const canvas = document.getElementById('waveCanvas');
-  const ctx = canvas.getContext('2d');
-
-  const backBtn = document.getElementById('backBtn');
-  backBtn.addEventListener('click', () => {
-    window.location.href = 'index.html';
-  });
-
-  // 目前主模式：'sine','complex','modulation'
-  let mode = 'sine';
-  // 調變子類型：'AM','FM'，跟modulation type buttons同步
-  let modulationType = null;
-
-  // ----------- 模式設定函式 -----------
-
-  function setupSineMode() {
-    inputsContainer.innerHTML = '';
-    addFreqBtn.style.display = 'none';
-    modulationTypeBtns.style.display = 'none';
-    modulationType = null;
-
-    const div = document.createElement('div');
-    div.classList.add('freq-input-row');
-    const label = document.createElement('label');
-    label.textContent = '頻率(Hz):';
-    const input = document.createElement('input');
-    input.type = 'number';
-    input.min = '0.1';
-    input.step = '0.1';
-    input.placeholder = '輸入頻率 (例如 5)';
-    input.value = '5';
-    div.appendChild(label);
-    div.appendChild(input);
-    inputsContainer.appendChild(div);
-  }
-
-  function setupComplexMode() {
-    inputsContainer.innerHTML = '';
-    addFreqBtn.style.display = 'block';
-    modulationTypeBtns.style.display = 'none';
-    modulationType = null;
-
-    addFreqInput();
-    addFreqInput();
-  }
-
-  function setupModulationMode() {
-    inputsContainer.innerHTML = '';
-    addFreqBtn.style.display = 'none';
-    modulationTypeBtns.style.display = 'block';
-    modulationType = null;
-    clearModulationTypeSelection();
-  }
-
-  // ----------- 頻率輸入欄位操作 -----------
-
-  function clearModulationTypeSelection() {
-    btnAM.classList.remove('active');
-    btnFM.classList.remove('active');
-  }
-
-  // 載波＆調變頻率輸入欄位（調變模式共用）
-  function setupModulationInputs() {
-    inputsContainer.innerHTML = '';
-
-    // 載波頻率
-    const carrierDiv = document.createElement('div');
-    carrierDiv.classList.add('freq-input-row');
-    let carrierLabel = document.createElement('label');
-    carrierLabel.textContent = '載波頻率(Hz):';
-    let carrierInput = document.createElement('input');
-    carrierInput.type = 'number';
-    carrierInput.min = '0.1';
-    carrierInput.step = '0.1';
-    carrierInput.placeholder = '載波頻率';
-    carrierInput.value = '10';
-    carrierDiv.appendChild(carrierLabel);
-    carrierDiv.appendChild(carrierInput);
-
-    // 調變頻率
-    const modDiv = document.createElement('div');
-    modDiv.classList.add('freq-input-row');
-    let modLabel = document.createElement('label');
-    modLabel.textContent = '調變頻率(Hz):';
-    let modInput = document.createElement('input');
-    modInput.type = 'number';
-    modInput.min = '0.1';
-    modInput.step = '0.1';
-    modInput.placeholder = '調變頻率';
-    modInput.value = '1';
-    modDiv.appendChild(modLabel);
-    modDiv.appendChild(modInput);
-
-    inputsContainer.appendChild(carrierDiv);
-    inputsContainer.appendChild(modDiv);
-  }
-
-  // -------------- 按鈕事件綁定 ---------------------
-
-  btnSine.addEventListener('click', () => {
-    if (mode === 'sine') return;
-    mode = 'sine';
-    clearModulationTypeSelection();
-    btnSine.classList.add('active');
-    btnComplex.classList.remove('active');
-    btnModulation.classList.remove('active');
-    modulationTypeBtns.style.display = 'none';
-    setupSineMode();
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  });
-
-  btnComplex.addEventListener('click', () => {
-    if (mode === 'complex') return;
-    mode = 'complex';
-    clearModulationTypeSelection();
-    btnComplex.classList.add('active');
-    btnSine.classList.remove('active');
-    btnModulation.classList.remove('active');
-    modulationTypeBtns.style.display = 'none';
-    setupComplexMode();
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  });
-
-  btnModulation.addEventListener('click', () => {
-    if (mode === 'modulation') return;
-    mode = 'modulation';
-    modulationType = null;
-    btnModulation.classList.add('active');
-    btnSine.classList.remove('active');
-    btnComplex.classList.remove('active');
-    modulationTypeBtns.style.display = 'block';
-    clearModulationTypeSelection();
-    inputsContainer.innerHTML = '';
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  });
-
-  // 調變類型選擇事件
-  btnAM.addEventListener('click', () => {
-    if (mode !== 'modulation') return;
-    modulationType = 'AM';
-    btnAM.classList.add('active');
-    btnFM.classList.remove('active');
-    setupModulationInputs();
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  });
-
-  btnFM.addEventListener('click', () => {
-    if (mode !== 'modulation') return;
-    modulationType = 'FM';
-    btnFM.classList.add('active');
-    btnAM.classList.remove('active');
-    setupModulationInputs();
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  });
-
-  // 新增頻率按鈕（複雜波用）
-  addFreqBtn.addEventListener('click', () => {
-    addFreqInput();
-  });
-
-  // 新增頻率輸入欄（複雜波模式用）
-  function addFreqInput(value = '') {
-    const div = document.createElement('div');
-    div.classList.add('freq-input-row');
-
-    const label = document.createElement('label');
-    label.textContent = '頻率(Hz):';
-
-    const input = document.createElement('input');
-    input.type = 'number';
-    input.min = '0.1';
-    input.step = '0.1';
-    input.placeholder = '頻率 (例如 5)';
-    input.value = value;
-
-    const removeBtn = document.createElement('button');
-    removeBtn.className = 'remove-btn';
-    removeBtn.textContent = '×';
-    removeBtn.title = '移除此頻率';
-    removeBtn.onclick = () => {
-      inputsContainer.removeChild(div);
-    };
-
-    div.appendChild(label);
-    div.appendChild(input);
-    div.appendChild(removeBtn);
-    inputsContainer.appendChild(div);
-  }
-
-  // ----------- 繪圖函式 ------------
-
-  function drawWave(frequencies) {
-    const width = canvas.width;
-    const height = canvas.height;
-    const midY = height / 2;
-
-    ctx.clearRect(0, 0, width, height);
-
-    // 畫坐標軸
-    ctx.strokeStyle = '#aaa';
-    ctx.beginPath();
-    ctx.moveTo(0, midY);
-    ctx.lineTo(width, midY);
-    ctx.stroke();
-
-    const samples = width; // 寬度採樣點數
-    const scaleX = 4 * Math.PI / width;  // 控制橫軸頻率感覺
-    const amplitude = midY * 0.8; // 振幅
-
-    const yValues = new Array(samples);
-    for (let x = 0; x < samples; x++) {
-      let y = 0;
-      for (const f of frequencies) {
-        y += Math.sin(f * x * scaleX);
+      if (mode === 'sine') {
+        addFreqInput(5, false);
+      } else if (mode === 'complex') {
+        addFreqBtn.style.display = 'flex';
+        addFreqInput(5);
+        addFreqInput(12);
+      } else if (mode === 'modulation') {
+        modulationOptions.style.display = 'flex';
       }
-      yValues[x] = y;
+
+      clearCanvas();
     }
 
-    const maxY = Math.max(...yValues.map(v => Math.abs(v)));
-    ctx.strokeStyle = '#007bff';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    for (let x = 0; x < samples; x++) {
-      let y = midY - (yValues[x] / maxY) * amplitude;
-      x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    function setModulationType(type) {
+      modulationType = type;
+      document.querySelectorAll('.btn-outline-pill').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('btn' + type).classList.add('active');
+      setupModulationInputs();
+      clearCanvas();
     }
-    ctx.stroke();
-  }
 
-  // -------- 調變繪圖 -------
-
-  // 讀取載波與調變頻率（調變模式專用）
-  function getCarrierAndModFreq() {
-    const inputs = inputsContainer.querySelectorAll('input[type=number]');
-    if (inputs.length < 2) return null;
-
-    const carrierFreq = parseFloat(inputs[0].value);
-    const modFreq = parseFloat(inputs[1].value);
-
-    if (
-      isNaN(carrierFreq) || carrierFreq <= 0 ||
-      isNaN(modFreq) || modFreq <= 0
-    ) {
-      alert('請輸入有效且大於0的載波頻率與調變頻率');
-      return null;
+    function addFreqInput(value = '', removable = true) {
+      const div = document.createElement('div');
+      div.className = 'input-group';
+      div.innerHTML = `
+          <label><i class="fa-solid fa-wave-square"></i> 頻率:</label>
+          <input type="number" min="0.1" step="0.1" value="${value}" placeholder="Hz">
+          ${removable ? '<button class="btn-remove" onclick="this.parentElement.remove()">×</button>' : '<div style="width:34px"></div>'}
+      `;
+      inputsContainer.appendChild(div);
     }
-    return { carrierFreq, modFreq };
-  }
 
-  // 繪製振幅調變波形
-  // AM公式： y = (1 + m*sin(2π*fm*t)) * sin(2π*fc*t)
-  // 其中m調變指數我們取0.7固定，可以調整
-  function drawAM(carrierFreq, modFreq) {
-    const width = canvas.width;
-    const height = canvas.height;
-    const midY = height / 2;
-
-    ctx.clearRect(0, 0, width, height);
-
-    // 坐標軸
-    ctx.strokeStyle = '#aaa';
-    ctx.beginPath();
-    ctx.moveTo(0, midY);
-    ctx.lineTo(width, midY);
-    ctx.stroke();
-
-    const samples = width;
-    const amplitude = midY * 0.8;
-    const scaleX = 4 * Math.PI / width; // 控制橫軸比例
-    const m = 0.7; // 調變指數
-
-    ctx.strokeStyle = '#28a745'; // 綠色代表振幅調變
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    for (let x = 0; x < samples; x++) {
-      const t = x * scaleX / (2 * Math.PI); // 對應時間單位(純為頻率計算)
-      const modSignal = 1 + m * Math.sin(2 * Math.PI * modFreq * t);
-      const yVal = modSignal * Math.sin(2 * Math.PI * carrierFreq * t);
-      const y = midY - yVal * amplitude;
-      x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-  }
-
-  // 繪製頻率調變波形
-  // FM公式較複雜，此處用簡單近似
-  // y = sin(2π * fc * t + beta * sin(2π * fm * t))
-  // beta 調頻指數給固定值 5
-  function drawFM(carrierFreq, modFreq) {
-    const width = canvas.width;
-    const height = canvas.height;
-    const midY = height / 2;
-
-    ctx.clearRect(0, 0, width, height);
-
-    // 坐標軸
-    ctx.strokeStyle = '#aaa';
-    ctx.beginPath();
-    ctx.moveTo(0, midY);
-    ctx.lineTo(width, midY);
-    ctx.stroke();
-
-    const samples = width;
-    const amplitude = midY * 0.8;
-    const scaleX = 4 * Math.PI / width; // 控制橫軸比例
-    const beta = 5; // 調頻指數
-
-    ctx.strokeStyle = '#ff5733'; // 橙色代表頻率調變
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    for (let x = 0; x < samples; x++) {
-      const t = x * scaleX / (2 * Math.PI);
-      const yVal = Math.sin(2 * Math.PI * carrierFreq * t + beta * Math.sin(2 * Math.PI * modFreq * t));
-      const y = midY - yVal * amplitude;
-      x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-  }
-
-  // ---------- 從輸入欄取得頻率（複雜波與正弦波共用） -----------
-
-  function getFrequenciesFromInputs() {
-    const inputs = inputsContainer.querySelectorAll('input[type=number]');
-    const freqs = [];
-    for (const input of inputs) {
-      const val = parseFloat(input.value);
-      if (isNaN(val) || val <= 0) {
-        alert('請輸入有效且大於0的頻率');
-        return null;
+    function setupModulationInputs() {
+      inputsContainer.innerHTML = '';
+      const create = (label, id, val) => {
+        const div = document.createElement('div');
+        div.className = 'input-group';
+        div.innerHTML = `<label style="width: 100px;">${label}:</label><input type="number" id="${id}" value="${val}" min="0.1" step="0.1">`;
+        return div;
       }
-      freqs.push(val);
+      inputsContainer.appendChild(create('載波頻率(fc)', 'carrierFreq', 10));
+      inputsContainer.appendChild(create('調變頻率(fm)', 'modFreq', 1.5));
     }
-    return freqs;
-  }
 
-  // --------- 繪製按鈕事件 ---------
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const width = canvas.width;
+      const height = canvas.height;
+      const midY = height / 2;
 
-  drawBtn.addEventListener('click', () => {
-    if (mode === 'sine' || mode === 'complex') {
-      const freqs = getFrequenciesFromInputs();
-      if (!freqs) return;
-      drawWave(freqs);
-    } else if (mode === 'modulation') {
-      if (!modulationType) {
-        alert('請先選擇調變類型（振幅調變或頻率調變）');
-        return;
-      }
-      const freqs = getCarrierAndModFreq();
-      if (!freqs) return;
-      if (modulationType === 'AM') {
-        drawAM(freqs.carrierFreq, freqs.modFreq);
-      } else if (modulationType === 'FM') {
-        drawFM(freqs.carrierFreq, freqs.modFreq);
-      }
+      ctx.strokeStyle = '#f0f0f0';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, midY);
+      ctx.lineTo(width, midY);
+      ctx.stroke();
     }
-  });
 
-  // ---- 頁面初始設定 -----
-  setupSineMode();
+    function draw() {
+      clearCanvas();
+      const width = canvas.width;
+      const height = canvas.height;
+      const midY = height / 2;
+      const amplitude = midY * 0.75;
+      const scaleX = 4 * Math.PI / width;
 
+      ctx.lineWidth = 3;
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
 
-</script>
+      if (mode === 'sine' || mode === 'complex') {
+        const inputs = inputsContainer.querySelectorAll('input[type=number]');
+        const freqs = [];
+        inputs.forEach(input => {
+          const val = parseFloat(input.value);
+          if (!isNaN(val) && val > 0) freqs.push(val);
+        });
+
+        if (freqs.length === 0) return;
+
+        ctx.strokeStyle = '#4a90e2';
+        for (let x = 0; x < width; x++) {
+          let y = 0;
+          freqs.forEach(f => y += Math.sin(f * x * scaleX));
+          if (mode === 'complex') y = y / freqs.length;
+          const plotY = midY - y * amplitude;
+          x === 0 ? ctx.moveTo(x, plotY) : ctx.lineTo(x, plotY);
+        }
+      } else if (mode === 'modulation') {
+        if (!modulationType) { alert('請選擇調變類型'); return; }
+        const fc = parseFloat(document.getElementById('carrierFreq').value);
+        const fm = parseFloat(document.getElementById('modFreq').value);
+
+        if (modulationType === 'AM') {
+          ctx.strokeStyle = '#2ecc71';
+          const m = 0.8;
+          for (let x = 0; x < width; x++) {
+            const t = x * scaleX / (2 * Math.PI);
+            const val = (1 + m * Math.sin(2 * Math.PI * fm * t)) * Math.sin(2 * Math.PI * fc * t);
+            const plotY = midY - val * amplitude;
+            x === 0 ? ctx.moveTo(x, plotY) : ctx.lineTo(x, plotY);
+          }
+        } else {
+          ctx.strokeStyle = '#f39c12';
+          const beta = 5;
+          for (let x = 0; x < width; x++) {
+            const t = x * scaleX / (2 * Math.PI);
+            const val = Math.sin(2 * Math.PI * fc * t + beta * Math.sin(2 * Math.PI * fm * t));
+            const plotY = midY - val * amplitude;
+            x === 0 ? ctx.moveTo(x, plotY) : ctx.lineTo(x, plotY);
+          }
+        }
+      }
+      ctx.stroke();
+    }
+
+    // Init
+    setMode('sine');
+    setTimeout(draw, 100);
+  </script>
 </body>
+
 </html>

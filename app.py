@@ -1113,6 +1113,9 @@ def add_code():
     data.append(new_code)
     save_data(data)
     return jsonify(new_code), 201
+@app.route('/assessment')
+def assessment():
+    return render_template('assessment.html')
 
 
 print(app.url_map)

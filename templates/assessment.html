@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>語言治療評估工具數位指南</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c9ca6;
+            /* Medical/Professional Teal */
+            --secondary-color: #6c757d;
+            --background-start: #eef2f3;
+            --background-end: #8e9eab;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+            background: linear-gradient(to right, var(--background-start), var(--background-end));
+            min-height: 100vh;
+        }
+
+        /* Lock Screen Styles */
+        #lockScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+
+        #mainContent {
+            opacity: 0;
+            transition: opacity 1s ease-in;
+            display: none;
+            /* Initially hidden */
+            padding-top: 40px;
+            padding-bottom: 50px;
+        }
+
+        .navbar {
+            background-color: var(--primary-color) !important;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            color: white !important;
+            font-weight: bold;
+        }
+
+        /* Cloud Drive Card Styles */
+        .drive-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: #333;
+            display: flex;
+            align-items: center;
+            height: 100%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .drive-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            background-color: #f8fbff;
+            border-color: var(--primary-color);
+        }
+
+        .drive-icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            /* Unified Theme Color */
+            margin-right: 15px;
+        }
+
+        .drive-text {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .section-title {
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+            padding-bottom: 10px;
+        }
+
+        /* Calculator Styles */
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background-color: var(--primary-color);
+            /* Unified Theme Color */
+            color: white;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Lock Screen -->
+    <div id="lockScreen">
+        <div class="card p-4 shadow-lg text-center" style="max-width: 400px; width: 90%;">
+            <div class="card-body">
+                <h3 class="card-title mb-4">系統鎖定</h3>
+                <p class="text-muted mb-4">請輸入密碼以存取評估工具指南。</p>
+                <div class="mb-3">
+                    <input type="password" id="passwordInput" class="form-control form-control-lg text-center"
+                        placeholder="請輸入密碼">
+                </div>
+                <button onclick="checkPassword()" class="btn btn-primary w-100 btn-lg"
+                    style="background-color: var(--primary-color); border: none;">進入系統</button>
+                <div id="errorMsg" class="text-danger mt-2" style="display: none;">密碼錯誤，請重試。</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" class="container">
+
+        <!-- Header -->
+        <div class="d-flex align-items-center mb-5 text-white p-3 rounded shadow-sm"
+            style="background-color: var(--primary-color);">
+            <i class="bi bi-journal-medical fs-2 me-3"></i>
+            <h2 class="mb-0 fw-bold">語言治療評估工具數位指南</h2>
+        </div>
+
+        <!-- Main Layout Row -->
+        <div class="row g-5">
+
+            <!-- Left Column: Assessment Guides (Cloud Drive Style) -->
+            <div class="col-lg-8">
+                <h4 class="section-title"><i class="bi bi-folder2-open me-2"></i>評估工具指南</h4>
+                <div class="row g-4 mb-4">
+                    <!-- PPVT -->
+                    <div class="col-md-6">
+                        <a href="https://drive.google.com/drive/folders/1Y9y7Vg9J1UcLHvfAi9ydwW-_lC7AqFMG"
+                            target="_blank" class="drive-card">
+                            <i class="bi bi-folder-fill drive-icon"></i>
+                            <span class="drive-text">PPVT 使用指南</span>
+                        </a>
+                    </div>
+                    <!-- APTMC -->
+                    <div class="col-md-6">
+                        <a href="https://drive.google.com/drive/folders/1b7GrihRUOHfYsZtH4yQmhUZ1iP8deXsT"
+                            target="_blank" class="drive-card">
+                            <i class="bi bi-folder-fill drive-icon"></i>
+                            <span class="drive-text">APTMC 使用指南</span>
+                        </a>
+                    </div>
+                    <!-- REVT -->
+                    <div class="col-md-6">
+                        <a href="https://drive.google.com/drive/folders/1sZ-cNVTgROD-kqCSo6a8eta5_qp8NjEf"
+                            target="_blank" class="drive-card">
+                            <i class="bi bi-folder-fill drive-icon"></i>
+                            <span class="drive-text">REVT 使用指南</span>
+                        </a>
+                    </div>
+                    <!-- CLST -->
+                    <div class="col-md-6">
+                        <a href="https://drive.google.com/drive/folders/1IvYuMFrqTZ77s9GzXg5L2nzGacbGr-gU"
+                            target="_blank" class="drive-card">
+                            <i class="bi bi-folder-fill drive-icon"></i>
+                            <span class="drive-text">CLST 使用指南</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Tools (Age Calculator) -->
+            <div class="col-lg-4">
+                <h4 class="section-title"><i class="bi bi-calculator me-2"></i>實用工具</h4>
+                <div class="card">
+                    <div class="card-header text-center">
+                        <i class="bi bi-calendar-check me-2"></i>實足年齡計算機
+                    </div>
+                    <div class="card-body bg-light p-4">
+                        <form id="age-form">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">出生日期</label>
+                                <input type="date" class="form-control form-control-lg" id="dob">
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">測驗日期</label>
+                                <input type="date" class="form-control form-control-lg" id="testdate">
+                            </div>
+                            <button type="button" class="btn btn-primary w-100 btn-lg"
+                                style="background-color: var(--primary-color); border: none;"
+                                onclick="calculateAge()">計算實足年齡</button>
+                        </form>
+                        <div id="result" class="alert alert-light border shadow-sm mt-4 mb-0 text-center fw-bold fs-5"
+                            style="display:none; color: var(--primary-color); border-color: var(--primary-color) !important;">
+                            <!-- Result -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+    <script>
+        // Password Protection Logic
+        function checkPassword() {
+            const input = document.getElementById('passwordInput').value;
+            const errorMsg = document.getElementById('errorMsg');
+            const lockScreen = document.getElementById('lockScreen');
+            const mainContent = document.getElementById('mainContent');
+
+            if (input === 'speechlanguagetherapist') {
+                errorMsg.style.display = 'none';
+
+                // Fade out lock screen
+                lockScreen.style.opacity = '0';
+                setTimeout(() => {
+                    lockScreen.style.display = 'none';
+                    // Show and Fade in main content
+                    mainContent.style.display = 'block';
+                    // Trigger reflow to enable transition
+                    void mainContent.offsetWidth;
+                    mainContent.style.opacity = '1';
+                }, 500);
+            } else {
+                errorMsg.style.display = 'block';
+                // Shake effect for error
+                document.getElementById('passwordInput').classList.add('is-invalid');
+                setTimeout(() => {
+                    document.getElementById('passwordInput').classList.remove('is-invalid');
+                }, 500);
+            }
+        }
+
+        // Allow Enter key to submit password
+        document.getElementById('passwordInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                checkPassword();
+            }
+        });
+
+        // Age Calculator Logic
+        function calculateAge() {
+            const dobInput = document.getElementById('dob').value;
+            const testInput = document.getElementById('testdate').value;
+            const resultDiv = document.getElementById('result');
+
+            if (!dobInput || !testInput) {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'alert alert-danger mt-4 mb-0 text-center fw-bold';
+                resultDiv.innerText = '請輸入完整日期';
+                return;
+            }
+
+            const dob = new Date(dobInput);
+            const testDate = new Date(testInput);
+
+            if (dob > testDate) {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'alert alert-danger mt-4 mb-0 text-center fw-bold';
+                resultDiv.innerText = '出生日期不能晚於測驗日期';
+                return;
+            }
+
+            let years = testDate.getFullYear() - dob.getFullYear();
+            let months = testDate.getMonth() - dob.getMonth();
+            let days = testDate.getDate() - dob.getDate();
+
+            // Handle day borrowing
+            if (days < 0) {
+                months--;
+                // Get days in the previous month of the test date
+                const prevMonth = new Date(testDate.getFullYear(), testDate.getMonth(), 0);
+                days += prevMonth.getDate();
+            }
+
+            // Handle month borrowing
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'alert alert-light border shadow-sm mt-4 mb-0 text-center fw-bold fs-5';
+            resultDiv.style.color = 'var(--primary-color)';
+            resultDiv.style.borderColor = 'var(--primary-color)';
+
+            resultDiv.innerText = `${years} 歲 ${months} 個月 ${days} 天`;
+        }
+
+        // Auto-fill test date with today's date for convenience
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('testdate').value = today;
+        });
+    </script>
+</body>
+
+</html>

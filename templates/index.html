@@ -846,6 +846,8 @@
   </div>
   <script>
     window.addEventListener('load', () => {
+      const sidebar = document.getElementById("sidebar");
+      const menuIcon = document.getElementById("menuIcon");
       const notesDropdown = document.getElementById("notesDropdown");
       const gradeSelect = document.getElementById("gradeSelect");
       const semesterSelect = document.getElementById("semesterSelect");
@@ -1120,63 +1122,71 @@
         });
       }
       // 監聽年級/學期/科目選擇改變，並紀錄
-      window.addEventListener('load', () => {
-        const username = document.getElementById('login-username')?.value.trim() || '';
-        ['gradeSelect', 'semesterSelect', 'subjectSelect', 'gradeSelectBottom', 'semesterSelectBottom', 'subjectSelectBottom'].forEach(selectId => {
-          const selectElem = document.getElementById(selectId);
-          if (selectElem) {
-            selectElem.addEventListener('change', (e) => {
-              if (username) {
-                recordUserAction(username, {
-                  type: 'selectChange',
-                  elementId: selectId,
-                  value: e.target.value,
-                  timestamp: new Date().toISOString(),
-                });
-              }
-            });
-          }
-        });
-      });
-    });
-  </script>
-  <script>
-    // 漢堡選單控制
-    menuIcon.addEventListener("click", () => {
-      menuIcon.classList.toggle("active");
-      sidebar.classList.toggle("active");
-    });
-    // 帳號名稱控制
-    const userNameDisplay = document.getElementById("userNameDisplay");
-    const accountManagement = document.getElementById("accountManagement");
-    if (userNameDisplay && accountManagement) {
-      userNameDisplay.addEventListener("click", (e) => {
-        e.stopPropagation(); // 避免冒泡
-        accountManagement.style.display =
-          accountManagement.style.display === "block" ? "none" : "block";
-      });
-      // 點擊外部區域關閉
-      document.addEventListener("click", (e) => {
-        if (!userNameDisplay.contains(e.target)) {
-          accountManagement.style.display = "none";
+      const usernameInput = document.getElementById('login-username');
+      ['gradeSelect', 'semesterSelect', 'subjectSelect', 'gradeSelectBottom', 'semesterSelectBottom', 'subjectSelectBottom'].forEach(selectId => {
+        const selectElem = document.getElementById(selectId);
+        if (selectElem) {
+          selectElem.addEventListener('change', (e) => {
+            const username = usernameInput?.value.trim() || '';
+            if (username) {
+              recordUserAction(username, {
+                type: 'selectChange',
+                elementId: selectId,
+                value: e.target.value,
+                timestamp: new Date().toISOString(),
+              });
+            }
+          });
         }
       });
-    }
-    document.querySelectorAll('.dropdown').forEach(drop => {
-      const btn = drop.querySelector('.dropbtn');
-      const menu = drop.querySelector('.dropdown-content');
-      btn.addEventListener('click', (e) => {
-        e.preventDefault(); // 防止跳頁
-        // 判斷目前是否已經顯示
-        const isVisible = menu.style.display === 'flex';
-        // 收起其他子選單
-        document.querySelectorAll('.dropdown-content').forEach(m => {
-          if (m !== menu) m.style.display = 'none';
+
+      // 漢堡選單控制
+      menuIcon.addEventListener("click", () => {
+        menuIcon.classList.toggle("active");
+        sidebar.classList.toggle("active");
+      });
+
+      // 帳號名稱控制
+      const userNameDisplay = document.getElementById("userNameDisplay");
+      const accountManagement = document.getElementById("accountManagement");
+      if (userNameDisplay && accountManagement) {
+        userNameDisplay.addEventListener("click", (e) => {
+          e.stopPropagation(); // 避免冒泡
+          accountManagement.style.display =
+            accountManagement.style.display === "block" ? "none" : "block";
         });
-        // 切換當前子選單顯示/收起
-        menu.style.display = isVisible ? 'none' : 'flex';
+        // 點擊外部區域關閉
+        document.addEventListener("click", (e) => {
+          if (!userNameDisplay.contains(e.target)) {
+            accountManagement.style.display = "none";
+          }
+        });
+      }
+      document.querySelectorAll('.dropdown').forEach(drop => {
+        const btn = drop.querySelector('.dropbtn');
+        const menu = drop.querySelector('.dropdown-content');
+        if (btn && menu) {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault(); // 防止跳頁
+            // 判斷目前是否已經顯示
+            const isVisible = menu.style.display === 'flex';
+            // 收起其他子選單
+            document.querySelectorAll('.dropdown-content').forEach(m => {
+              if (m !== menu) m.style.display = 'none';
+            });
+            // 切換當前子選單顯示/收起
+            menu.style.display = isVisible ? 'none' : 'flex';
+          });
+        }
+      });
+      // 點擊頁面其他地方收起所有子選單
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.dropdown')) {
+          document.querySelectorAll('.dropdown-content').forEach(m => m.style.display = 'none');
+        }
       });
     });
+
     // 複製文字到剪貼簿
     function copyToClipboard(text) {
       navigator.clipboard.writeText(text).then(() => {
@@ -1185,13 +1195,6 @@
         console.error('無法複製文字: ', err);
       });
     }
-
-    // 點擊頁面其他地方收起所有子選單
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.dropdown')) {
-        document.querySelectorAll('.dropdown-content').forEach(m => m.style.display = 'none');
-      }
-    });
   </script>
 </body>
 

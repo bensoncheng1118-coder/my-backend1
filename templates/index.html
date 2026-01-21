@@ -10,25 +10,19 @@
   <style>
     /* 背景改成空 */
     body {
-      margin: 0;
-      padding: 0;
       font-family: 'Poppins', sans-serif;
       color: #ddd;
-      overflow: hidden;
       position: relative;
     }
 
     /* 影片全螢幕背景樣式 */
     #bgVideo {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      min-width: 100vw;
-      min-height: 100vh;
-      width: 80vw;
-      height: 80vh;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
       z-index: -1;
-      transform: translate(-50%, -50%);
       object-fit: cover;
       cursor: pointer;
     }
@@ -205,7 +199,7 @@
       align-items: center;
       gap: 10px;
       margin-left: auto;
-      padding_right: 0;
+      padding-right: 0;
       width: auto;
     }
 
@@ -647,6 +641,60 @@
       /* 視影片亮度可改為黑色 */
       background: transparent;
     }
+
+    /* 底部資訊條樣式 */
+    .info-footer {
+      width: 100%;
+      background-color: black;
+      padding: 60px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 10001;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .info-footer a {
+      color: #888;
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s ease;
+    }
+
+    .info-footer a:hover {
+      color: white;
+    }
+
+    .info-footer a img {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+      filter: grayscale(100%);
+      transition: filter 0.3s ease;
+    }
+
+    .info-footer a:hover img {
+      filter: grayscale(0%);
+    }
+
+    .footer-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #aaa;
+      margin-bottom: 20px;
+      letter-spacing: 1px;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 40px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
   </style>
 </head>
 
@@ -658,7 +706,7 @@
 
 
   <a href="/t_course">
-    <video id="bg-video" autoplay muted loop>
+    <video id="bgVideo" autoplay muted loop>
       <source src="https://raw.githubusercontent.com/bensoncheng1118-coder/my-backend1/main/videos/background.mp4"
         type="video/mp4">
       你的瀏覽器不支援影片播放。
@@ -675,102 +723,129 @@
   </script>
 
   <!-- 原本內容照貼，不動 -->
-  <div class="menu-icon" id="menuIcon"><span></span></div>
-  <div class="top-nav">
-    <div class="page-banner"><a href="https://aud-slp.mmc.edu.tw/">
-        <img src="https://raw.githubusercontent.com/bensoncheng1118-coder/my-backend1/main/images/logo.png
+  <div style="min-height: 100vh; display: flex; flex-direction: column;">
+    <div class="menu-icon" id="menuIcon"><span></span></div>
+    <div class="top-nav">
+      <div class="page-banner"><a href="https://aud-slp.mmc.edu.tw/">
+          <img src="https://raw.githubusercontent.com/bensoncheng1118-coder/my-backend1/main/images/logo.png
 " alt="馬偕聽語系首頁" />
-      </a></div>
+        </a></div>
 
-    <div class="nav-item"><a href="/notebooklm" id="generalKnowledgeBtn">AI詢問系統(NotebookLM)</a></div>
-    <div class="nav-item"><a href="/biostatistics">生統程式</a></div>
-    <div class="nav-item"><a href="/assessment">評估工具指南</a></div>
-    <div class="nav-item"><a href="/teach">網站使用說明</a></div>
-    <div class="logo-search">
+      <div class="nav-item"><a href="/notebooklm" id="generalKnowledgeBtn">AI詢問系統(NotebookLM)</a></div>
+      <div class="nav-item"><a href="/biostatistics">生統程式</a></div>
+      <div class="nav-item"><a href="/assessment">評估工具指南</a></div>
+      <div class="nav-item"><a href="/teach">網站使用說明</a></div>
+      <div class="logo-search">
 
-      <form action="/search" method="get" id="searchForm">
-        <input type="text" name="q" placeholder="輸入關鍵字搜尋..." required id="searchInput" x-webkit-speech lang="zh-TW"
-          autocomplete="off" />
-        <!-- 新增語音輸入按鈕 -->
-        <button type="button" id="voiceBtn" title="語音輸入" aria-label="語音輸入"
-          style="border:none; background:transparent; color:white; font-size:20px; cursor:pointer; padding:0 6px;">
-          🎤
-        </button>
-        <button type="submit">搜尋</button>
-      </form>
+        <form action="/search" method="get" id="searchForm">
+          <input type="text" name="q" placeholder="輸入關鍵字搜尋..." required id="searchInput" x-webkit-speech lang="zh-TW"
+            autocomplete="off" />
+          <!-- 新增語音輸入按鈕 -->
+          <button type="button" id="voiceBtn" title="語音輸入" aria-label="語音輸入"
+            style="border:none; background:transparent; color:white; font-size:20px; cursor:pointer; padding:0 6px;">
+            🎤
+          </button>
+          <button type="submit">搜尋</button>
+        </form>
 
-      <div id="sidebar" class="sidebar">
+        <div id="sidebar" class="sidebar">
 
 
 
-        <!-- 大一下工具 (包含 基礎聽力科學 + 言語科學) -->
-        <div class="nav-group">
-          <div class="nav-group-title">大一下工具</div>
-          <div class="nav-group-content">
-            <!-- 基礎聽力科學圖形工具 -->
-            <div class="sub-title">基礎聽力科學圖形工具</div>
-            <a href="/wave">波型繪製</a>
-            <a href="/wave4">拍音與振幅調變</a>
-            <a href="/wave2">聲強與聲壓衰減</a>
-            <a href="/wave3">耳蝸電位</a>
-            <a href="/two_tone">雙音抑制(同向抑制)&對向抑制</a>
-            <a href="/cochlear">rate-level function</a>
+          <!-- 大一下工具 (包含 基礎聽力科學 + 言語科學) -->
+          <div class="nav-group">
+            <div class="nav-group-title">大一下工具</div>
+            <div class="nav-group-content">
+              <!-- 基礎聽力科學圖形工具 -->
+              <div class="sub-title">基礎聽力科學圖形工具</div>
+              <a href="/wave">波型繪製</a>
+              <a href="/wave4">拍音與振幅調變</a>
+              <a href="/wave2">聲強與聲壓衰減</a>
+              <a href="/wave3">耳蝸電位</a>
+              <a href="/two_tone">雙音抑制(同向抑制)&對向抑制</a>
+              <a href="/cochlear">rate-level function</a>
 
-            <hr>
+              <hr>
 
-            <!-- 言語科學圖形工具 -->
-            <div class="sub-title">言語科學圖形工具</div>
-            <a href="/vowels">母音特性</a>
+              <!-- 言語科學圖形工具 -->
+              <div class="sub-title">言語科學圖形工具</div>
+              <a href="/vowels">母音特性</a>
+            </div>
+          </div>
+
+          <!-- 大二上工具 (包含 純音聽力檢查模擬器) -->
+          <div class="nav-group">
+            <div class="nav-group-title">大二上工具</div>
+            <div class="nav-group-content">
+              <a href="check">純音聽力檢查模擬器</a>
+            </div>
+          </div>
+
+          <!-- 大二下工具 -->
+          <div class="nav-group">
+            <div class="nav-group-title">其他工具</div>
+            <div class="nav-group-content">
+              <a href="/appointment">預約系統</a>
+              <a href="/grade_calculator">成績計算機</a>
+            </div>
           </div>
         </div>
 
-        <!-- 大二上工具 (包含 純音聽力檢查模擬器) -->
-        <div class="nav-group">
-          <div class="nav-group-title">大二上工具</div>
-          <div class="nav-group-content">
-            <a href="check">純音聽力檢查模擬器</a>
-          </div>
-        </div>
-
-        <!-- 大二下工具 -->
-        <div class="nav-group">
-          <div class="nav-group-title">其他工具</div>
-          <div class="nav-group-content">
-            <a href="/appointment">預約系統</a>
-            <a href="/grade_calculator">成績計算機</a>
-          </div>
-        </div>
       </div>
-
+    </div>
+    <div class="top-section" id="topSection"></div>
+    <div class="bottom-section" id="bottomSection">
+      <div class="select-wrapper" id="noteSection" style="display:none;">
+        <select id="gradeSelectBottom" style="display:none; border-radius: 20px;">
+          <option value="">請選擇年級</option>
+          <option value="大一">大一</option>
+          <option value="大二">大二</option>
+          <option value="大三">大三</option>
+        </select>
+        <select id="semesterSelectBottom" disabled style="display:none; border-radius: 20px;">
+          <option value="">請選擇學期</option>
+        </select>
+        <select id="subjectSelectBottom" disabled style="display:none; border-radius: 20px;">
+          <option value="">請選擇科目</option>
+        </select>
+      </div>
+      <div class="experience-wrapper" id="experienceSection">
+        <!-- 隱藏狀態，不會顯示 -->
+        <button onclick="alert('學歷頁面建置中')">學歷</button>
+        <button onclick="alert('經歷頁面建置中')">經歷</button>
+        <button onclick="alert('專業證照頁面建置中')">專業證照</button>
+      </div>
     </div>
   </div>
-  <div class="top-section" id="topSection"></div>
-  <div class="bottom-section">
-    <div class="select-wrapper" id="noteSection" style="display:none;">
-      <select id="gradeSelectBottom" style="display:none; border-radius: 20px;">
-        <option value="">請選擇年級</option>
-        <option value="大一">大一</option>
-        <option value="大二">大二</option>
-        <option value="大三">大三</option>
-      </select>
-      <select id="semesterSelectBottom" disabled style="display:none; border-radius: 20px;">
-        <option value="">請選擇學期</option>
-      </select>
-      <select id="subjectSelectBottom" disabled style="display:none; border-radius: 20px;">
-        <option value="">請選擇科目</option>
-      </select>
-    </div>
-    <div class="experience-wrapper" id="experienceSection">
-      <!-- 隱藏狀態，不會顯示 -->
-      <button onclick="alert('學歷頁面建置中')">學歷</button>
-      <button onclick="alert('經歷頁面建置中')">經歷</button>
-      <button onclick="alert('專業證照頁面建置中')">專業證照</button>
+
+  <!-- 底部資訊條 -->
+  <div class="info-footer">
+    <div class="footer-title">開發者聯絡方式</div>
+    <div class="footer-links">
+      <a href="https://www.instagram.com/bensoncheng1118/" target="_blank">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram">
+        Instagram
+      </a>
+      <a href="https://www.facebook.com/zheng.bing.yan.672166" target="_blank">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" alt="Facebook">
+        Facebook
+      </a>
+      <a href="https://line.me/ti/p/M0_HU9YVqm" target="_blank">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" alt="Line">
+        Line
+      </a>
+      <a href="javascript:void(0)" onclick="copyToClipboard('bensoncheng1118@gmail.com')">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg" alt="Gmail">
+        Gmail
+      </a>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSeK-3OhKra6WxQZXtYZRg5t_YJYQ34nBf8kvErsZ0RRRdYwzw/viewform?usp=publish-editor"
+        target="_blank">
+        網站修改建議
+      </a>
     </div>
   </div>
   <script>
     window.addEventListener('load', () => {
-      const sidebar = document.getElementById("sidebar");
-      const menuIcon = document.getElementById("menuIcon");
       const notesDropdown = document.getElementById("notesDropdown");
       const gradeSelect = document.getElementById("gradeSelect");
       const semesterSelect = document.getElementById("semesterSelect");
@@ -1063,52 +1138,60 @@
           }
         });
       });
+    });
   </script>
   <script>
-      // 漢堡選單控制
-      const menuIcon = document.getElementById("menuIcon");
-      const sidebar = document.getElementById("sidebar");
-      menuIcon.addEventListener("click", () => {
-        menuIcon.classList.toggle("active");
-        sidebar.classList.toggle("active");
+    // 漢堡選單控制
+    menuIcon.addEventListener("click", () => {
+      menuIcon.classList.toggle("active");
+      sidebar.classList.toggle("active");
+    });
+    // 帳號名稱控制
+    const userNameDisplay = document.getElementById("userNameDisplay");
+    const accountManagement = document.getElementById("accountManagement");
+    if (userNameDisplay && accountManagement) {
+      userNameDisplay.addEventListener("click", (e) => {
+        e.stopPropagation(); // 避免冒泡
+        accountManagement.style.display =
+          accountManagement.style.display === "block" ? "none" : "block";
       });
-      // 帳號名稱控制
-      const userNameDisplay = document.getElementById("userNameDisplay");
-      const accountManagement = document.getElementById("accountManagement");
-      if (userNameDisplay && accountManagement) {
-        userNameDisplay.addEventListener("click", (e) => {
-          e.stopPropagation(); // 避免冒泡
-          accountManagement.style.display =
-            accountManagement.style.display === "block" ? "none" : "block";
-        });
-        // 點擊外部區域關閉
-        document.addEventListener("click", (e) => {
-          if (!userNameDisplay.contains(e.target)) {
-            accountManagement.style.display = "none";
-          }
-        });
-      }
-      document.querySelectorAll('.dropdown').forEach(drop => {
-        const btn = drop.querySelector('.dropbtn');
-        const menu = drop.querySelector('.dropdown-content');
-        btn.addEventListener('click', (e) => {
-          e.preventDefault(); // 防止跳頁
-          // 判斷目前是否已經顯示
-          const isVisible = menu.style.display === 'flex';
-          // 收起其他子選單
-          document.querySelectorAll('.dropdown-content').forEach(m => {
-            if (m !== menu) m.style.display = 'none';
-          });
-          // 切換當前子選單顯示/收起
-          menu.style.display = isVisible ? 'none' : 'flex';
-        });
-      });
-      // 點擊頁面其他地方收起所有子選單
-      document.addEventListener('click', (e) => {
-        if (!e.target.closest('.dropdown')) {
-          document.querySelectorAll('.dropdown-content').forEach(m => m.style.display = 'none');
+      // 點擊外部區域關閉
+      document.addEventListener("click", (e) => {
+        if (!userNameDisplay.contains(e.target)) {
+          accountManagement.style.display = "none";
         }
       });
+    }
+    document.querySelectorAll('.dropdown').forEach(drop => {
+      const btn = drop.querySelector('.dropbtn');
+      const menu = drop.querySelector('.dropdown-content');
+      btn.addEventListener('click', (e) => {
+        e.preventDefault(); // 防止跳頁
+        // 判斷目前是否已經顯示
+        const isVisible = menu.style.display === 'flex';
+        // 收起其他子選單
+        document.querySelectorAll('.dropdown-content').forEach(m => {
+          if (m !== menu) m.style.display = 'none';
+        });
+        // 切換當前子選單顯示/收起
+        menu.style.display = isVisible ? 'none' : 'flex';
+      });
+    });
+    // 複製文字到剪貼簿
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert('已複製 Gmail 地址到剪貼簿：' + text);
+      }).catch(err => {
+        console.error('無法複製文字: ', err);
+      });
+    }
+
+    // 點擊頁面其他地方收起所有子選單
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.dropdown')) {
+        document.querySelectorAll('.dropdown-content').forEach(m => m.style.display = 'none');
+      }
+    });
   </script>
 </body>
 

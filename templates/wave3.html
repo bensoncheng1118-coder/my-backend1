@@ -1,305 +1,497 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="zh-Hant">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>聲音頻率與耳蝸電位波形模擬</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    max-width: 800px;
-    margin: 2rem auto;
-    padding: 0 1rem;
-    background: #faf3e0;
-    color: #222;
-  }
-  h1, h2 {
-    text-align: center;
-  }
-  .input-group {
-    text-align: center;
-    margin-bottom: 2rem;
-  }
-  input[type="number"] {
-    font-size: 1.2rem;
-    padding: 0.3rem 0.6rem;
-    width: 140px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-  }
-  canvas {
-    width: 100%;
-    height: auto;
-    background: white;
-    border: 1px solid #bbb;
-    border-radius: 6px;
-    margin-bottom: 0.2rem; /* 稍微縮小底部距離給按鈕 */
-    box-sizing: border-box;
-  }
-  #topWaveform {
-    height: 160px;
-    margin-bottom: 2rem;
-  }
-  /* 調整三個小圖的canvas高度與統一大小 */
-  #cmspWaveform, #apWaveform, #combinedWaveform {
-    height: 160px  !important; /* 對齊上方topWaveform的高度 */
-  }
-  .label {
-    font-weight: bold;
-    margin-bottom: 0.2rem;
-    text-align: center;
-  }
-  .container {
-    max-width: 900px;
-    margin: 0 auto;
-  }
-  .row {
-    display: flex;
-    justify-content: space-between;
-    align-items: stretch; 
-    gap: 1rem;
-  }
-  .col {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  /* 新增：將左邊兩張圖往下移動對齊右邊圖，改為9px向上1px */
-  .col:first-child,
-  .col:nth-child(2) {
-    margin-top: 5px; /* 上移1px */
-  }
-  .btn-reason {
-    background-color: #007acc;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 6px 14px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
-    user-select: none;
-    transition: background-color 0.25s;
-  }
-  .btn-reason:hover {
-    background-color: #005999;
-  }
-  .reason-text {
-    max-width: 100px;
-    overflow-y: auto;  
-    font-size: 0.9rem;
-    color: #444;
-    display: none;
-    padding: 0 0.5rem 1rem 0.5rem;
-    text-align: center;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>耳蝸電位波形模擬</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #4a90e2;
+      --secondary-color: #34495e;
+      --accent-purple: #9b59b6;
+      --accent-green: #2ecc71;
+      --accent-red: #e74c3c;
+      --bg-color: #f4f7f6;
+      --card-bg: #ffffff;
+      --text-color: #333;
+      --text-muted: #7f8c8d;
+      --radius-pill: 50px;
+      --radius-md: 12px;
+      --shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s ease;
+    }
+
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      width: 95%;
+      max-width: 1000px;
+      margin: 60px auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      font-weight: 700;
+      color: var(--secondary-color);
+      margin-bottom: 10px;
+      font-size: 1.8rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow);
+      padding: 30px;
+      margin-bottom: 20px;
+    }
+
+    /* Controls Area */
+    .controls-section {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 30px;
+      background: #fff;
+      padding: 20px;
+      border-radius: var(--radius-pill);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    .controls-section label {
+      font-weight: 600;
+      color: var(--secondary-color);
+    }
+
+    input[type="number"] {
+      padding: 10px 15px;
+      font-size: 1.1rem;
+      border: 1px solid #ddd;
+      border-radius: var(--radius-pill);
+      width: 150px;
+      transition: var(--transition);
+      text-align: center;
+      background: #f9f9f9;
+    }
+
+    input[type="number"]:focus {
+      border-color: var(--primary-color);
+      background: #fff;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+    }
+
+    /* Waveform Grid */
+    .wave-main {
+      margin-bottom: 30px;
+    }
+
+    .wave-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .wave-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #fafafa;
+      padding: 15px;
+      border-radius: var(--radius-md);
+      border: 1px solid #eee;
+      transition: var(--transition);
+    }
+
+    .wave-item:hover {
+      border-color: #ddd;
+      transform: translateY(-2px);
+    }
+
+    .wave-label {
+      font-weight: 700;
+      color: var(--secondary-color);
+      margin-bottom: 10px;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .canvas-wrapper {
+      width: 100%;
+      background: #fff;
+      border-radius: 8px;
+      border: 1px solid #eee;
+      overflow: hidden;
+      margin-bottom: 15px;
+    }
+
+    canvas {
+      width: 100%;
+      display: block;
+    }
+
+    /* Buttons */
+    .btn-pill {
+      padding: 8px 18px;
+      border: none;
+      border-radius: var(--radius-pill);
+      background-color: var(--primary-color);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .btn-pill:hover {
+      background-color: #357abd;
+      transform: scale(1.05);
+    }
+
+    /* Modal Styling */
+    #modalOverlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 999;
+    }
+
+    #infoModal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 90%;
+      max-width: 500px;
+      transform: translate(-50%, -50%);
+      background: white;
+      border-radius: var(--radius-md);
+      padding: 30px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      animation: modalFade 0.3s ease;
+    }
+
+    @keyframes modalFade {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -45%);
+      }
+
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+      }
+    }
+
+    #modalTitle {
+      margin-top: 0;
+      color: var(--secondary-color);
+      border-bottom: 2px solid #f0f0f0;
+      padding-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #modalBody {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: #444;
+      margin: 20px 0;
+    }
+
+    .btn-close {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: var(--radius-pill);
+      background: var(--accent-red);
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btn-close:hover {
+      filter: brightness(0.9);
+    }
+
+    #backBtn {
+      position: absolute;
+      top: 30px;
+      left: 30px;
+      text-decoration: none;
+      color: var(--text-muted);
+      font-weight: 600;
+      background: #fff;
+      padding: 8px 18px;
+      border-radius: var(--radius-pill);
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #backBtn:hover {
+      color: var(--primary-color);
+      transform: translateX(-5px);
+    }
+
+    /* Hidden reason text */
+    .reason-data {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        margin: 80px auto 20px;
+      }
+
+      .controls-section {
+        flex-direction: column;
+        border-radius: 12px;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<h1>聲音頻率與耳蝸電位波形模擬</h1>
-<div class="input-group">
-  <label for="freqInput">輸入頻率 (Hz): </label>
-  <input id="freqInput" type="number" min="20" max="20000" value="1000" step="1" />
-</div>
+  <a href="/" id="backBtn"><i class="fa-solid fa-chevron-left"></i> 返回首頁</a>
 
-<div class="container">
+  <div class="container">
+    <div class="header">
+      <h1>耳蝸電位波形模擬</h1>
+      <p style="color: var(--text-muted);">探索聲音頻率對 CM、SP 與 AP 之影響</p>
+    </div>
 
-  <div>
-    <div class="label">輸入頻率聲波波形</div>
-    <canvas id="topWaveform" width="800" height="160"></canvas>
+    <div class="card">
+      <!-- Input Section -->
+      <div class="controls-section">
+        <label for="freqInput"><i class="fa-solid fa-ear-listen"></i> 輸入頻率 (Hz):</label>
+        <input id="freqInput" type="number" min="20" max="20000" value="1000" step="1" />
+      </div>
+
+      <!-- Main Waveform -->
+      <div class="wave-main">
+        <div class="wave-label"><i class="fa-solid fa-wave-square" style="color: var(--primary-color);"></i> 輸入頻率聲波波形
+        </div>
+        <div class="canvas-wrapper">
+          <canvas id="topWaveform" width="900" height="150"></canvas>
+        </div>
+      </div>
+
+      <!-- Sub Waveforms Grid -->
+      <div class="wave-grid">
+        <!-- CM + SP -->
+        <div class="wave-item">
+          <div class="wave-label"><span style="color: var(--accent-purple);">●</span> CM + SP</div>
+          <div class="canvas-wrapper">
+            <canvas id="cmspWaveform" width="300" height="150"></canvas>
+          </div>
+          <button class="btn-pill" onclick="showInfo('CM + SP', 'reasonText1')">
+            <i class="fa-solid fa-circle-question"></i> 原理說明
+          </button>
+        </div>
+
+        <!-- AP -->
+        <div class="wave-item">
+          <div class="wave-label"><span style="color: var(--accent-red);">●</span> AP</div>
+          <div class="canvas-wrapper">
+            <canvas id="apWaveform" width="300" height="150"></canvas>
+          </div>
+          <button class="btn-pill" onclick="showInfo('動作電位 AP', 'reasonText2')">
+            <i class="fa-solid fa-circle-question"></i> 原理說明
+          </button>
+        </div>
+
+        <!-- Combined -->
+        <div class="wave-item">
+          <div class="wave-label"><span style="color: var(--accent-green);">●</span> 綜合波形</div>
+          <div class="canvas-wrapper">
+            <canvas id="combinedWaveform" width="300" height="150"></canvas>
+          </div>
+          <button class="btn-pill" onclick="showInfo('綜合分析 (CM+SP+AP)', 'reasonText3')">
+            <i class="fa-solid fa-circle-question"></i> 原理說明
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="row">
-    <div class="col">
-      <div class="label">CM + SP</div>
-      <canvas id="cmspWaveform" width="260" height="160"></canvas>
-      <button class="btn-reason" id="reasonBtn1">原因</button>
-      <div class="reason-text" id="reasonText1">外毛細胞對低頻與高頻皆敏感；內毛細胞只對低頻敏感，所以在低頻時是內毛細胞主導SP，而在高頻時是外毛細胞主導SP。低頻時可以完整去極化甚至去極化時間過長，所以圖形會出現正向偏移；高頻時還沒去極化完就馬上過極化，甚至過極化時間過長，所以圖形會出現負向偏移</div>
+  <!-- Hidden Data -->
+  <div class="reason-data">
+    <div id="reasonText1">
+      外毛細胞對低頻與高頻皆敏感；內毛細胞只對低頻敏感，所以在低頻時是內毛細胞主導SP，而在高頻時是外毛細胞主導SP。低頻時可以完整去極化甚至去極化時間過長，所以圖形會出現正向偏移；高頻時還沒去極化完就馬上過極化，甚至過極化時間過長，所以圖形會出現負向偏移。
     </div>
-    <div class="col">
-      <div class="label">AP</div>
-      <canvas id="apWaveform" width="260" height="160"></canvas>
-      <button class="btn-reason" id="reasonBtn2">原因</button>
-      <div class="reason-text" id="reasonText2">在基底膜向上偏移時毛細胞會去極化，並釋放神經傳遞物質使聽神經去極化(即放電)；在基底膜向下偏移時毛細胞會過極化，停止釋放神經傳遞物質使聽神經過極化，因此會出現在聲波波峰時會放電，在聲波波谷時會停止放電(即相位鎖定phase lock)。但需注意時間上的頻譜分析(相位鎖定)只有在5000hz以下才完整(可同時進行位置上的頻譜分析與時間上的頻譜分析)，高於5000Hz的聲波毛細胞來不及進行時間上的頻譜分析(相位鎖定)，只能進行位置上的頻譜分析(即耳蝸基底部偵測高頻；耳蝸頂部偵測低頻)</div>
-    </div>
-    <div class="col">
-      <div class="label">CM+SP+AP之綜合波形</div>
-      <canvas id="combinedWaveform" width="260" height="160"></canvas>
-      <button class="btn-reason" id="reasonBtn3">原因</button>
-      <div class="reason-text" id="reasonText3">在聲音刺激的最一開始會同時產生CM、SP與AP，但因為一開始的AP太大進而蓋過CM與SP，所以綜合圖形的一開始為AP的波峰(先負再正)，後面AP的大小會逐漸變小與穩定，CM與SP就會逐漸顯現出來</div>
-    </div>
+    <div id="reasonText2">
+      在基底膜向上偏移時毛細胞會去極化，並釋放神經傳遞物質使聽神經去極化(即放電)；在基底膜向下偏移時毛細胞會過極化，停止釋放神經傳遞物質使聽神經過極化，因此會出現在聲波波峰時會放電，在聲波波谷時會停止放電(即相位鎖定phase
+      lock)。注意：相位鎖定只有在 5000Hz 以下才完整。</div>
+    <div id="reasonText3">
+      在聲音刺激的最一開始會同時產生CM、SP與AP，但因為一開始的AP太大進而蓋過CM與SP，所以綜合圖形的一開始為AP的波峰(先負再正)，後面AP的大小會逐漸變小與穩定，CM與SP就會逐漸顯現出來。</div>
   </div>
-</div>
 
-<script>
-  // 取得 canvas 與 context
-  const topCanvas = document.getElementById('topWaveform');
-  const topCtx = topCanvas.getContext('2d');
-  const cmspCanvas = document.getElementById('cmspWaveform');
-  const cmspCtx = cmspCanvas.getContext('2d');
-  const apCanvas = document.getElementById('apWaveform');
-  const apCtx = apCanvas.getContext('2d');
-  const combinedCanvas = document.getElementById('combinedWaveform');
-  const combinedCtx = combinedCanvas.getContext('2d');
-  const freqInput = document.getElementById('freqInput');
+  <!-- Modern Modal -->
+  <div id="modalOverlay"></div>
+  <div id="infoModal">
+    <h2 id="modalTitle">原理說明</h2>
+    <div id="modalBody"></div>
+    <button class="btn-close" onclick="closeModal()">確認</button>
+  </div>
 
-  // 常數
-  const sampleRate = 44100;
-  const duration = 0.01; // 10ms 顯示時間
+  <script>
+    // Elements
+    const canvases = {
+      top: document.getElementById('topWaveform'),
+      cmsp: document.getElementById('cmspWaveform'),
+      ap: document.getElementById('apWaveform'),
+      comb: document.getElementById('combinedWaveform')
+    };
+    const ctxs = {
+      top: canvases.top.getContext('2d'),
+      cmsp: canvases.cmsp.getContext('2d'),
+      ap: canvases.ap.getContext('2d'),
+      comb: canvases.comb.getContext('2d')
+    };
+    const freqInput = document.getElementById('freqInput');
+    const duration = 0.01; // 10ms
 
-  // 清空畫布
-  function clearCanvas(ctx, width, height) {
-    ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, width, height);
-  }
+    function clearAndDrawAxis(ctx, canvas) {
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, w, h);
 
-  // 畫水平軸
-  function drawAxis(ctx, width, height) {
-    ctx.strokeStyle = '#aaa';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(0, height / 2);
-    ctx.lineTo(width, height / 2);
-    ctx.stroke();
-  }
-
-  // 畫正弦波函式，cmsp根據頻率分段偏移：
-  // 4000Hz以下明顯正向偏移 +0.2，5000Hz以上明顯負向偏移 -0.2，中間線性過渡
-  function drawSineWave(ctx, width, height, frequency, amplitude=1, phase=0, offset=0, color='#0066cc') {
-    if (ctx === cmspCtx) {
-      if (frequency <= 4000) {
-        offset = 0.2;  // 明顯正向偏移
-      } else if (frequency >= 5000) {
-        offset = -0.2; // 明顯負向偏移
-      } else {
-        // 4000-5000Hz 線性插值偏移，從 +0.2 過渡到 -0.2
-        offset = 0.2 - (frequency - 4000)/(5000 - 4000) * 0.4;
-      }
+      // Axis
+      ctx.strokeStyle = '#eee';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, h / 2);
+      ctx.lineTo(w, h / 2);
+      ctx.stroke();
     }
 
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
+    function drawSine(ctx, canvas, freq, amp = 1, color = '#4a90e2', offset = 0) {
+      const w = canvas.width;
+      const h = canvas.height;
 
-    for(let i=0; i < width; i++) {
-      const t = i / width * duration;
-      const val = amplitude * Math.sin(2 * Math.PI * frequency * t + phase) + offset;
-      const y = height / 2 - val * (height / 2) * 0.9;
-      if(i === 0) ctx.moveTo(i, y);
-      else ctx.lineTo(i, y);
-    }
-    ctx.stroke();
-  }
-
-  // 動作電位 (AP) 脈衝波
-  function drawActionPotential(ctx, width, height, frequency, spikeWidth=4) {
-    ctx.strokeStyle = '#cc3300';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-
-    const samplesPerPeriod = width / (frequency * duration);
-    for(let i = 0; i < width; i++) {
-      let val = 0;
-      if ((i % samplesPerPeriod) < spikeWidth) val = 1;
-      const y = height / 2 - val * (height / 2) * 0.9;
-      if(i === 0) ctx.moveTo(i, height / 2);
-      if(val === 1) {
-        ctx.lineTo(i, y);
-        ctx.lineTo(i + 1, y);
-      } else {
-        ctx.lineTo(i, height / 2);
-      }
-    }
-    ctx.stroke();
-  }
-
-  // 綜合波形繪製 - 最前面只留 1 個 AP 脈衝波形
-  function drawCombined(ctx, width, height, frequency) {
-    ctx.strokeStyle = '#339900';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-
-    const samplesPerPeriod = width / (frequency * duration);
-    const apSpikeWidth = 4;
-
-    const apPeakAmplitude = 0.8;
-    const cmAmplitude = 0.25;
-
-    for(let i = 0; i < width; i++) {
-      const t = i / width * duration;
-
-      // 只留最前面一個 AP 脈衝波
-      let ap = 0;
-      if (i < apSpikeWidth) {
-        ap = -apPeakAmplitude;
+      // Offset logic for CMSP
+      if (ctx === ctxs.cmsp) {
+        if (freq <= 4000) offset = 0.2;
+        else if (freq >= 5000) offset = -0.2;
+        else offset = 0.2 - (freq - 4000) / 1000 * 0.4;
       }
 
-      const cm = cmAmplitude * Math.sin(2 * Math.PI * frequency * t);
-      const sp = 0.15 * Math.sin(4 * Math.PI * frequency * t) + 0.1;
-
-      let val = 0;
-      if(i < samplesPerPeriod) {
-        val = ap + sp;
-        if(val > 0) val = Math.min(val, 0.1);
-        if(val < ap) val = ap;
-      } else {
-        val = cm + sp;
-        if(val > apPeakAmplitude) val = apPeakAmplitude;
-        if(val < -apPeakAmplitude) val = -apPeakAmplitude;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let i = 0; i < w; i++) {
+        const t = i / w * duration;
+        const val = amp * Math.sin(2 * Math.PI * freq * t) + offset;
+        const y = h / 2 - val * (h / 2) * 0.8;
+        i === 0 ? ctx.moveTo(i, y) : ctx.lineTo(i, y);
       }
-
-      const y = height / 2 - val * (height / 2) * 0.9;
-      if(i === 0) ctx.moveTo(i, y);
-      else ctx.lineTo(i, y);
+      ctx.stroke();
     }
-    ctx.stroke();
-  }
 
-  // 原因按鈕點擊事件 - 用 alert 彈出文字視窗
-  function addReasonAlert(buttonId, textId) {
-    const btn = document.getElementById(buttonId);
-    const textDiv = document.getElementById(textId);
-    btn.addEventListener('click', () => {
-      alert(textDiv.textContent.trim());
-    });
-  }
+    function drawAP(ctx, canvas, freq) {
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.strokeStyle = '#e74c3c';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      const period = w / (freq * duration);
+      for (let i = 0; i < w; i++) {
+        const val = (i % period) < 4 ? 1 : 0;
+        const y = h / 2 - val * (h / 2) * 0.8;
+        if (val === 1) { ctx.lineTo(i, y); ctx.lineTo(i + 1, y); }
+        else { ctx.lineTo(i, h / 2); }
+      }
+      ctx.stroke();
+    }
 
-  // 更新繪圖畫面
-  function updateWaveforms() {
-    const freq = parseFloat(freqInput.value);
-    if (!(freq >= 20 && freq <= 20000)) return;
+    function drawCombined(ctx, canvas, freq) {
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.strokeStyle = '#2ecc71';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      const period = w / (freq * duration);
+      for (let i = 0; i < w; i++) {
+        const t = i / w * duration;
+        let val;
+        if (i < 4) { // Initial AP
+          val = -0.8 + 0.1; // ap + sp
+        } else if (i < period) {
+          val = 0.1; // only sp roughly
+        } else {
+          val = 0.25 * Math.sin(2 * Math.PI * freq * t) + 0.1;
+        }
+        const y = h / 2 - val * (h / 2) * 0.8;
+        i === 0 ? ctx.moveTo(i, y) : ctx.lineTo(i, y);
+      }
+      ctx.stroke();
+    }
 
-    clearCanvas(topCtx, topCanvas.width, topCanvas.height);
-    drawAxis(topCtx, topCanvas.width, topCanvas.height);
-    drawSineWave(topCtx, topCanvas.width, topCanvas.height, freq);
+    function update() {
+      const freq = parseFloat(freqInput.value);
+      if (isNaN(freq)) return;
 
-    clearCanvas(cmspCtx, cmspCanvas.width, cmspCanvas.height);
-    drawAxis(cmspCtx, cmspCanvas.width, cmspCanvas.height);
-    drawSineWave(cmspCtx, cmspCanvas.width, cmspCanvas.height, freq, 0.7, 0, 0, '#800080');
+      Object.keys(canvases).forEach(k => clearAndDrawAxis(ctxs[k], canvases[k]));
 
-    clearCanvas(apCtx, apCanvas.width, apCanvas.height);
-    drawAxis(apCtx, apCanvas.width, apCanvas.height);
-    drawActionPotential(apCtx, apCanvas.width, apCanvas.height, freq);
+      drawSine(ctxs.top, canvases.top, freq);
+      drawSine(ctxs.cmsp, canvases.cmsp, freq, 0.7, '#9b59b6');
+      drawAP(ctxs.ap, canvases.ap, freq);
+      drawCombined(ctxs.comb, canvases.comb, freq);
+    }
 
-    clearCanvas(combinedCtx, combinedCanvas.width, combinedCanvas.height);
-    drawAxis(combinedCtx, combinedCanvas.width, combinedCanvas.height);
-    drawCombined(combinedCtx, combinedCanvas.width, combinedCanvas.height, freq);
-  }
+    // Modal Logic
+    window.showInfo = (title, textId) => {
+      document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-circle-info"></i> ${title}`;
+      document.getElementById('modalBody').textContent = document.getElementById(textId).textContent;
+      document.getElementById('modalOverlay').style.display = 'block';
+      document.getElementById('infoModal').style.display = 'block';
+    }
 
-  // 綁定原因按鈕事件
-  addReasonAlert('reasonBtn1', 'reasonText1');
-  addReasonAlert('reasonBtn2', 'reasonText2');
-  addReasonAlert('reasonBtn3', 'reasonText3');
+    window.closeModal = () => {
+      document.getElementById('modalOverlay').style.display = 'none';
+      document.getElementById('infoModal').style.display = 'none';
+    }
 
-  freqInput.addEventListener('input', updateWaveforms);
-
-  // 初始繪圖
-  updateWaveforms();
-
-</script>
-
+    freqInput.oninput = update;
+    update();
+  </script>
 </body>
+
 </html>

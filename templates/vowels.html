@@ -1,301 +1,510 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>母音語音辨識與IPA及母音四邊形共振峰顯示</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #faf3e0;
-    padding: 20px;
-    display: flex; flex-direction: column; align-items: center;
-    user-select: none;
-  }
-  h1 {
-    margin-bottom: 12px;
-  }
-  #ipaInputContainer {
-    margin-bottom: 12px;
-    display: flex; gap: 8px; align-items: center;
-  }
-  #ipaInput {
-    font-size: 24px; padding: 6px 12px;
-    width: 120px; text-align: center;
-    border-radius: 6px; border: 1px solid #ccc;
-  }
-  #submitBtn {
-    padding: 8px 16px; font-size: 18px;
-    border: none; border-radius: 6px;
-    background: #3498db; color: white;
-    cursor: pointer;
-  }
-  #submitBtn:disabled {
-    background: #95a5a6; cursor: not-allowed;
-  }
-  #status {
-    margin-bottom: 16px;
-    font-size: 14px;
-    color: #444;
-    white-space: pre-wrap;
-    line-height: 1.6em;
-  }
-  #ipaDisplay {
-    font-size: 72px;
-    font-weight: bold;
-    color: #2c3e50;
-    margin-bottom: 20px;
-    min-height: 1em;
-  }
-  #mainChartContainer {
-    display: flex;
-    gap: 40px;
-    align-items: stretch;
-    height: auto;
-  }
-  #vowelChart {
-    position: relative;
-    width: 360px;
-    height: auto;
-  }
-  #vowelChart img {
-    width: 100%;
-    height: auto;
-    object-fit: contain;
-    user-select: none;
-    pointer-events: none;
-    display: block;
-  }
-  #formantCanvas {
-    border: 1px solid #ccc;
-    background: white;
-    width: 420px;
-    margin-top: 0;
-    display: block;
-  }
-</style>
-</head>
-<body>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>母音 IPA 與共振峰分析</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #4a90e2;
+      --secondary-color: #34495e;
+      --bg-color: #f4f7f6;
+      --card-bg: #ffffff;
+      --text-color: #333;
+      --text-muted: #7f8c8d;
+      --radius-pill: 50px;
+      --radius-md: 12px;
+      --shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s ease;
+    }
 
-<h1>母音IPA輸入及母音四邊形共振峰顯示</h1>
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
 
-<div id="ipaInputContainer">
-  <label for="ipaInput" style="font-size: 18px;">輸入母音IPA符號：</label>
-  <input type="text" id="ipaInput" maxlength="3" aria-label="母音IPA輸入"
-         placeholder="例：i, e, a, u, ɔ, ɪ, ʊ, ɛ, ʌ, ɑ, etc."/>
-  <button id="submitBtn">顯示母音位置</button>
-</div>
+    .container {
+      width: 95%;
+      max-width: 1000px;
+      margin: 60px auto;
+    }
 
-<div id="status"></div>
-<div id="ipaDisplay">–</div>
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
 
-<div id="mainChartContainer">
-  <div id="vowelChart" aria-label="母音四邊形背景圖片" role="img" tabindex="0">
-    <img id="vowelImage" src="static/image/bg1.png" alt="母音四邊形背景圖片" />
-  </div>
+    h1 {
+      font-weight: 700;
+      color: var(--secondary-color);
+      margin-bottom: 10px;
+      font-size: 1.8rem;
+    }
 
-  <canvas id="formantCanvas" aria-label="共振峰頻譜" role="img"></canvas>
-</div>
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow);
+      padding: 35px;
+      margin-bottom: 20px;
+    }
 
-<div class="chartTitle">母音四邊形示意圖 (左) 及 共振峰頻譜與共振峰標示 (右)</div>
+    /* Input Section */
+    .input-section {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
 
-<script>
-(() => {
-  const ipaInput = document.getElementById('ipaInput');
-  const submitBtn = document.getElementById('submitBtn');
-  const ipaDisplay = document.getElementById('ipaDisplay');
-  const status = document.getElementById('status');
-  const canvas = document.getElementById('formantCanvas');
-  const ctx = canvas.getContext('2d');
-  const vowelImage = document.getElementById('vowelImage');
+    .input-wrapper {
+      position: relative;
+    }
 
-  canvas.width = 420;
+    #ipaInput {
+      font-size: 1.2rem;
+      padding: 10px 20px;
+      width: 140px;
+      text-align: center;
+      border-radius: var(--radius-pill);
+      border: 1px solid #ddd;
+      background: #f9f9f9;
+      transition: var(--transition);
+      font-family: inherit;
+    }
 
-  // 圖片載入後設定canvas高度一致
-  vowelImage.addEventListener('load', () => {
-    const imageHeight = vowelImage.clientHeight || 360;
-    canvas.style.height = imageHeight + 'px';
-    canvas.height = imageHeight;
-    clearCanvas();
-  });
+    #ipaInput:focus {
+      border-color: var(--primary-color);
+      background: #fff;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+    }
 
-  const ipaVowels = {
-    'i':  {F1: 300, F2: 2290, rounded:false, height:'High', frontness:'Front'},
-    'y':  {F1: 300, F2: 1760, rounded:true,  height:'High', frontness:'Front'},
-    'ɪ':  {F1: 390, F2: 1990, rounded:false, height:'Near-high', frontness:'Front'},
-    'ʏ':  {F1: 390, F2: 1550, rounded:true,  height:'Near-high', frontness:'Front'},
-    'e':  {F1: 460, F2: 1840, rounded:false, height:'Mid', frontness:'Front'},
-    'ø':  {F1: 470, F2: 1450, rounded:true,  height:'Mid', frontness:'Front'},
-    'ɛ':  {F1: 530, F2: 1840, rounded:false, height:'Open-mid', frontness:'Front'},
-    'œ':  {F1: 540, F2: 1450, rounded:true,  height:'Open-mid', frontness:'Front'},
-    'æ':  {F1: 660, F2: 1720, rounded:false, height:'Near-open', frontness:'Front'},
-    'a':  {F1: 700, F2: 1220, rounded:false, height:'Open', frontness:'Front'},
-    'ɑ':  {F1: 730, F2: 1090, rounded:false, height:'Open', frontness:'Back'},
-    'ɒ':  {F1: 780, F2: 1100, rounded:true,  height:'Open', frontness:'Back'},
-    'ɔ':  {F1: 570, F2: 840,  rounded:true,  height:'Open-mid', frontness:'Back'},
-    'o':  {F1: 460, F2: 640,  rounded:true,  height:'Mid', frontness:'Back'},
-    'ʊ':  {F1: 440, F2: 1020, rounded:true,  height:'Near-high', frontness:'Back'},
-    'u':  {F1: 300, F2: 870,  rounded:true,  height:'High', frontness:'Back'},
-    'ɯ':  {F1: 350, F2: 900,  rounded:false, height:'High', frontness:'Back'},
-    'ɨ':  {F1: 420, F2: 1260, rounded:false, height:'Close-mid', frontness:'Central'},
-    'ʉ':  {F1: 370, F2: 1480, rounded:true,  height:'Close-mid', frontness:'Central'},
-    'ə':  {F1: 500, F2: 1500, rounded:false, height:'Mid', frontness:'Central'},
-    'ɜ':  {F1: 570, F2: 1200, rounded:false, height:'Open-mid', frontness:'Central'},
-    'ɞ':  {F1: 550, F2: 960,  rounded:true,  height:'Open-mid', frontness:'Central'},
-    'ʌ':  {F1: 600, F2: 1300, rounded:false, height:'Open-mid', frontness:'Back'},
-    'ɐ':  {F1: 690, F2: 1600, rounded:false, height:'Near-open', frontness:'Central'},
-    'aː': {F1: 700, F2: 1200, rounded:false, height:'Open', frontness:'Front'}
-  };
+    #submitBtn {
+      padding: 12px 30px;
+      font-size: 1rem;
+      border: none;
+      border-radius: var(--radius-pill);
+      background: var(--primary-color);
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-  const f2Positions = [
-    {freq: 3000, x: 60},
-    {freq: 2600, x: 110},
-    {freq: 2200, x: 160},
-    {freq: 1800, x: 210},
-    {freq: 1400, x: 260},
-    {freq: 1000, x: 310}
-  ];
+    #submitBtn:hover {
+      background-color: #357abd;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3);
+    }
 
-  const f1Positions = [
-    {freq: 300, y: 60},
-    {freq: 500, y: 90},
-    {freq: 700, y: 120},
-    {freq: 900, y: 150},
-    {freq: 1100, y: 180},
-    {freq: 1300, y: 210},
-    {freq: 1500, y: 240},
-    {freq: 1700, y: 270}
-  ];
+    /* Result Display */
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 20px;
+      align-items: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      border-radius: var(--radius-md);
+      background: #fafafa;
+      border: 1px solid #eee;
+    }
 
-  function freqToPos(freq, positions) {
-    if (freq >= positions[0].freq) return positions[0].x !== undefined ? positions[0].x : positions[0].y;
-    if (freq <= positions[positions.length-1].freq) return positions[positions.length-1].x !== undefined ? positions[positions.length-1].x : positions[positions.length-1].y;
-    for (let i=0; i < positions.length - 1; i++) {
-      const cur = positions[i];
-      const next = positions[i+1];
-      if (cur.x !== undefined) {
-        if (freq <= cur.freq && freq >= next.freq) {
-          let ratio = (cur.freq - freq) / (cur.freq - next.freq);
-          return cur.x + ratio * (next.x - cur.x);
-        }
-      } else {
-        if (freq >= cur.freq && freq <= next.freq) {
-          let ratio = (freq - cur.freq) / (next.freq - cur.freq);
-          return cur.y + ratio * (next.y - cur.y);
-        }
+    #ipaDisplay {
+      font-size: 80px;
+      font-weight: 700;
+      color: var(--primary-color);
+      text-align: center;
+      line-height: 1;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    #status {
+      font-size: 0.95rem;
+      color: var(--secondary-color);
+      white-space: pre-wrap;
+      line-height: 1.7;
+      padding-left: 20px;
+      border-left: 3px solid #eee;
+    }
+
+    /* Visualization Grid */
+    .viz-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 30px;
+      margin-top: 20px;
+    }
+
+    .viz-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .viz-title {
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .chart-wrapper {
+      width: 100%;
+      background: #fff;
+      border-radius: var(--radius-md);
+      border: 1px solid #eee;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      background: white;
+      min-height: 380px;
+    }
+
+    #vowelChart {
+      position: relative;
+      width: 100%;
+    }
+
+    #vowelChart img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* 紅點樣式：如果後續需要繪製母音位置 */
+    #vowelPoint {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: #e74c3c;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      transform: translate(-50%, -50%);
+      display: none;
+      box-shadow: 0 0 5px rgba(231, 76, 60, 0.5);
+      z-index: 5;
+    }
+
+    #formantCanvas {
+      width: 100%;
+      display: block;
+    }
+
+    #backBtn {
+      position: absolute;
+      top: 30px;
+      left: 30px;
+      text-decoration: none;
+      color: var(--text-muted);
+      font-weight: 600;
+      background: #fff;
+      padding: 8px 18px;
+      border-radius: var(--radius-pill);
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+    }
+
+    #backBtn:hover {
+      color: var(--primary-color);
+      transform: translateX(-5px);
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        margin: 80px auto 20px;
+      }
+
+      .result-grid {
+        grid-template-columns: 1fr;
+      }
+
+      #status {
+        border-left: none;
+        border-top: 3px solid #eee;
+        padding-left: 0;
+        padding-top: 20px;
+        text-align: center;
+      }
+
+      .viz-grid {
+        grid-template-columns: 1fr;
       }
     }
-    // fallback
-    return positions[0].x !== undefined ? positions[0].x : positions[0].y;
-  }
+  </style>
+</head>
 
-  function resetVowelPoint() {
-    ipaDisplay.textContent = '–';
-    status.textContent = '請輸入母音IPA並按「顯示母音位置」';
-    clearCanvas();
-  }
+<body>
 
-  // 只畫輸入母音共振峰圖，F2標籤高度調高避免重疊
-  function drawSpectrumWithTrendAndMarkers(info) {
-    const width = canvas.width;
-    const height = canvas.height;
-    ctx.clearRect(0,0,width,height);
+  <a href="{{ url_for('index') }}" id="backBtn"><i class="fa-solid fa-chevron-left"></i> 返回首頁</a>
 
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0,0,width,height);
+  <div class="container">
+    <div class="header">
+      <h1>母音 IPA 與共振峰分析</h1>
+      <p style="color: var(--text-muted);">輸入 IPA 符號觀察其頻譜特性與發音位置</p>
+    </div>
 
-    ctx.strokeStyle = '#999';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(40, height-30);
-    ctx.lineTo(width-20, height-30);
-    ctx.lineTo(width-20, 30);
-    ctx.stroke();
+    <div class="card">
+      <div class="input-section">
+        <label for="ipaInput" style="font-weight: 600; color: var(--secondary-color);">輸入 IPA 符號：</label>
+        <div class="input-wrapper">
+          <input type="text" id="ipaInput" maxlength="3" placeholder="i, e, a, u..." />
+        </div>
+        <button id="submitBtn">顯示母音位置</button>
+      </div>
 
-    ctx.fillStyle = '#333';
-    ctx.font = '14px Arial';
-    ctx.fillText('頻率 (Hz)', width/2 - 30, height - 8);
-    // F2標籤文字高度提高到27px，避開虛線
-    ctx.fillText('強度 (a.u.)', width - 80, 27);
+      <div class="result-grid">
+        <div id="ipaDisplay">–</div>
+        <div id="status">請輸入母音IPA並按「顯示母音位置」</div>
+      </div>
 
-    const freqStart = 0;
-    const freqEnd = 5000;
-    const pointsCount = 300;
-    const freqStep = (freqEnd - freqStart)/pointsCount;
+      <div class="viz-grid">
+        <div class="viz-item">
+          <div class="viz-title">母音四邊形示意圖</div>
+          <div class="chart-wrapper">
+            <div id="vowelChart">
+              <img id="vowelImage" src="../images/bg1.png" alt="母音四邊形" />
+              <div id="vowelPoint"></div>
+            </div>
+          </div>
+        </div>
 
-    ctx.strokeStyle = '#e74c3c';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    for(let i=0; i <= pointsCount; i++) {
-      const freq = freqStart + i*freqStep;
-      const peak1 = Math.exp(-Math.pow(freq - info.F1, 2)/(2*150*150));
-      const peak2 = Math.exp(-Math.pow(freq - info.F2, 2)/(2*200*200))*0.8;
-      const intensity = peak1 + peak2;
-      const scaleFactor = 0.9;
-      const x = 40 + (freq/freqEnd)*(width-60);
-      const y = height - 30 - intensity*scaleFactor*(height - 60);
-      if(i === 0) ctx.moveTo(x,y);
-      else ctx.lineTo(x,y);
-    }
-    ctx.stroke();
+        <div class="viz-item">
+          <div class="viz-title">共振峰頻譜與標示</div>
+          <div class="chart-wrapper">
+            <!-- 設定寬度為 420 以符合原始 script 預期 -->
+            <canvas id="formantCanvas" width="420" height="380"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    const xF1 = 40 + (info.F1/freqEnd)*(width-60);
-    ctx.strokeStyle = '#c0392b';
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([6,4]);
-    ctx.beginPath();
-    ctx.moveTo(xF1, 30);
-    ctx.lineTo(xF1, height - 30);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = '#c0392b';
-    ctx.font = '14px Arial';
-    ctx.fillText(`F1: ${info.F1} Hz`, xF1-40, 20);
+  <script>
+    (() => {
+      // 這裡完全採用原始程式碼的圖形邏輯
+      const ipaInput = document.getElementById('ipaInput');
+      const submitBtn = document.getElementById('submitBtn');
+      const ipaDisplay = document.getElementById('ipaDisplay');
+      const status = document.getElementById('status');
+      const canvas = document.getElementById('formantCanvas');
+      const ctx = canvas.getContext('2d');
+      const vowelImage = document.getElementById('vowelImage');
+      const vowelPoint = document.getElementById('vowelPoint');
 
-    const xF2 = 40 + (info.F2/freqEnd)*(width-60);
-    ctx.strokeStyle = '#c0392b';
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([6,4]);
-    ctx.beginPath();
-    // F2虛線起點保持30，標籤文字升高至27，避開虛線
-    ctx.moveTo(xF2, 30);
-    ctx.lineTo(xF2, height - 30);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = '#c0392b';
-    ctx.font = '14px Arial';
-    ctx.fillText(`F2: ${info.F2} Hz`, xF2-40, 27);
-  }
+      canvas.width = 420;
 
-  submitBtn.addEventListener('click', () => {
-    const val = ipaInput.value.trim();
-    if(!ipaVowels.hasOwnProperty(val)) {
-      status.textContent = `未知IPA母音符號: ${val}`;
-      ipaDisplay.textContent = '–';
+      // 圖片載入後設定canvas高度一致
+      vowelImage.addEventListener('load', () => {
+        const imageHeight = vowelImage.clientHeight || 360;
+        canvas.style.height = imageHeight + 'px';
+        canvas.height = imageHeight;
+        clearCanvas();
+      });
+
+      const ipaVowels = {
+        'i': { F1: 300, F2: 2290, rounded: false, height: 'High', frontness: 'Front' },
+        'y': { F1: 300, F2: 1760, rounded: true, height: 'High', frontness: 'Front' },
+        'ɪ': { F1: 390, F2: 1990, rounded: false, height: 'Near-high', frontness: 'Front' },
+        'ʏ': { F1: 390, F2: 1550, rounded: true, height: 'Near-high', frontness: 'Front' },
+        'e': { F1: 460, F2: 1840, rounded: false, height: 'Mid', frontness: 'Front' },
+        'ø': { F1: 470, F2: 1450, rounded: true, height: 'Mid', frontness: 'Front' },
+        'ɛ': { F1: 530, F2: 1840, rounded: false, height: 'Open-mid', frontness: 'Front' },
+        'œ': { F1: 540, F2: 1450, rounded: true, height: 'Open-mid', frontness: 'Front' },
+        'æ': { F1: 660, F2: 1720, rounded: false, height: 'Near-open', frontness: 'Front' },
+        'a': { F1: 700, F2: 1220, rounded: false, height: 'Open', frontness: 'Front' },
+        'ɑ': { F1: 730, F2: 1090, rounded: false, height: 'Open', frontness: 'Back' },
+        'ɒ': { F1: 780, F2: 1100, rounded: true, height: 'Open', frontness: 'Back' },
+        'ɔ': { F1: 570, F2: 840, rounded: true, height: 'Open-mid', frontness: 'Back' },
+        'o': { F1: 460, F2: 640, rounded: true, height: 'Mid', frontness: 'Back' },
+        'ʊ': { F1: 440, F2: 1020, rounded: true, height: 'Near-high', frontness: 'Back' },
+        'u': { F1: 300, F2: 870, rounded: true, height: 'High', frontness: 'Back' },
+        'ɯ': { F1: 350, F2: 900, rounded: false, height: 'High', frontness: 'Back' },
+        'ɨ': { F1: 420, F2: 1260, rounded: false, height: 'Close-mid', frontness: 'Central' },
+        'ʉ': { F1: 370, F2: 1480, rounded: true, height: 'Close-mid', frontness: 'Central' },
+        'ə': { F1: 500, F2: 1500, rounded: false, height: 'Mid', frontness: 'Central' },
+        'ɜ': { F1: 570, F2: 1200, rounded: false, height: 'Open-mid', frontness: 'Central' },
+        'ɞ': { F1: 550, F2: 960, rounded: true, height: 'Open-mid', frontness: 'Central' },
+        'ʌ': { F1: 600, F2: 1300, rounded: false, height: 'Open-mid', frontness: 'Back' },
+        'ɐ': { F1: 690, F2: 1600, rounded: false, height: 'Near-open', frontness: 'Central' },
+        'aː': { F1: 700, F2: 1220, rounded: false, height: 'Open', frontness: 'Front' }
+      };
+
+      const f2Positions = [
+        { freq: 3000, x: 60 },
+        { freq: 2600, x: 110 },
+        { freq: 2200, x: 160 },
+        { freq: 1800, x: 210 },
+        { freq: 1400, x: 260 },
+        { freq: 1000, x: 310 }
+      ];
+
+      const f1Positions = [
+        { freq: 300, y: 60 },
+        { freq: 500, y: 90 },
+        { freq: 700, y: 120 },
+        { freq: 900, y: 150 },
+        { freq: 1100, y: 180 },
+        { freq: 1300, y: 210 },
+        { freq: 1500, y: 240 },
+        { freq: 1700, y: 270 }
+      ];
+
+      function freqToPos(freq, positions) {
+        if (freq >= positions[0].freq) return positions[0].x !== undefined ? positions[0].x : positions[0].y;
+        if (freq <= positions[positions.length - 1].freq) return positions[positions.length - 1].x !== undefined ? positions[positions.length - 1].x : positions[positions.length - 1].y;
+        for (let i = 0; i < positions.length - 1; i++) {
+          const cur = positions[i];
+          const next = positions[i + 1];
+          if (cur.x !== undefined) {
+            if (freq <= cur.freq && freq >= next.freq) {
+              let ratio = (cur.freq - freq) / (cur.freq - next.freq);
+              return cur.x + ratio * (next.x - cur.x);
+            }
+          } else {
+            if (freq >= cur.freq && freq <= next.freq) {
+              let ratio = (freq - cur.freq) / (next.freq - cur.freq);
+              return cur.y + ratio * (next.y - cur.y);
+            }
+          }
+        }
+        return positions[0].x !== undefined ? positions[0].x : positions[0].y;
+      }
+
+      function resetVowelPoint() {
+        ipaDisplay.textContent = '–';
+        status.textContent = '請輸入母音IPA並按「顯示母音位置」';
+        vowelPoint.style.display = 'none';
+        clearCanvas();
+      }
+
+      // 這裡採用原始圖形繪製邏輯
+      function drawSpectrumWithTrendAndMarkers(info) {
+        const width = canvas.width;
+        const height = canvas.height;
+        ctx.clearRect(0, 0, width, height);
+
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, width, height);
+
+        ctx.strokeStyle = '#999';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(40, height - 30);
+        ctx.lineTo(width - 20, height - 30);
+        ctx.lineTo(width - 20, 30);
+        ctx.stroke();
+
+        ctx.fillStyle = '#333';
+        ctx.font = '14px Arial';
+        ctx.fillText('頻率 (Hz)', width / 2 - 30, height - 8);
+        ctx.fillText('強度 (a.u.)', width - 80, 27);
+
+        const freqStart = 0;
+        const freqEnd = 5000;
+        const pointsCount = 300;
+        const freqStep = (freqEnd - freqStart) / pointsCount;
+
+        ctx.strokeStyle = '#e74c3c';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let i = 0; i <= pointsCount; i++) {
+          const freq = freqStart + i * freqStep;
+          const peak1 = Math.exp(-Math.pow(freq - info.F1, 2) / (2 * 150 * 150));
+          const peak2 = Math.exp(-Math.pow(freq - info.F2, 2) / (2 * 200 * 200)) * 0.8;
+          const intensity = peak1 + peak2;
+          const scaleFactor = 0.9;
+          const x = 40 + (freq / freqEnd) * (width - 60);
+          const y = height - 30 - intensity * scaleFactor * (height - 60);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        const xF1 = 40 + (info.F1 / freqEnd) * (width - 60);
+        ctx.strokeStyle = '#c0392b';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([6, 4]);
+        ctx.beginPath();
+        ctx.moveTo(xF1, 30);
+        ctx.lineTo(xF1, height - 30);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#c0392b';
+        ctx.font = '14px Arial';
+        ctx.fillText(`F1: ${info.F1} Hz`, xF1 - 40, 20);
+
+        const xF2 = 40 + (info.F2 / freqEnd) * (width - 60);
+        ctx.strokeStyle = '#c0392b';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([6, 4]);
+        ctx.beginPath();
+        ctx.moveTo(xF2, 30);
+        ctx.lineTo(xF2, height - 30);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#c0392b';
+        ctx.font = '14px Arial';
+        ctx.fillText(`F2: ${info.F2} Hz`, xF2 - 40, 27);
+      }
+
+      submitBtn.addEventListener('click', () => {
+        const val = ipaInput.value.trim();
+        if (!ipaVowels.hasOwnProperty(val)) {
+          status.textContent = `未知IPA母音符號: ${val}`;
+          ipaDisplay.textContent = '–';
+          vowelPoint.style.display = 'none';
+          clearCanvas();
+          return;
+        }
+        const info = ipaVowels[val];
+        ipaDisplay.textContent = val;
+
+        const roundedStr = info.rounded ? '圓唇' : '展唇';
+        const heightStr = info.height;
+        const frontnessStr = info.frontness;
+        status.innerHTML = `特徵：${roundedStr}<br>發音高度：${heightStr}<br>舌位：${frontnessStr}<br>共振峰：F1 = ${info.F1} Hz, F2 = ${info.F2} Hz`;
+
+        // 如果原始程式碼有繪製母音點的邏輯，可以在這裡加入
+        // 雖然 Step 324/400 中沒看到具提繪圖代碼，但提供 freqToPos 意味著未來可能使用
+        // 為了安全起見，這裡僅執行 user 提供的 drawSpectrumWithTrendAndMarkers
+        drawSpectrumWithTrendAndMarkers(info);
+      });
+
+      function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      // 頁面初始化
       clearCanvas();
-      return;
-    }
-    const info = ipaVowels[val];
-    ipaDisplay.textContent = val;
-
-    const roundedStr = info.rounded ? '圓唇' : '展唇';
-    const heightStr = info.height;
-    const frontnessStr = info.frontness;
-    status.textContent = `特徵：${roundedStr}\n發音高度：${heightStr}\n舌位：${frontnessStr}\n共振峰：F1 = ${info.F1} Hz, F2 = ${info.F2} Hz`;
-
-    drawSpectrumWithTrendAndMarkers(info);
-  });
-
-  function clearCanvas(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.font = '16px Arial';
-    ctx.fillStyle = '#888';
-    ctx.fillText('無共振峰資料', 160, 80);
-  }
-
-  // 頁面初始化
-  clearCanvas();
-})();
-</script>
+    })();
+  </script>
 </body>
+
 </html>

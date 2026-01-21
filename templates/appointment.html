@@ -1,187 +1,236 @@
 <!DOCTYPE html>
-<html lang="zh-TW"> 
+<html lang="zh-TW">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>預約系統</title>
-  
+
   <!-- 新增外部CSS引入 -->
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  
+
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
   <style>
-    body {
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, Arial, "Microsoft JhengHei", sans-serif;
-      padding: 30px 20px;
-      background-color: white; /* 背景改白 */
-      /* 背景素材移除 */
-      margin: 0;
-      color: #000; /* 文字顏色改成黑色 */
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #000; /* 標題黑色 */
-    }
-    form {
-      max-width: 400px;
-      margin: 0 auto 30px auto;
-      background: transparent; /* 透明底 */
-      padding: 20px;
-      border-radius: 8px;
-      /* 弱化陰影保留層次 */
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      color: #000; /* 文字黑色 */
-    }
-    label {
-      display: block;
-      margin-top: 10px;
-      font-weight: 600;
-      color: #444; /* 深灰色文字 */
-    }
-    input[type="text"], input[type="tel"], input[type="datetime-local"] {
-      width: 100%;
-      padding: 8px;
-      margin-top: 6px;
-      border: 1px solid #888; /* 寬鬆的灰色邊框 */
-      border-radius: 4px;
-      box-sizing: border-box;
-      background-color: transparent; /* 透明底 */
-      color: #000; /* 字體黑色 */
-    }
-    textarea {
-      width: 100%;
-      padding: 8px;
-      margin-top: 6px;
-      border: 1px solid #888;
-      border-radius: 4px;
-      box-sizing: border-box;
-      background-color: transparent; /* 透明底 */
-      color: #000;
-      resize: vertical;
-      min-height: 80px;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, Arial, "Microsoft JhengHei", sans-serif;
-    }
-    input::placeholder,
-    textarea::placeholder {
-      color: #aaa; /* 淺灰色提示文字 */
-    }
-    button {
-      margin-top: 15px;
-      width: 100%;
-      padding: 10px;
-      background-color: transparent; /* 透明底 */
-      border: 1px solid #888; /* 灰色邊框 */
-      color: #666; /* 透明底灰色文字 */
-      font-weight: 700;
-      font-size: 1rem;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background-color 0.3s ease, color 0.3s ease;
-      text-align: center;
-      text-decoration: none;
-      display: inline-block;
-    }
-    button:hover {
-      background-color: #000; /* 黑底 */
-      color: #fff; /* 白字 */
-      border-color: #000;
-    }
-    .flash {
-      max-width: 400px;
-      margin: 0 auto 20px auto;
-      padding: 10px;
-      background-color: transparent; /* 透明底 */
-      border: 1px solid #ccc; /* 淺灰邊框 */
-      color: #c00; /* 紅色文字 */
-      border-radius: 6px;
-      text-align: center;
-      font-weight: 600;
-    }
-    #calendar {
-      max-width: 400px;
-      margin: 0 auto;
-      background: transparent; /* 透明底 */
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      color: #000;
-    }
-    #calendar h2 {
-      text-align: center;
-      margin-bottom: 10px;
-      color: #000;
-    }
-    #calendar ul {
-      list-style: none;
-      padding: 0;
-      color: #000;
-    }
-    #calendar li {
-      padding: 6px 10px;
-      border-bottom: 1px solid #ccc;
-      color: #000;
-    }
-    #calendar li:last-child {
-      border-bottom: none;
+    :root {
+      --primary-color: #6366f1;
+      --primary-hover: #4f46e5;
+      --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      --glass-bg: rgba(255, 255, 255, 0.7);
+      --glass-border: rgba(255, 255, 255, 0.3);
+      --text-main: #1f2937;
+      --text-muted: #4b5563;
+      --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
     }
 
-    /* 返回首頁按鈕改為超圓潤透明底黑字，滑鼠懸停時黑底白字 */
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg-gradient);
+      background-attachment: fixed;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      padding: 40px 20px;
+      color: var(--text-main);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 450px;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 0.8s ease forwards;
+    }
+
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h1 {
+      font-weight: 700;
+      font-size: 2.5rem;
+      text-align: center;
+      margin-bottom: 30px;
+      background: linear-gradient(to right, #4f46e5, #9333ea);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.025em;
+    }
+
+    form {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 40px;
+      box-shadow: var(--shadow);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    input[type="text"],
+    input[type="tel"],
+    input[type="datetime-local"],
+    textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.5);
+      font-family: inherit;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+    }
+
+    input:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    button {
+      margin-top: 10px;
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(to right, #6366f1, #a855f7);
+      border: none;
+      color: white;
+      font-weight: 700;
+      font-size: 1.1rem;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      filter: brightness(110%);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .flash {
+      background: rgba(239, 68, 68, 0.1);
+      border-left: 4px solid #ef4444;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      color: #b91c1c;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
     .back-home-button {
       position: fixed;
-      top: 20px;
-      left: 20px;
-      background-color: transparent;
-      color: #000;
-      font-weight: bold;
-      padding: 10px 16px;
-      border-radius: 30px; /* 超圓潤 */
+      top: 30px;
+      left: 30px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid var(--glass-border);
+      color: var(--text-main);
+      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: 50px;
       text-decoration: none;
-      cursor: pointer;
-      transition: background-color 0.3s ease, color 0.3s ease;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 8px;
       z-index: 1000;
-      border: 1px solid transparent; /* 預留邊框空間以防抖動 */
-      display: inline-block;
     }
+
     .back-home-button:hover {
-      background-color: #000;
+      background: #000;
       color: #fff;
-      border-color: #000;
+      transform: scale(1.05);
+    }
+
+    .back-home-button::before {
+      content: '←';
+      font-size: 1.2rem;
     }
   </style>
 </head>
+
 <body class="appointment-page">
 
   <a href="{{ url_for('index') }}" class="back-home-button">返回首頁</a>
-  <h1>預約系統</h1>
 
-  <!-- 顯示 Flash 訊息 -->
-  {% with messages = get_flashed_messages() %}
+  <div class="container">
+    <h1>預約系統</h1>
+
+    <!-- 顯示 Flash 訊息 -->
+    {% with messages = get_flashed_messages() %}
     {% if messages %}
-      <div class="flash">
-        {% for msg in messages %}
-          <div>{{ msg }}</div>
-        {% endfor %}
-      </div>
+    <div class="flash">
+      {% for msg in messages %}
+      <div>{{ msg }}</div>
+      {% endfor %}
+    </div>
     {% endif %}
-  {% endwith %}
+    {% endwith %}
 
-  <!-- 預約表單 -->
-  <form method="POST" action="{{ url_for('appointment') }}">
-    <label for="name">姓名：</label>
-    <input type="text" id="name" name="name" required placeholder="請輸入姓名" />
+    <!-- 預約表單 -->
+    <form method="POST" action="{{ url_for('appointment') }}">
+      <div class="form-group">
+        <label for="name">姓名</label>
+        <input type="text" id="name" name="name" required placeholder="請輸入您的姓名" />
+      </div>
 
-    <label for="phone">電話：</label>
-    <input type="tel" id="phone" name="phone" required placeholder="請輸入電話" pattern="[0-9\-+\s]+" />
+      <div class="form-group">
+        <label for="phone">電話</label>
+        <input type="tel" id="phone" name="phone" required placeholder="請輸入聯繫電話" pattern="[0-9\-+\s]+" />
+      </div>
 
-    <label for="datetime">預約時間：</label>
-    <input type="datetime-local" id="datetime" name="datetime" required />
+      <div class="form-group">
+        <label for="datetime">預約時間</label>
+        <input type="datetime-local" id="datetime" name="datetime" required />
+      </div>
 
-    <label for="request_note">預約需求：</label>
-    <textarea id="request" name="request" placeholder="請輸入您的預約需求（選填）"></textarea>
+      <div class="form-group">
+        <label for="request">預約需求</label>
+        <textarea id="request" name="request" placeholder="請描述您的預約需求（選填）"></textarea>
+      </div>
 
-    <button type="submit">送出預約</button>
-  </form>
+      <button type="submit">立即預約</button>
+    </form>
+  </div>
 
 </body>
-</html>
 
+</html>

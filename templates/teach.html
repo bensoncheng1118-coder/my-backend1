@@ -1,95 +1,263 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>網站功能介紹</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    line-height: 1.6;
-    margin: 20px;
-    background:#faf3e0;
-  }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>網站功能介紹</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #2c3e50;
+      --accent-color: #e67e22;
+      --bg-color: #f8f9fa;
+      --card-bg: #ffffff;
+      --text-color: #333;
+      --text-muted: #666;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
 
-  /* 頁面最上方標題 */
-  .main-title {
-    font-size: 48px;        /* 最大字體 */
-    text-align: center;     /* 置中 */
-    margin-bottom: 30px;
-  }
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
 
-  /* 功能標題 */
-  .feature-title {
-    font-size: 32px;           /* 大字體 */
-    text-align: center;        /* 置中 */
-    background-color: black;   /* 標題背景黑色 */
-    color: white;              /* 標題文字白色 */
-    padding: 10px;
-    margin: 15px 0 5px 0;
-    border-radius: 5px;
-  }
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
 
-  /* 功能內容 */
-  .feature-content {
-    font-size: 32px;           /* 大字體 */
-    text-align: left;          /* 左對齊 */
-    margin-bottom: 20px;
-    white-space: pre-line;     /* 保留換行 */
-  }
-</style>
+    .header {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      color: var(--primary-color);
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .feature-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 25px;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      border-left: 5px solid var(--primary-color);
+    }
+
+    .feature-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .feature-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .feature-number {
+      background-color: var(--primary-color);
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-right: 15px;
+      font-size: 0.9rem;
+    }
+
+    .feature-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin: 0;
+    }
+
+    .feature-content {
+      font-size: 1rem;
+      color: var(--text-color);
+      padding-left: 47px;
+      /* Align with title */
+    }
+
+    .feature-content ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .feature-content li {
+      margin-bottom: 8px;
+      position: relative;
+      padding-left: 15px;
+    }
+
+    .feature-content li::before {
+      content: "•";
+      color: var(--accent-color);
+      position: absolute;
+      left: 0;
+      font-weight: bold;
+    }
+
+    .note {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 5px;
+      font-style: italic;
+    }
+
+    @media (min-width: 768px) {
+      .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+        /* Two columns on larger screens */
+      }
+
+      /* Make some cards span full width if needed, or keep uniform grid */
+      .feature-card.full-width {
+        grid-column: span 2;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="main-title">網站功能介紹</div>
+  <div class="container">
+    <div class="header">
+      <h1><i class="fa-solid fa-circle-info" style="color: var(--accent-color); margin-right: 10px;"></i>網站功能介紹</h1>
+      <p>了解本平台提供的各項學習資源與工具</p>
+    </div>
 
-<div class="feature-title">1. 讀書筆記</div>
-<div class="feature-content">
-(1) 課程介紹區塊: 沒什麼好介紹的，直接看筆記
-(2) 檔案上傳區: 為筆記檔案，請下載以複習，總複習區塊是指全部統整在一起的讀書筆記
-(3) 留言區: 當某科目有問題時可以在留言區留下問題，問題會統一出現在問題回覆區，名字是匿名，所有人都可以看到你的問題並進行回覆，但不會看到名字
-</div>
+    <div class="features-grid">
 
-<div class="feature-title">2. 通識</div>
-<div class="feature-content">
-(1) 分五個領域(語言、天、地、人、心)，可先添加課程後再點入課程留言及評分
-(2) 留言資料少僅供參考，學弟妹也可自行添加
-</div>
+      <!-- 1. 讀書筆記 -->
+      <div class="feature-card full-width">
+        <div class="feature-header">
+          <div class="feature-number">1</div>
+          <h2 class="feature-title">讀書筆記</h2>
+        </div>
+        <div class="feature-content">
+          <ul>
+            <li><strong>課程介紹區塊：</strong> 簡要說明，核心內容在筆記中。</li>
+            <li><strong>檔案上傳區：</strong> 提供筆記檔案下載複習。「總複習」區塊包含統整後的讀書筆記。</li>
+            <li><strong>留言區：</strong> 遇到問題可匿名留言。所有問題將匯總於「問題回覆區」，大家可互相回覆解答，且保持匿名。</li>
+          </ul>
+        </div>
+      </div>
 
-<div class="feature-title">3. 成績計算機</div>
-<div class="feature-content">
-(1) 可用來計算學期成績，網站只是計算機，不會存取你的成績，任何人都看不到你的成績
-</div>
+      <!-- 2. 通識 -->
+      <div class="feature-card">
+        <div class="feature-header">
+          <div class="feature-number">2</div>
+          <h2 class="feature-title">通識課程</h2>
+        </div>
+        <div class="feature-content">
+          <ul>
+            <li>分為語、天、地、人、心五大領域。</li>
+            <li>可新增課程，並對課程進行留言及評分。</li>
+            <li>目前的留言資料僅供參考，歡迎學弟妹補充。</li>
+          </ul>
+        </div>
+      </div>
 
-<div class="feature-title">4. 校園行事曆</div>
-<div class="feature-content">
-(1) 可看校園行事曆
-</div>
+      <!-- 3. 成績計算機 -->
+      <div class="feature-card">
+        <div class="feature-header">
+          <div class="feature-number">3</div>
+          <h2 class="feature-title">成績計算機</h2>
+        </div>
+        <div class="feature-content">
+          <ul>
+            <li>用於計算學期加權平均成績。</li>
+            <li class="note">注意：本站純粹提供計算功能，不會存取或公開您的任何成績資料。</li>
+          </ul>
+        </div>
+      </div>
 
-<div class="feature-title">5. 預約系統</div>
-<div class="feature-content">
-(1) 未來作為客戶預約使用，請不要使用
-</div>
+      <!-- 4. 校園行事曆 -->
+      <div class="feature-card">
+        <div class="feature-header">
+          <div class="feature-number">4</div>
+          <h2 class="feature-title">校園行事曆</h2>
+        </div>
+        <div class="feature-content">
+          <ul>
+            <li>查看學校重要日程與活動。</li>
+          </ul>
+        </div>
+      </div>
 
-<div class="feature-title">6. 英文及時字幕</div>
-<div class="feature-content">
-(1) 沒什麼用
-</div>
+      <!-- 5. 預約系統 -->
+      <div class="feature-card">
+        <div class="feature-header">
+          <div class="feature-number">5</div>
+          <h2 class="feature-title">預約系統</h2>
+        </div>
+        <div class="feature-content">
+          <ul>
+            <li>(開發中) 未來規劃供客戶預約使用。</li>
+            <li class="note">目前請勿使用。</li>
+          </ul>
+        </div>
+      </div>
 
-<div class="feature-title">7. 純音聽力檢查模擬器</div>
-<div class="feature-content">
-(1) 用於大二的臨床聽力學操作課程練習
-</div>
+      <!-- 6. 大一下工具 -->
+      <div class="feature-card full-width">
+        <div class="feature-header">
+          <div class="feature-number">6</div>
+          <h2 class="feature-title">大一下工具</h2>
+        </div>
+        <div class="feature-content">
+          <ul>
+            <li><strong>基礎聽力科學圖形工具：</strong> 輔助圖形工具，協助理解大一下「基礎聽力科學」課程內容。</li>
+            <li><strong>言語科學圖形工具：</strong> 視覺化工具，協助理解大一下課程中「母音特性」與「共振峰」等概念。</li>
+          </ul>
+        </div>
+      </div>
 
-<div class="feature-title">8. 基礎聽力科學圖形工具</div>
-<div class="feature-content">
-(1) 可用於幫助理解大一下基礎聽力科學課程內容之圖形
-</div>
+      <!-- 7. 大二上工具 -->
+      <div class="feature-card">
+        <div class="feature-header">
+          <div class="feature-number">7</div>
+          <h2 class="feature-title">大二上工具</h2>
+        </div>
+        <div class="feature-content">
+          <ul>
+            <li><strong>純音聽力檢查模擬器：</strong> 專為大二「臨床聽力學」操作課程設計的練習工具。</li>
+          </ul>
+        </div>
+      </div>
 
-<div class="feature-title">9. 言語科學圖形工具</div>
-<div class="feature-content">
-(1) 可用於幫助理解大一下母音特性與共振峰
-</div>
+    </div>
+  </div>
 
 </body>
+
 </html>

@@ -336,34 +336,7 @@
         </table>
     </main>
 
-    <!-- modal 小視窗 -->
-    <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-hidden="true"
-        style="display:none;">
-        <div id="modal-content">
-            <span id="modal-close" aria-label="關閉">&times;</span>
-            <div id="course-list">
-                <h2 id="modalTitle">選擇課程</h2>
-                <button class="course-btn" onclick="showCourses('大一上學期')">大一上學期</button>
-                <button class="course-btn" onclick="showCourses('大一下學期')">大一下學期</button>
-                <button class="course-btn" onclick="showCourses('大二上學期')">大二上學期</button>
-                <button class="course-btn" onclick="showCourses('大二下學期')">大二下學期</button>
-                <button class="course-btn" onclick="showCourses('大三上學期')">大三上學期</button>
-                <button class="course-btn" onclick="showCourses('大三下學期')">大三下學期</button>
-                <button class="course-btn" onclick="showCourses('國考')">國考</button>
-                <button class="course-btn" onclick="showCourses('國考')">評估工具</button>
-            </div>
-            <div id="specific-courses" style="display:none; position:relative;">
-                <h3 id="specific-title"></h3>
-                <div id="buttons-container"></div>
-                <button id="back-button" class="course-btn" onclick="backToCourseList()">返回</button>
-            </div>
-            <div id="message-board" style="display:none; margin-top: 10px; position:relative;">
-                <h2 id="board-title"></h2>
-                <textarea placeholder="請輸入留言..."></textarea>
-                <button onclick="alert('留言已送出')">送出留言</button>
-            </div>
-        </div>
-    </div>
+    
 
     <script>
         const appsButton = document.getElementById('apps-button');
@@ -479,4 +452,5 @@
 </body>
 
 </html>
+
 

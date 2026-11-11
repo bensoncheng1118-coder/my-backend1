@@ -6,183 +6,300 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>預約系統</title>
 
-  <!-- 新增外部CSS引入 -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
-  <!-- Google Fonts: Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --primary-color: #6366f1;
-      --primary-hover: #4f46e5;
-      --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-      --glass-bg: rgba(255, 255, 255, 0.7);
-      --glass-border: rgba(255, 255, 255, 0.3);
-      --text-main: #1f2937;
-      --text-muted: #4b5563;
-      --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+      --primary: #6366f1;
+      --primary-2: #a855f7;
+      --primary-soft: rgba(99, 102, 241, 0.12);
+      --bg: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      --card: rgba(255, 255, 255, 0.72);
+      --card-solid: #ffffff;
+      --border: rgba(15, 23, 42, 0.08);
+      --text: #1f2937;
+      --muted: #6b7280;
+      --ok: #10b981;
+      --ok-soft: rgba(16, 185, 129, 0.12);
+      --bad: #ef4444;
+      --bad-soft: rgba(239, 68, 68, 0.1);
+      --input: rgba(255, 255, 255, 0.65);
+      --shadow: 0 10px 36px rgba(31, 38, 135, 0.12);
     }
 
-    body {
-      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background: var(--bg-gradient);
-      background-attachment: fixed;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      margin: 0;
-      padding: 40px 20px;
-      color: var(--text-main);
-    }
-
-    .container {
-      width: 100%;
-      max-width: 450px;
-      opacity: 0;
-      transform: translateY(20px);
-      animation: fadeInUp 0.8s ease forwards;
-    }
-
-    @keyframes fadeInUp {
-      to {
-        opacity: 1;
-        transform: translateY(0);
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+        --card: rgba(30, 41, 59, 0.72);
+        --card-solid: #1e293b;
+        --border: rgba(255, 255, 255, 0.08);
+        --text: #e5e7eb;
+        --muted: #94a3b8;
+        --input: rgba(15, 23, 42, 0.55);
+        --primary-soft: rgba(129, 140, 248, 0.18);
+        --shadow: 0 10px 36px rgba(0, 0, 0, 0.35);
       }
     }
 
-    h1 {
-      font-weight: 700;
-      font-size: 2.5rem;
-      text-align: center;
-      margin-bottom: 30px;
-      background: linear-gradient(to right, #4f46e5, #9333ea);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      letter-spacing: -0.025em;
-    }
+    * { box-sizing: border-box; }
 
-    form {
-      background: var(--glass-bg);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid var(--glass-border);
-      border-radius: 24px;
-      padding: 40px;
-      box-shadow: var(--shadow);
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 600;
-      font-size: 0.95rem;
-      color: var(--text-muted);
-    }
-
-    input[type="text"],
-    input[type="tel"],
-    input[type="datetime-local"],
-    textarea {
-      width: 100%;
-      padding: 12px 16px;
-      border: 1px solid rgba(0, 0, 0, 0.1);
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.5);
-      font-family: inherit;
-      font-size: 1rem;
-      transition: all 0.3s ease;
-      box-sizing: border-box;
-    }
-
-    input:focus,
-    textarea:focus {
-      outline: none;
-      border-color: var(--primary-color);
-      background: #fff;
-      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 100px;
-    }
-
-    button {
-      margin-top: 10px;
-      width: 100%;
-      padding: 14px;
-      background: linear-gradient(to right, #6366f1, #a855f7);
-      border: none;
-      color: white;
-      font-weight: 700;
-      font-size: 1.1rem;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    }
-
-    button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-      filter: brightness(110%);
-    }
-
-    button:active {
-      transform: translateY(0);
-    }
-
-    .flash {
-      background: rgba(239, 68, 68, 0.1);
-      border-left: 4px solid #ef4444;
-      padding: 12px 16px;
-      margin-bottom: 20px;
-      border-radius: 8px;
-      color: #b91c1c;
-      font-weight: 600;
-      font-size: 0.9rem;
+    body {
+      font-family: 'Outfit', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
+      background: var(--bg);
+      background-attachment: fixed;
+      min-height: 100vh;
+      margin: 0;
+      padding: 90px 16px 48px;
+      color: var(--text);
     }
 
     .back-home-button {
       position: fixed;
-      top: 30px;
-      left: 30px;
-      background: var(--glass-bg);
+      top: 20px;
+      left: 20px;
+      background: var(--card);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      border: 1px solid var(--glass-border);
-      color: var(--text-main);
+      border: 1px solid var(--border);
+      color: var(--text);
       font-weight: 600;
       padding: 10px 20px;
       border-radius: 50px;
       text-decoration: none;
-      transition: all 0.3s ease;
+      transition: all 0.25s ease;
       box-shadow: var(--shadow);
-      display: flex;
-      align-items: center;
-      gap: 8px;
       z-index: 1000;
     }
+    .back-home-button::before { content: '← '; }
+    .back-home-button:hover { background: #000; color: #fff; }
 
-    .back-home-button:hover {
-      background: #000;
+    .wrap {
+      max-width: 1040px;
+      margin: 0 auto;
+      animation: fadeInUp 0.6s ease both;
+    }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+    header.hero { text-align: center; margin-bottom: 28px; }
+    h1 {
+      font-weight: 700;
+      font-size: clamp(2rem, 5vw, 2.6rem);
+      margin: 0 0 8px;
+      background: linear-gradient(to right, #4f46e5, #9333ea);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle { color: var(--muted); margin: 0; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+    .grid > * { min-width: 0; }
+    @media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+
+    .card {
+      background: var(--card);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+    .card + .card { margin-top: 20px; }
+
+    .step-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1.05rem;
+      margin: 0 0 14px;
+    }
+    .step-num {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      display: inline-grid; place-items: center;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      color: #fff; font-size: 0.85rem;
+    }
+    .section { margin-bottom: 26px; }
+    .section:last-child { margin-bottom: 0; }
+
+    /* date chips */
+    .date-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
+    .date-chip {
+      flex: 0 0 auto;
+      min-width: 62px;
+      padding: 8px 6px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--input);
+      color: var(--text);
+      text-align: center;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+    .date-chip small { display: block; color: var(--muted); font-size: 0.75rem; }
+    .date-chip b { display: block; font-size: 1.15rem; }
+    .date-chip:hover { border-color: var(--primary); }
+    .date-chip.active { background: linear-gradient(135deg, var(--primary), var(--primary-2)); color: #fff; border-color: transparent; }
+    .date-chip.active small { color: rgba(255,255,255,0.85); }
+    .date-chip.weekend:not(.active) b { color: var(--primary-2); }
+
+    .date-tools { display: flex; gap: 10px; align-items: center; margin-top: 10px; flex-wrap: wrap; color: var(--muted); font-size: 0.9rem; }
+
+    /* slots */
+    .slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 8px; }
+    .slot {
+      padding: 10px 4px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--input);
+      color: var(--text);
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      text-align: center;
+    }
+    .slot small { display: block; font-weight: 400; font-size: 0.72rem; color: var(--muted); }
+    .slot:hover:not(:disabled) { border-color: var(--primary); transform: translateY(-1px); }
+    .slot.active { background: linear-gradient(135deg, var(--primary), var(--primary-2)); color: #fff; border-color: transparent; }
+    .slot.active small { color: rgba(255,255,255,0.85); }
+    .slot:disabled { cursor: not-allowed; opacity: 0.5; text-decoration: line-through; }
+    .slot.busy { background: var(--bad-soft); }
+
+    .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.82rem; color: var(--muted); margin-top: 12px; }
+    .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+    .status-line { font-size: 0.85rem; color: var(--muted); margin: 0 0 10px; min-height: 1.2em; }
+
+    .custom-toggle {
+      background: none; border: none; color: var(--primary); font-family: inherit;
+      cursor: pointer; padding: 0; font-weight: 600; font-size: 0.9rem;
+    }
+    .custom-box { display: none; margin-top: 12px; }
+    .custom-box.show { display: block; }
+
+    /* form */
+    .form-group { margin-bottom: 16px; }
+    label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.92rem; color: var(--muted); }
+    input[type="text"], input[type="tel"], input[type="datetime-local"], input[type="date"], textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--input);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 1rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input[type="date"] { width: auto; padding: 7px 10px; font-size: 0.9rem; }
+    input:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-soft); }
+    input.invalid { border-color: var(--bad); }
+    textarea { resize: vertical; min-height: 90px; }
+    .hint { font-size: 0.8rem; color: var(--muted); margin-top: 4px; display: flex; justify-content: space-between; }
+    .err { color: var(--bad); }
+
+    .type-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .type-chip {
+      padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border);
+      background: var(--input); color: var(--text); cursor: pointer; font-family: inherit; font-size: 0.92rem;
+      transition: all 0.18s;
+    }
+    .type-chip.active { background: var(--primary-soft); border-color: var(--primary); color: var(--primary); font-weight: 600; }
+
+    .check { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: var(--muted); margin: 4px 0 14px; cursor: pointer; }
+    .check input { width: 16px; height: 16px; accent-color: var(--primary); }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(to right, var(--primary), var(--primary-2));
+      border: none;
       color: #fff;
-      transform: scale(1.05);
+      font-weight: 700;
+      font-size: 1.05rem;
+      font-family: inherit;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: transform 0.2s, filter 0.2s, box-shadow 0.2s;
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.28);
+    }
+    .btn:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.08); }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
+    .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--border); box-shadow: none; }
+    .btn.small { width: auto; padding: 8px 14px; font-size: 0.88rem; border-radius: 10px; }
+
+    /* summary */
+    .summary { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 0.95rem; margin-bottom: 18px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; font-weight: 600; word-break: break-word; }
+    .summary dd.empty { color: var(--muted); font-weight: 400; }
+
+    /* flash */
+    .flash {
+      padding: 14px 16px;
+      margin-bottom: 20px;
+      border-radius: 14px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border-left: 4px solid var(--bad);
+      background: var(--bad-soft);
+      color: var(--bad);
+    }
+    .flash.ok { border-color: var(--ok); background: var(--ok-soft); color: var(--ok); }
+    .flash-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .flash-actions a, .flash-actions button {
+      font-size: 0.85rem; padding: 6px 12px; border-radius: 10px; text-decoration: none; font-family: inherit;
+      border: 1px solid currentColor; background: transparent; color: inherit; cursor: pointer; font-weight: 600;
     }
 
-    .back-home-button::before {
-      content: '←';
-      font-size: 1.2rem;
+    /* history */
+    .history { list-style: none; margin: 0; padding: 0; }
+    .history li {
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
+      padding: 10px 0; border-bottom: 1px dashed var(--border); font-size: 0.92rem;
+    }
+    .history li:last-child { border-bottom: none; }
+    .history .when { font-weight: 600; }
+    .history .meta { color: var(--muted); font-size: 0.8rem; }
+    .history .past .when { color: var(--muted); text-decoration: line-through; }
+    .history .acts { display: flex; gap: 6px; flex-shrink: 0; }
+    .icon-btn {
+      border: 1px solid var(--border); background: var(--input); color: var(--text); border-radius: 8px;
+      padding: 4px 8px; cursor: pointer; font-size: 0.8rem; font-family: inherit; text-decoration: none;
+    }
+    .icon-btn:hover { border-color: var(--primary); }
+    .empty-note { color: var(--muted); font-size: 0.9rem; margin: 0; }
+
+    .tips { margin: 0; padding-left: 18px; color: var(--muted); font-size: 0.88rem; line-height: 1.7; }
+
+    /* modal */
+    .modal-bg {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); display: none;
+      align-items: center; justify-content: center; padding: 16px; z-index: 2000;
+    }
+    .modal-bg.show { display: flex; }
+    .modal {
+      background: var(--card-solid); color: var(--text); border-radius: 20px; padding: 24px; width: 100%; max-width: 420px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3); animation: fadeInUp 0.25s ease both;
+    }
+    .modal h3 { margin: 0 0 14px; }
+    .modal .row { display: flex; gap: 10px; }
+
+    @media (max-width: 520px) {
+      body { padding-top: 76px; }
+      .card { padding: 18px; border-radius: 18px; }
+      .back-home-button { top: 14px; left: 14px; padding: 8px 16px; }
     }
   </style>
 </head>
@@ -191,45 +308,465 @@
 
   <a href="{{ url_for('index') }}" class="back-home-button">返回首頁</a>
 
-  <div class="container">
-    <h1>預約系統</h1>
+  <div class="wrap">
+    <header class="hero">
+      <h1>預約系統</h1>
+      <p class="subtitle">選日期、挑時段、填資料，三步完成預約（每次 1 小時）</p>
+    </header>
 
-    <!-- 顯示 Flash 訊息 -->
     {% with messages = get_flashed_messages() %}
     {% if messages %}
-    <div class="flash">
-      {% for msg in messages %}
+    {% for msg in messages %}
+    <div class="flash {% if '成功' in msg %}ok{% endif %}" data-flash="{{ msg }}">
       <div>{{ msg }}</div>
-      {% endfor %}
     </div>
+    {% endfor %}
     {% endif %}
     {% endwith %}
 
-    <!-- 預約表單 -->
-    <form method="POST" action="{{ url_for('appointment') }}">
-      <div class="form-group">
-        <label for="name">姓名</label>
-        <input type="text" id="name" name="name" required placeholder="請輸入您的姓名" />
+    <div class="grid">
+      <!-- 左：選時段 + 填資料 -->
+      <div>
+        <form id="apptForm" class="card" method="POST" action="{{ url_for('appointment') }}" novalidate>
+          <div class="section">
+            <p class="step-title"><span class="step-num">1</span>選擇日期</p>
+            <div class="date-row" id="dateRow"></div>
+            <div class="date-tools">
+              <span>其他日期：</span>
+              <input type="date" id="datePicker" aria-label="選擇其他日期" />
+            </div>
+          </div>
+
+          <div class="section">
+            <p class="step-title"><span class="step-num">2</span>選擇時段</p>
+            <p class="status-line" id="slotStatus"></p>
+            <div class="slots" id="slots"></div>
+            <div class="legend">
+              <span><i style="background: linear-gradient(135deg,#6366f1,#a855f7)"></i>已選擇</span>
+              <span><i style="background: var(--input); border:1px solid var(--border)"></i>可預約</span>
+              <span><i style="background: var(--bad-soft)"></i>已被預約</span>
+              <span><i style="background: var(--border)"></i>已過時段</span>
+            </div>
+            <div style="margin-top: 12px;">
+              <button type="button" class="custom-toggle" id="customToggle">找不到合適時段？自訂時間 ▾</button>
+              <div class="custom-box" id="customBox">
+                <input type="datetime-local" id="customTime" step="900" aria-label="自訂預約時間" />
+                <div class="hint"><span>系統會在送出時再次檢查該時段是否已有人預約。</span></div>
+              </div>
+            </div>
+            <input type="hidden" id="datetime" name="datetime" />
+          </div>
+
+          <div class="section">
+            <p class="step-title"><span class="step-num">3</span>填寫資料</p>
+
+            <div class="form-group">
+              <label for="name">姓名</label>
+              <input type="text" id="name" name="name" required maxlength="30" placeholder="請輸入您的姓名" autocomplete="name" />
+            </div>
+
+            <div class="form-group">
+              <label for="phone">電話</label>
+              <input type="tel" id="phone" name="phone" required maxlength="20" placeholder="例如 0912-345-678" autocomplete="tel" inputmode="tel" />
+              <div class="hint"><span id="phoneHint">手機或市話皆可</span></div>
+            </div>
+
+            <div class="form-group">
+              <label>預約類型</label>
+              <div class="type-chips" id="typeChips">
+                <button type="button" class="type-chip active" data-type="讀書討論">📚 讀書討論</button>
+                <button type="button" class="type-chip" data-type="課業諮詢">💬 課業諮詢</button>
+                <button type="button" class="type-chip" data-type="考前複習">📝 考前複習</button>
+                <button type="button" class="type-chip" data-type="實作練習">🎧 實作練習</button>
+                <button type="button" class="type-chip" data-type="其他">✨ 其他</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="note">預約需求（選填）</label>
+              <textarea id="note" maxlength="300" placeholder="想討論的科目、章節或問題…"></textarea>
+              <div class="hint"><span>寫得越具體，準備得越充分</span><span id="noteCount">0 / 300</span></div>
+            </div>
+            <input type="hidden" id="request" name="request" />
+
+            <label class="check"><input type="checkbox" id="remember" />記住我的姓名與電話（只存在這台裝置）</label>
+
+            <button type="submit" class="btn" id="submitBtn" disabled>請先選擇時段</button>
+          </div>
+        </form>
       </div>
 
-      <div class="form-group">
-        <label for="phone">電話</label>
-        <input type="tel" id="phone" name="phone" required placeholder="請輸入聯繫電話" pattern="[0-9\-+\s]+" />
-      </div>
+      <!-- 右：摘要 + 我的預約 -->
+      <aside>
+        <div class="card">
+          <p class="step-title">📋 預約摘要</p>
+          <dl class="summary" id="summary"></dl>
+          <ul class="tips">
+            <li>每次預約時長為 1 小時。</li>
+            <li>同一時段只接受一筆預約，已滿的時段會被劃掉。</li>
+            <li>預約成功後可一鍵加入自己的行事曆。</li>
+          </ul>
+        </div>
 
-      <div class="form-group">
-        <label for="datetime">預約時間</label>
-        <input type="datetime-local" id="datetime" name="datetime" required />
-      </div>
-
-      <div class="form-group">
-        <label for="request">預約需求</label>
-        <textarea id="request" name="request" placeholder="請描述您的預約需求（選填）"></textarea>
-      </div>
-
-      <button type="submit">立即預約</button>
-    </form>
+        <div class="card">
+          <p class="step-title" style="justify-content: space-between;">
+            <span>🗓️ 我的預約紀錄</span>
+            <button type="button" class="icon-btn" id="clearHistory">清除</button>
+          </p>
+          <ul class="history" id="history"></ul>
+          <p class="empty-note" id="historyEmpty">還沒有預約紀錄。紀錄只保存在這台裝置上。</p>
+        </div>
+      </aside>
+    </div>
   </div>
+
+  <!-- 確認視窗 -->
+  <div class="modal-bg" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <div class="modal">
+      <h3 id="confirmTitle">確認預約資訊</h3>
+      <dl class="summary" id="confirmSummary"></dl>
+      <div class="row">
+        <button type="button" class="btn ghost" id="cancelConfirm">返回修改</button>
+        <button type="button" class="btn" id="doSubmit">確認送出</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var OPEN_HOUR = 9, CLOSE_HOUR = 21; // 最後一個時段 21:00 開始
+      var WEEK = ['日', '一', '二', '三', '四', '五', '六'];
+      var LS_PROFILE = 'appt_profile', LS_HISTORY = 'appt_history', LS_PENDING = 'appt_pending';
+      var BUSY_API = "{{ url_for('appointment_busy') }}";
+
+      var state = { date: null, hour: null, custom: '', type: '讀書討論', busy: [], loading: false, calErr: false };
+      var $ = function (id) { return document.getElementById(id); };
+
+      function pad(n) { return String(n).padStart(2, '0'); }
+      function ymd(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+      function store(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+      function load(k, dflt) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? dflt : v; } catch (e) { return dflt; } }
+      function drop(k) { try { localStorage.removeItem(k); } catch (e) {} }
+
+      // 以台北時間 (+08:00) 解讀 "YYYY-MM-DDTHH:MM"
+      function tpe(dtStr) { return new Date(dtStr + ':00+08:00'); }
+      function fmt(dtStr) {
+        var d = dtStr.slice(0, 10).split('-'), t = dtStr.slice(11, 16);
+        var wd = new Date(+d[0], +d[1] - 1, +d[2]).getDay();
+        return d[0] + '/' + d[1] + '/' + d[2] + '（' + WEEK[wd] + '）' + t;
+      }
+      function endOf(dtStr) {
+        var s = tpe(dtStr), e = new Date(s.getTime() + 3600000);
+        var t = new Date(e.getTime() + 8 * 3600000); // 轉成台北牆上時間
+        return pad(t.getUTCHours()) + ':' + pad(t.getUTCMinutes());
+      }
+
+      function currentDatetime() {
+        if (state.custom) return state.custom;
+        if (state.date && state.hour != null) return state.date + 'T' + pad(state.hour) + ':00';
+        return '';
+      }
+
+      // ---------- 日期 ----------
+      function renderDates() {
+        var row = $('dateRow');
+        row.innerHTML = '';
+        var today = new Date();
+        for (var i = 0; i < 14; i++) {
+          var d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + i);
+          var key = ymd(d);
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'date-chip' + (d.getDay() === 0 || d.getDay() === 6 ? ' weekend' : '') + (key === state.date ? ' active' : '');
+          b.dataset.date = key;
+          b.innerHTML = '<small>' + (i === 0 ? '今天' : i === 1 ? '明天' : '週' + WEEK[d.getDay()]) + '</small><b>' + d.getDate() + '</b><small>' + (d.getMonth() + 1) + '月</small>';
+          b.addEventListener('click', function () { pickDate(this.dataset.date); });
+          row.appendChild(b);
+        }
+      }
+
+      function pickDate(key) {
+        state.date = key;
+        state.hour = null;
+        $('datePicker').value = key;
+        document.querySelectorAll('.date-chip').forEach(function (c) { c.classList.toggle('active', c.dataset.date === key); });
+        fetchBusy(key);
+        refresh();
+      }
+
+      // ---------- 時段 ----------
+      var busyReq = 0;
+      function fetchBusy(key) {
+        var my = ++busyReq;
+        state.busy = [];
+        state.loading = true;
+        state.calErr = false;
+        renderSlots();
+        function done(data, failed) {
+          if (my !== busyReq) return;
+          state.loading = false;
+          state.calErr = failed || !!(data && data.error);
+          state.busy = ((data && data.busy) || []).map(function (b) { return [new Date(b.start).getTime(), new Date(b.end).getTime()]; });
+          renderSlots();
+        }
+        fetch(BUSY_API + '?date=' + encodeURIComponent(key))
+          .then(function (r) { return r.json(); })
+          .then(function (data) { done(data, false); })
+          .catch(function () { done(null, true); });
+      }
+
+      function isBusy(dtStr) {
+        var s = tpe(dtStr).getTime(), e = s + 3600000;
+        return state.busy.some(function (b) { return b[0] < e && b[1] > s; });
+      }
+
+      function renderSlots() {
+        var box = $('slots');
+        box.innerHTML = '';
+        if (!state.date) return;
+        var now = Date.now(), free = 0, allPast = true;
+        for (var h = OPEN_HOUR; h <= CLOSE_HOUR; h++) {
+          var dt = state.date + 'T' + pad(h) + ':00';
+          var past = tpe(dt).getTime() <= now;
+          var busy = !past && isBusy(dt);
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'slot' + (busy ? ' busy' : '') + (state.hour === h && !state.custom ? ' active' : '');
+          b.disabled = past || busy;
+          b.dataset.hour = h;
+          b.innerHTML = pad(h) + ':00<small>' + (past ? '已過' : busy ? '已預約' : '至 ' + pad(h + 1) + ':00') + '</small>';
+          b.addEventListener('click', function () {
+            state.hour = +this.dataset.hour;
+            state.custom = '';
+            $('customTime').value = '';
+            renderSlots();
+            refresh();
+          });
+          if (!past) allPast = false;
+          if (!past && !busy) free++;
+          box.appendChild(b);
+        }
+        var msg;
+        if (state.loading) msg = '正在查詢 ' + state.date + ' 的預約狀況…';
+        else if (free) msg = '這天還有 ' + free + ' 個時段可預約';
+        else if (allPast) msg = '這天的時段已經結束，換一天試試？';
+        else msg = '這天的時段都滿了，換一天試試？';
+        if (state.calErr) msg += '（暫時無法讀取行事曆，送出時仍會再檢查衝突）';
+        $('slotStatus').textContent = msg;
+        if (state.hour != null && isBusy(state.date + 'T' + pad(state.hour) + ':00')) { state.hour = null; refresh(); }
+      }
+
+      // ---------- 表單 ----------
+      function phoneOk(v) { return /^[0-9+\-\s()]{8,20}$/.test(v) && v.replace(/\D/g, '').length >= 8; }
+
+      function buildRequest() {
+        var note = $('note').value.trim();
+        return '【' + state.type + '】' + (note ? ' ' + note : '');
+      }
+
+      function summaryHTML() {
+        var dt = currentDatetime();
+        var rows = [
+          ['時間', dt ? fmt(dt) + ' – ' + endOf(dt) : ''],
+          ['類型', state.type],
+          ['姓名', $('name').value.trim()],
+          ['電話', $('phone').value.trim()],
+          ['需求', $('note').value.trim()]
+        ];
+        return rows.map(function (r) {
+          var empty = !r[1];
+          var dd = document.createElement('dd');
+          dd.textContent = empty ? '尚未填寫' : r[1];
+          if (empty) dd.className = 'empty';
+          return '<dt>' + r[0] + '</dt>' + dd.outerHTML;
+        }).join('');
+      }
+
+      function refresh() {
+        var dt = currentDatetime();
+        $('datetime').value = dt;
+        $('summary').innerHTML = summaryHTML();
+        var nameOk = !!$('name').value.trim();
+        var pOk = phoneOk($('phone').value.trim());
+        var btn = $('submitBtn');
+        if (!dt) { btn.disabled = true; btn.textContent = '請先選擇時段'; }
+        else if (!nameOk || !pOk) { btn.disabled = true; btn.textContent = '請填寫姓名與正確電話'; }
+        else { btn.disabled = false; btn.textContent = '預約 ' + fmt(dt); }
+      }
+
+      $('datePicker').min = ymd(new Date());
+      $('datePicker').addEventListener('change', function () {
+        if (!this.value) return;
+        pickDate(this.value);
+      });
+
+      $('customToggle').addEventListener('click', function () {
+        var show = !$('customBox').classList.contains('show');
+        $('customBox').classList.toggle('show', show);
+        this.textContent = show ? '收起自訂時間 ▴' : '找不到合適時段？自訂時間 ▾';
+      });
+      var nowLocal = new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 16);
+      $('customTime').min = nowLocal;
+      $('customTime').addEventListener('change', function () {
+        state.custom = this.value || '';
+        if (state.custom && tpe(state.custom).getTime() <= Date.now()) {
+          alert('請選擇未來的時間');
+          this.value = ''; state.custom = '';
+        }
+        if (state.custom) { state.hour = null; }
+        renderSlots();
+        refresh();
+      });
+
+      document.querySelectorAll('.type-chip').forEach(function (c) {
+        c.addEventListener('click', function () {
+          state.type = this.dataset.type;
+          document.querySelectorAll('.type-chip').forEach(function (x) { x.classList.toggle('active', x === c); });
+          refresh();
+        });
+      });
+
+      $('note').addEventListener('input', function () { $('noteCount').textContent = this.value.length + ' / 300'; refresh(); });
+      $('name').addEventListener('input', refresh);
+      $('phone').addEventListener('input', function () {
+        var v = this.value.trim();
+        var ok = !v || phoneOk(v);
+        this.classList.toggle('invalid', !ok);
+        $('phoneHint').textContent = ok ? '手機或市話皆可' : '電話格式看起來不太對（至少 8 碼數字）';
+        $('phoneHint').className = ok ? '' : 'err';
+        refresh();
+      });
+
+      // 記住資料
+      var profile = load(LS_PROFILE, null);
+      if (profile) {
+        $('name').value = profile.name || '';
+        $('phone').value = profile.phone || '';
+        $('remember').checked = true;
+      }
+
+      // 送出流程：先確認再送
+      $('apptForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        if ($('submitBtn').disabled) return;
+        $('confirmSummary').innerHTML = summaryHTML();
+        $('confirmModal').classList.add('show');
+        $('doSubmit').focus();
+      });
+      function closeModal() { $('confirmModal').classList.remove('show'); }
+      $('cancelConfirm').addEventListener('click', closeModal);
+      $('confirmModal').addEventListener('click', function (e) { if (e.target === this) closeModal(); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+
+      $('doSubmit').addEventListener('click', function () {
+        $('request').value = buildRequest();
+        $('datetime').value = currentDatetime();
+        if ($('remember').checked) store(LS_PROFILE, { name: $('name').value.trim(), phone: $('phone').value.trim() });
+        else drop(LS_PROFILE);
+        store(LS_PENDING, { datetime: currentDatetime(), type: state.type, note: $('note').value.trim(), name: $('name').value.trim(), at: Date.now() });
+        this.disabled = true;
+        this.textContent = '送出中…';
+        $('apptForm').submit();
+      });
+
+      // ---------- 行事曆匯出 ----------
+      function icsStamp(dtStr, addHours) {
+        var d = new Date(tpe(dtStr).getTime() + (addHours || 0) * 3600000);
+        return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+      }
+      function gcalLink(item) {
+        var p = new URLSearchParams({
+          action: 'TEMPLATE',
+          text: '預約：' + item.type,
+          dates: icsStamp(item.datetime) + '/' + icsStamp(item.datetime, 1),
+          details: item.note || ''
+        });
+        return 'https://calendar.google.com/calendar/render?' + p.toString();
+      }
+      function downloadIcs(item) {
+        var lines = [
+          'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//appointment//TW', 'BEGIN:VEVENT',
+          'UID:' + item.at + '@appointment',
+          'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, ''),
+          'DTSTART:' + icsStamp(item.datetime),
+          'DTEND:' + icsStamp(item.datetime, 1),
+          'SUMMARY:預約：' + item.type,
+          'DESCRIPTION:' + (item.note || '').replace(/\n/g, '\\n'),
+          'BEGIN:VALARM', 'TRIGGER:-PT30M', 'ACTION:DISPLAY', 'DESCRIPTION:預約提醒', 'END:VALARM',
+          'END:VEVENT', 'END:VCALENDAR'
+        ];
+        var blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'appointment-' + item.datetime.replace(/[:T]/g, '') + '.ics';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+      }
+
+      // ---------- 預約紀錄 ----------
+      function renderHistory() {
+        var list = load(LS_HISTORY, []);
+        list.sort(function (a, b) { return a.datetime < b.datetime ? 1 : -1; });
+        var ul = $('history');
+        ul.innerHTML = '';
+        $('historyEmpty').style.display = list.length ? 'none' : 'block';
+        $('clearHistory').style.display = list.length ? '' : 'none';
+        var now = Date.now();
+        list.forEach(function (item, i) {
+          var li = document.createElement('li');
+          var past = tpe(item.datetime).getTime() + 3600000 < now;
+          if (past) li.className = 'past';
+          var info = document.createElement('div');
+          var when = document.createElement('div'); when.className = 'when'; when.textContent = fmt(item.datetime);
+          var meta = document.createElement('div'); meta.className = 'meta'; meta.textContent = item.type + (item.note ? '・' + item.note.slice(0, 24) : '');
+          info.appendChild(when); info.appendChild(meta);
+          var acts = document.createElement('div'); acts.className = 'acts';
+          if (!past) {
+            var g = document.createElement('a'); g.className = 'icon-btn'; g.target = '_blank'; g.rel = 'noopener'; g.href = gcalLink(item); g.textContent = 'Google'; g.title = '加入 Google 日曆';
+            var ic = document.createElement('button'); ic.type = 'button'; ic.className = 'icon-btn'; ic.textContent = '.ics'; ic.title = '下載行事曆檔';
+            ic.addEventListener('click', function () { downloadIcs(item); });
+            acts.appendChild(g); acts.appendChild(ic);
+          }
+          var del = document.createElement('button'); del.type = 'button'; del.className = 'icon-btn'; del.textContent = '✕'; del.title = '從紀錄移除（不會取消預約）';
+          del.addEventListener('click', function () {
+            var all = load(LS_HISTORY, []).filter(function (x) { return !(x.datetime === item.datetime && x.at === item.at); });
+            store(LS_HISTORY, all); renderHistory();
+          });
+          acts.appendChild(del);
+          li.appendChild(info); li.appendChild(acts);
+          ul.appendChild(li);
+        });
+      }
+      $('clearHistory').addEventListener('click', function () {
+        if (confirm('確定清除這台裝置上的預約紀錄嗎？（不會取消已送出的預約）')) { drop(LS_HISTORY); renderHistory(); }
+      });
+
+      // 依據伺服器回傳訊息，把剛送出的預約轉成紀錄
+      var pending = load(LS_PENDING, null);
+      var flashes = Array.prototype.slice.call(document.querySelectorAll('[data-flash]'));
+      if (pending && flashes.length) {
+        var success = flashes.some(function (f) { return f.dataset.flash.indexOf('預約成功') !== -1; });
+        if (success && Date.now() - pending.at < 10 * 60000) {
+          var hist = load(LS_HISTORY, []);
+          hist.push(pending);
+          store(LS_HISTORY, hist.slice(-30));
+          var okBox = flashes.filter(function (f) { return f.dataset.flash.indexOf('預約成功') !== -1; })[0];
+          var acts = document.createElement('div'); acts.className = 'flash-actions';
+          var g = document.createElement('a'); g.href = gcalLink(pending); g.target = '_blank'; g.rel = 'noopener'; g.textContent = '＋ 加入 Google 日曆';
+          var ic = document.createElement('button'); ic.type = 'button'; ic.textContent = '下載 .ics';
+          ic.addEventListener('click', function () { downloadIcs(pending); });
+          acts.appendChild(g); acts.appendChild(ic);
+          okBox.appendChild(acts);
+        }
+        drop(LS_PENDING);
+      }
+
+      // 初始化
+      renderDates();
+      renderHistory();
+      pickDate(ymd(new Date()));
+    })();
+  </script>
 
 </body>
 

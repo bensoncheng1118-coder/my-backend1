@@ -2,169 +2,355 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>成績計算機</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+
   <style>
-    /* 全頁面白色背景 */
-    body {
-      font-family: "Microsoft JhengHei", Arial, sans-serif;
-      background-color: white; /* 白底 */
-      background-image: none; /* 不用背景素材 */
-      background-repeat: no-repeat;
-      background-attachment: initial;
-      margin: 0;
-      padding: 40px 20px;
-      color: #555555; /* 文字改成灰色較適合白底 */
-      position: relative;
+    :root {
+      --primary: #6366f1;
+      --primary-2: #a855f7;
+      --primary-soft: rgba(99, 102, 241, 0.12);
+      --bg: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      --card: rgba(255, 255, 255, 0.75);
+      --card-solid: #ffffff;
+      --border: rgba(15, 23, 42, 0.08);
+      --text: #1f2937;
+      --muted: #6b7280;
+      --input: rgba(255, 255, 255, 0.7);
+      --ok: #10b981;
+      --ok-soft: rgba(16, 185, 129, 0.12);
+      --warn: #f59e0b;
+      --bad: #ef4444;
+      --bad-soft: rgba(239, 68, 68, 0.1);
+      --track: rgba(15, 23, 42, 0.08);
+      --shadow: 0 10px 36px rgba(31, 38, 135, 0.12);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+        --card: rgba(30, 41, 59, 0.75);
+        --card-solid: #1e293b;
+        --border: rgba(255, 255, 255, 0.08);
+        --text: #e5e7eb;
+        --muted: #94a3b8;
+        --input: rgba(15, 23, 42, 0.55);
+        --primary-soft: rgba(129, 140, 248, 0.18);
+        --track: rgba(255, 255, 255, 0.1);
+        --shadow: 0 10px 36px rgba(0, 0, 0, 0.35);
+      }
     }
 
-    /* 返回首頁按鈕 - 透明底黑字，超圓潤 */
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Outfit', 'Noto Sans TC', "Microsoft JhengHei", -apple-system, sans-serif;
+      background: var(--bg);
+      background-attachment: fixed;
+      margin: 0;
+      padding: 90px 16px 48px;
+      color: var(--text);
+      min-height: 100vh;
+    }
+
     .back-home-button {
-      position: absolute;
+      position: fixed;
       top: 20px;
       left: 20px;
-      background-color: transparent;
-      color: #000000;
-      font-weight: bold;
-      padding: 10px 16px;
-      border: none;
-      border-radius: 30px; /* 超圓潤 */
-      text-decoration: none;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: inline-block;
-      line-height: 1.2;
-    }
-
-    .back-home-button:hover {
-      background-color: #000000; /* 滑鼠懸停黑底 */
-      color: #ffffff; /* 白字 */
-    }
-
-    /* 內容區塊透明底 */
-    .content-wrapper {
-      background: transparent;
-      padding: 30px;
-      border-radius: 12px;
-      max-width: 900px;
-      margin: auto;
-      box-shadow: none; /* 去除陰影 */
-      color: #555555;
-    }
-
-    h1 {
-      text-align: center;
-      color: #333333;
-      margin-bottom: 20px;
-    }
-
-    .btn-group {
-      margin: 10px 0;
-      text-align: center;
-    }
-
-    /* 其餘按鈕（年級、學期及提交）透明底灰字 */
-    .btn-group button,
-    button[type="submit"] {
-      padding: 8px 16px;
-      margin: 0 5px;
-      cursor: pointer;
-      border: 1px solid #888888;
-      background-color: transparent;
-      color: #777777;
+      background: var(--card);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-weight: 600;
+      padding: 10px 20px;
       border-radius: 50px;
-      transition: all 0.3s ease;
-      font-size: 1rem;
-      font-weight: normal;
+      text-decoration: none;
+      transition: all 0.25s ease;
+      box-shadow: var(--shadow);
+      z-index: 1000;
     }
+    .back-home-button::before { content: '← '; }
+    .back-home-button:hover { background: #000; color: #fff; }
 
-    /* 按鈕啟用狀態字色和邊框較黑 */
-    .btn-group button.active {
-      color: #333333;
-      border-color: #333333;
-      font-weight: bold;
+    .wrap { max-width: 1080px; margin: 0 auto; animation: fadeInUp 0.6s ease both; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+    header.hero { text-align: center; margin-bottom: 22px; }
+    h1 {
+      font-size: clamp(2rem, 5vw, 2.6rem);
+      margin: 0 0 6px;
+      background: linear-gradient(to right, #4f46e5, #9333ea);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
+    .subtitle { color: var(--muted); margin: 0; }
 
-    /* 滑鼠懸停按鈕變黑底白字 */
-    .btn-group button:hover,
-    button[type="submit"]:hover {
-      background-color: #000000;
-      color: #ffffff;
-      border-color: #000000;
+    .card {
+      background: var(--card);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: var(--shadow);
     }
+    .card h2 { font-size: 1.05rem; margin: 0 0 14px; }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-      color: #555555;
+    /* tabs */
+    .tabs { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+    .seg {
+      display: inline-flex; padding: 4px; border-radius: 999px;
+      background: var(--card); border: 1px solid var(--border); box-shadow: var(--shadow);
     }
-
-    th, td {
-      border: 1px solid #cccccc;
-      padding: 6px;
-      text-align: center;
+    .seg button {
+      border: none; background: transparent; color: var(--muted); font-family: inherit; font-size: 0.98rem;
+      padding: 8px 16px; border-radius: 999px; cursor: pointer; transition: all 0.2s; font-weight: 600;
     }
+    .seg button:hover { color: var(--text); }
+    .seg button.active { background: linear-gradient(135deg, var(--primary), var(--primary-2)); color: #fff; }
 
-    input[type="text"] {
-      width: 60px;
-      text-align: center;
-      background-color: #f3f3f3;
-      border: 1px solid #ccc;
-      color: #333333;
-      border-radius: 4px;
-      padding: 3px;
-      transition: all 0.3s ease;
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+      margin-top: 18px;
     }
+    @media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+    aside .card + .card { margin-top: 20px; }
+    aside { position: sticky; top: 20px; }
+    @media (max-width: 900px) { aside { position: static; } }
 
-    input[type="text"]::placeholder {
-      color: #999999;
+    /* table */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+    th {
+      text-align: left; font-weight: 600; color: var(--muted); font-size: 0.82rem;
+      padding: 8px 8px; border-bottom: 1px solid var(--border); white-space: nowrap;
     }
+    td { padding: 7px 8px; border-bottom: 1px dashed var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    td.c, th.c { text-align: center; }
+    tr.fail td.name { color: var(--bad); }
+    tr.skip td { opacity: 0.55; }
 
-    input[type="text"]:focus {
-      outline: none;
-      border-color: #000000;
-      background-color: #ffffff;
-      color: #000000;
+    input.num, input.txt {
+      background: var(--input); border: 1px solid var(--border); color: var(--text);
+      border-radius: 10px; padding: 7px 8px; font-family: inherit; font-size: 0.95rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
+    input.num { width: 72px; text-align: center; }
+    input.credit { width: 52px; }
+    input.txt { width: 100%; min-width: 120px; }
+    input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+    input.invalid { border-color: var(--bad); }
 
-    #result {
-      margin-top: 20px;
-      font-size: 1.3em;
-      font-weight: bold;
-      text-align: center;
-      color: #444444;
-      text-shadow: none;
+    .badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
+    .badge.pass { background: var(--ok-soft); color: var(--ok); }
+    .badge.fail { background: var(--bad-soft); color: var(--bad); }
+    .badge.none { background: var(--track); color: var(--muted); }
+
+    .row-del { border: none; background: none; color: var(--muted); cursor: pointer; font-size: 1rem; padding: 4px 6px; border-radius: 6px; }
+    .row-del:hover { color: var(--bad); background: var(--bad-soft); }
+
+    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+    .btn {
+      border: 1px solid var(--border); background: var(--input); color: var(--text);
+      padding: 8px 14px; border-radius: 12px; cursor: pointer; font-family: inherit; font-size: 0.9rem; font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn:hover { border-color: var(--primary); color: var(--primary); }
+    .btn.primary {
+      background: linear-gradient(to right, var(--primary), var(--primary-2)); color: #fff; border: none;
+      padding: 12px 26px; font-size: 1.05rem; border-radius: 14px; box-shadow: 0 6px 16px rgba(99, 102, 241, 0.28);
+    }
+    .btn.primary:hover { color: #fff; transform: translateY(-2px); filter: brightness(1.08); }
+    .center { text-align: center; margin-top: 18px; }
+
+    .empty { text-align: center; color: var(--muted); padding: 26px 10px; }
+
+    /* stats */
+    .ring-wrap { display: flex; align-items: center; gap: 18px; }
+    .ring { position: relative; width: 128px; height: 128px; flex-shrink: 0; }
+    .ring svg { transform: rotate(-90deg); }
+    .ring .val { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
+    .ring .val b { font-size: 1.8rem; display: block; line-height: 1; }
+    .ring .val small { color: var(--muted); font-size: 0.75rem; }
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex: 1; }
+    .stat { background: var(--input); border: 1px solid var(--border); border-radius: 12px; padding: 8px 10px; }
+    .stat small { display: block; color: var(--muted); font-size: 0.75rem; }
+    .stat b { font-size: 1.1rem; }
+
+    .verdict {
+      margin-top: 16px; padding: 12px 14px; border-radius: 14px; background: var(--primary-soft);
+      font-weight: 600; text-align: center; display: none;
+    }
+    .verdict.show { display: block; animation: pop 0.45s ease both; }
+    @keyframes pop { 0% { transform: scale(0.9); opacity: 0; } 70% { transform: scale(1.03); } 100% { transform: scale(1); opacity: 1; } }
+
+    .target-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .target-out { margin-top: 10px; font-size: 0.92rem; color: var(--muted); line-height: 1.6; }
+    .target-out b { color: var(--text); }
+
+    .overview td, .overview th { font-size: 0.88rem; }
+    .overview tr.total td { font-weight: 700; border-top: 1px solid var(--border); }
+
+    .scale-table td, .scale-table th { padding: 4px 6px; font-size: 0.8rem; }
+    details summary { cursor: pointer; color: var(--muted); font-size: 0.88rem; }
+
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: #111827; color: #fff; padding: 10px 18px; border-radius: 999px; font-size: 0.9rem;
+      opacity: 0; pointer-events: none; transition: all 0.3s; z-index: 3000;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 520px) {
+      body { padding-top: 76px; }
+      .card { padding: 16px; border-radius: 18px; }
+      .back-home-button { top: 14px; left: 14px; padding: 8px 16px; }
+      .seg button { padding: 7px 12px; font-size: 0.9rem; }
+      .ring-wrap { flex-direction: column; }
+      .stat-grid { width: 100%; }
+      th.hide-sm, td.hide-sm { display: none; }
     }
   </style>
 </head>
 <body>
 
   <a href="{{ url_for('index') }}" class="back-home-button">返回首頁</a>
-  <div class="content-wrapper">
-    <h1>成績計算機</h1>
 
-    <!-- 年級選擇 -->
-    <div class="btn-group" id="yearButtons">
-      <button onclick="selectYear('大一')" class="active">大一</button>
-      <button onclick="selectYear('大二')">大二</button>
-      <button onclick="selectYear('大三')">大三</button>
-    </div>
+  <div class="wrap">
+    <header class="hero">
+      <h1>成績計算機</h1>
+      <p class="subtitle">邊輸入邊算：加權平均、GPA、及格學分、目標分析，資料自動保存在這台裝置</p>
+    </header>
 
-    <!-- 學期選擇 -->
-    <div class="btn-group" id="semesterButtons">
-      <button onclick="selectSemester('上學期')" class="active">上學期</button>
-      <button onclick="selectSemester('下學期')">下學期</button>
-    </div>
-
-    <form id="gradeForm" onsubmit="calculateAverage(event)">
-      <div id="subjectTableContainer"></div>
-      <div style="text-align: center;">
-        <button type="submit">接受現實</button>
+    <div class="tabs">
+      <div class="seg" id="yearButtons">
+        <button type="button" data-year="大一" class="active">大一</button>
+        <button type="button" data-year="大二">大二</button>
+        <button type="button" data-year="大三">大三</button>
+        <button type="button" data-year="ALL">總覽</button>
       </div>
-    </form>
+      <div class="seg" id="semesterButtons">
+        <button type="button" data-sem="上學期" class="active">上學期</button>
+        <button type="button" data-sem="下學期">下學期</button>
+      </div>
+    </div>
 
-    <div id="result"></div>
+    <div class="layout">
+      <main>
+        <form id="gradeForm" class="card" autocomplete="off">
+          <div id="semesterView">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>科目名稱</th>
+                    <th class="c">學分</th>
+                    <th class="c">成績</th>
+                    <th class="c hide-sm">等第</th>
+                    <th class="c">狀態</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="subjectBody"></tbody>
+              </table>
+            </div>
+            <div class="empty" id="emptyNote" style="display:none">尚未輸入此學期科目，點下方「新增科目」自己加吧！</div>
+
+            <div class="toolbar">
+              <button type="button" class="btn" id="addRow">＋ 新增科目</button>
+              <button type="button" class="btn" id="fillNone">未填的設為「無」</button>
+              <button type="button" class="btn" id="resetSem">清空本學期成績</button>
+              <button type="button" class="btn" id="restoreSem">還原預設科目</button>
+              <button type="button" class="btn" id="exportCsv">匯出 CSV</button>
+            </div>
+            <p style="color: var(--muted); font-size: 0.82rem; margin: 12px 0 0;">成績可填 0–100，填「無」或留空就不列入計算；學分可以直接修改。</p>
+          </div>
+
+          <div id="overviewView" style="display:none">
+            <h2>📊 各學期總覽</h2>
+            <div class="table-wrap">
+              <table class="overview">
+                <thead>
+                  <tr><th>學期</th><th class="c">已計學分</th><th class="c">及格學分</th><th class="c">加權平均</th><th class="c">GPA (4.3)</th></tr>
+                </thead>
+                <tbody id="overviewBody"></tbody>
+              </table>
+            </div>
+            <div class="toolbar">
+              <button type="button" class="btn" id="exportAll">匯出全部 CSV</button>
+            </div>
+          </div>
+
+          <div class="center">
+            <button type="submit" class="btn primary">接受現實</button>
+          </div>
+          <div id="result" class="verdict" aria-live="polite"></div>
+        </form>
+      </main>
+
+      <aside>
+        <div class="card">
+          <h2 id="statTitle">本學期成績</h2>
+          <div class="ring-wrap">
+            <div class="ring">
+              <svg width="128" height="128" viewBox="0 0 128 128" aria-hidden="true">
+                <defs>
+                  <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#6366f1" />
+                    <stop offset="100%" stop-color="#a855f7" />
+                  </linearGradient>
+                </defs>
+                <circle cx="64" cy="64" r="54" fill="none" stroke="var(--track)" stroke-width="12" />
+                <circle id="ringArc" cx="64" cy="64" r="54" fill="none" stroke="url(#ringGrad)" stroke-width="12"
+                        stroke-linecap="round" stroke-dasharray="339.29" stroke-dashoffset="339.29"
+                        style="transition: stroke-dashoffset 0.6s ease" />
+              </svg>
+              <div class="val"><div><b id="avgVal">--</b><small>加權平均</small></div></div>
+            </div>
+            <div class="stat-grid">
+              <div class="stat"><small>GPA (4.3 制)</small><b id="gpa43">--</b></div>
+              <div class="stat"><small>GPA (4.0 制)</small><b id="gpa40">--</b></div>
+              <div class="stat"><small>已計 / 及格學分</small><b id="credits">0 / 0</b></div>
+              <div class="stat"><small>算術平均</small><b id="simpleAvg">--</b></div>
+              <div class="stat"><small>最高分</small><b id="maxScore">--</b></div>
+              <div class="stat"><small>不及格科目</small><b id="failCount">0</b></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="targetCard">
+          <h2>🎯 目標分析</h2>
+          <div class="target-row">
+            <span>想讓平均達到</span>
+            <input type="number" class="num" id="targetAvg" min="0" max="100" step="0.5" placeholder="80" />
+            <span>分</span>
+          </div>
+          <div class="target-out" id="targetOut">輸入目標平均，會算出「還沒填成績」的科目平均要考幾分。</div>
+        </div>
+
+        <div class="card">
+          <details>
+            <summary>等第與 GPA 對照表</summary>
+            <table class="scale-table" style="margin-top: 10px;">
+              <thead><tr><th>分數</th><th>等第</th><th>4.3 制</th><th>4.0 制</th></tr></thead>
+              <tbody id="scaleBody"></tbody>
+            </table>
+          </details>
+        </div>
+      </aside>
+    </div>
   </div>
+
+  <div class="toast" id="toast"></div>
 
   <script>
     const subjects = {
@@ -211,74 +397,362 @@
       }
     };
 
+    // 等第對照：[最低分, 等第, 4.3制, 4.0制]
+    const SCALE = [
+      [90, "A+", 4.3, 4.0], [85, "A", 4.0, 4.0], [80, "A-", 3.7, 4.0],
+      [77, "B+", 3.3, 3.0], [73, "B", 3.0, 3.0], [70, "B-", 2.7, 3.0],
+      [67, "C+", 2.3, 2.0], [63, "C", 2.0, 2.0], [60, "C-", 1.7, 2.0],
+      [50, "D", 1.0, 1.0], [0, "E", 0, 0]
+    ];
+    const PASS = 60;
+    const YEARS = ["大一", "大二", "大三"];
+    const SEMS = ["上學期", "下學期"];
+    const LS_KEY = "grade_calc_v2";
+
     let currentYear = "大一";
     let currentSemester = "上學期";
+    let saved = loadSaved();
 
-    function selectYear(year) {
-      currentYear = year;
-      document.querySelectorAll("#yearButtons button").forEach(btn => {
-        btn.classList.toggle("active", btn.textContent === year);
+    function loadSaved() {
+      try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; } catch (e) { return {}; }
+    }
+    function persist() {
+      try { localStorage.setItem(LS_KEY, JSON.stringify(saved)); } catch (e) {}
+    }
+    function semKey(y, s) { return y + "|" + s; }
+
+    // 每學期的資料 = 預設科目（可改學分、可隱藏）+ 自訂科目
+    function semData(y, s) {
+      const key = semKey(y, s);
+      if (!saved[key]) saved[key] = { scores: {}, credits: {}, removed: {}, custom: [] };
+      return saved[key];
+    }
+    function rowsOf(y, s) {
+      const d = semData(y, s);
+      const rows = [];
+      (subjects[y][s] || []).forEach((subj, i) => {
+        if (d.removed[i]) return;
+        rows.push({
+          id: "d" + i, name: subj.name,
+          credit: d.credits[i] != null ? d.credits[i] : subj.credit,
+          score: d.scores[i] != null ? d.scores[i] : "", custom: false
+        });
       });
-      updateSubjects();
+      d.custom.forEach((c, i) => rows.push({ id: "c" + i, name: c.name, credit: c.credit, score: c.score || "", custom: true }));
+      return rows;
     }
 
-    function selectSemester(semester) {
-      currentSemester = semester;
-      document.querySelectorAll("#semesterButtons button").forEach(btn => {
-        btn.classList.toggle("active", btn.textContent === semester);
+    function parseScore(v) {
+      v = String(v == null ? "" : v).trim();
+      if (!v || v === "無" || v.toLowerCase() === "none") return null;
+      const n = parseFloat(v);
+      if (isNaN(n) || n < 0 || n > 100) return NaN;
+      return n;
+    }
+    function gradeOf(score) { return SCALE.find(r => score >= r[0]); }
+
+    function computeStats(rows) {
+      let total = 0, credits = 0, passed = 0, sum = 0, count = 0, g43 = 0, g40 = 0, fails = 0, max = null, min = null, blankCredits = 0;
+      rows.forEach(r => {
+        const c = parseFloat(r.credit) || 0;
+        const s = parseScore(r.score);
+        if (s === null) {
+          if (String(r.score).trim() !== "無") blankCredits += c;
+          return;
+        }
+        if (isNaN(s) || c <= 0) return;
+        const g = gradeOf(s);
+        total += s * c; credits += c; sum += s; count++;
+        g43 += g[2] * c; g40 += g[3] * c;
+        if (s >= PASS) passed += c; else fails++;
+        max = max === null ? s : Math.max(max, s);
+        min = min === null ? s : Math.min(min, s);
       });
-      updateSubjects();
+      return {
+        total, credits, passed, fails, max, min, blankCredits,
+        avg: credits ? total / credits : null,
+        simple: count ? sum / count : null,
+        gpa43: credits ? g43 / credits : null,
+        gpa40: credits ? g40 / credits : null
+      };
     }
 
-    function updateSubjects() {
-      const container = document.getElementById("subjectTableContainer");
-      const currentSubjects = subjects[currentYear][currentSemester];
+    const f2 = v => (v === null || v === undefined) ? "--" : v.toFixed(2);
+    const esc = s => String(s).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
 
-      if (!currentSubjects || currentSubjects.length === 0) {
-        container.innerHTML = "<p style='text-align:center; color: #555555;'>尚未輸入此學期科目</p>";
+    // ---------- 畫面 ----------
+    function renderTable() {
+      const rows = rowsOf(currentYear, currentSemester);
+      const body = document.getElementById("subjectBody");
+      document.getElementById("emptyNote").style.display = rows.length ? "none" : "block";
+      body.innerHTML = rows.map(r => {
+        const nameCell = r.custom
+          ? `<input class="txt" data-id="${r.id}" data-field="name" value="${esc(r.name)}" placeholder="科目名稱" />`
+          : esc(r.name);
+        return `<tr data-id="${r.id}">
+          <td class="name">${nameCell}</td>
+          <td class="c"><input class="num credit" type="number" min="0" max="10" step="0.5" data-id="${r.id}" data-field="credit" value="${esc(r.credit)}" /></td>
+          <td class="c"><input class="num" type="text" inputmode="decimal" data-id="${r.id}" data-field="score" value="${esc(r.score)}" placeholder="成績" /></td>
+          <td class="c hide-sm" data-grade></td>
+          <td class="c" data-status></td>
+          <td class="c"><button type="button" class="row-del" data-del="${r.id}" title="移除這科">✕</button></td>
+        </tr>`;
+      }).join("");
+      updateRowStates();
+    }
+
+    function updateRowStates() {
+      document.querySelectorAll("#subjectBody tr").forEach(tr => {
+        const input = tr.querySelector('[data-field="score"]');
+        const raw = input.value;
+        const s = parseScore(raw);
+        const gradeCell = tr.querySelector("[data-grade]");
+        const statusCell = tr.querySelector("[data-status]");
+        input.classList.toggle("invalid", Number.isNaN(s));
+        tr.classList.remove("fail", "skip");
+        if (s === null) {
+          gradeCell.textContent = "–";
+          statusCell.innerHTML = `<span class="badge none">${raw.trim() === "無" ? "不計" : "未填"}</span>`;
+          if (raw.trim() === "無") tr.classList.add("skip");
+        } else if (Number.isNaN(s)) {
+          gradeCell.textContent = "–";
+          statusCell.innerHTML = `<span class="badge fail">格式錯誤</span>`;
+        } else {
+          gradeCell.textContent = gradeOf(s)[1];
+          const pass = s >= PASS;
+          statusCell.innerHTML = `<span class="badge ${pass ? "pass" : "fail"}">${pass ? "及格" : "不及格"}</span>`;
+          if (!pass) tr.classList.add("fail");
+        }
+      });
+    }
+
+    function setRing(avg) {
+      const C = 339.29;
+      document.getElementById("ringArc").setAttribute("stroke-dashoffset", avg === null ? C : C * (1 - Math.min(avg, 100) / 100));
+      document.getElementById("avgVal").textContent = avg === null ? "--" : avg.toFixed(1);
+    }
+
+    function renderStats() {
+      let rows;
+      if (currentYear === "ALL") {
+        rows = [];
+        YEARS.forEach(y => SEMS.forEach(s => rows = rows.concat(rowsOf(y, s))));
+        document.getElementById("statTitle").textContent = "累計成績";
+      } else {
+        rows = rowsOf(currentYear, currentSemester);
+        document.getElementById("statTitle").textContent = currentYear + currentSemester;
+      }
+      const st = computeStats(rows);
+      setRing(st.avg);
+      document.getElementById("gpa43").textContent = f2(st.gpa43);
+      document.getElementById("gpa40").textContent = f2(st.gpa40);
+      document.getElementById("credits").textContent = st.credits + " / " + st.passed;
+      document.getElementById("simpleAvg").textContent = f2(st.simple);
+      document.getElementById("maxScore").textContent = st.max === null ? "--" : st.max;
+      document.getElementById("failCount").textContent = st.fails;
+      renderTarget(st);
+      return st;
+    }
+
+    function renderTarget(st) {
+      const out = document.getElementById("targetOut");
+      const t = parseFloat(document.getElementById("targetAvg").value);
+      if (isNaN(t)) {
+        out.innerHTML = "輸入目標平均，會算出「還沒填成績」的科目平均要考幾分。";
         return;
       }
+      if (!st.blankCredits) {
+        if (st.avg === null) { out.textContent = "先輸入一些成績或科目吧。"; return; }
+        out.innerHTML = st.avg >= t
+          ? `目前平均 <b>${f2(st.avg)}</b>，已經達標 🎉`
+          : `所有科目都填完了，目前平均 <b>${f2(st.avg)}</b>，差 <b>${(t - st.avg).toFixed(2)}</b> 分。`;
+        return;
+      }
+      const need = (t * (st.credits + st.blankCredits) - st.total) / st.blankCredits;
+      let msg = `剩下 <b>${st.blankCredits}</b> 學分未填，平均需要考到 <b>${Math.max(0, need).toFixed(1)}</b> 分。`;
+      if (need > 100) msg += "<br>😵 就算全部 100 分也達不到，調整一下目標吧。";
+      else if (need <= 0) msg += "<br>😎 已經穩穩達標了！";
+      else if (need >= 90) msg += "<br>💪 有點硬，但還有機會！";
+      out.innerHTML = msg;
+    }
 
-      let tableHTML = `<table><thead><tr><th>科目名稱</th><th>學分</th><th>成績 (可填無)</th></tr></thead><tbody>`;
-      currentSubjects.forEach((subj, index) => {
-        tableHTML += `<tr>
-          <td>${subj.name}</td>
-          <td>${subj.credit}</td>
-          <td><input type="text" name="score${index}" placeholder="成績" /></td>
-        </tr>`;
-      });
-      tableHTML += "</tbody></table>";
-      container.innerHTML = tableHTML;
+    function renderOverview() {
+      const body = document.getElementById("overviewBody");
+      let html = "", all = [];
+      YEARS.forEach(y => SEMS.forEach(s => {
+        const rows = rowsOf(y, s);
+        all = all.concat(rows);
+        const st = computeStats(rows);
+        html += `<tr><td>${y}${s}</td><td class="c">${st.credits}</td><td class="c">${st.passed}</td><td class="c">${f2(st.avg)}</td><td class="c">${f2(st.gpa43)}</td></tr>`;
+      }));
+      const tot = computeStats(all);
+      html += `<tr class="total"><td>累計</td><td class="c">${tot.credits}</td><td class="c">${tot.passed}</td><td class="c">${f2(tot.avg)}</td><td class="c">${f2(tot.gpa43)}</td></tr>`;
+      body.innerHTML = html;
+    }
+
+    function renderAll() {
+      const overview = currentYear === "ALL";
+      document.getElementById("semesterView").style.display = overview ? "none" : "";
+      document.getElementById("overviewView").style.display = overview ? "" : "none";
+      document.getElementById("semesterButtons").style.visibility = overview ? "hidden" : "visible";
+      document.getElementById("result").classList.remove("show");
+      if (overview) renderOverview(); else renderTable();
+      renderStats();
+    }
+
+    // ---------- 互動 ----------
+    function selectYear(year) {
+      currentYear = year;
+      document.querySelectorAll("#yearButtons button").forEach(b => b.classList.toggle("active", b.dataset.year === year));
+      renderAll();
+    }
+    function selectSemester(sem) {
+      currentSemester = sem;
+      document.querySelectorAll("#semesterButtons button").forEach(b => b.classList.toggle("active", b.dataset.sem === sem));
+      renderAll();
+    }
+    document.querySelectorAll("#yearButtons button").forEach(b => b.addEventListener("click", () => selectYear(b.dataset.year)));
+    document.querySelectorAll("#semesterButtons button").forEach(b => b.addEventListener("click", () => selectSemester(b.dataset.sem)));
+
+    function writeField(id, field, value) {
+      const d = semData(currentYear, currentSemester);
+      if (id[0] === "d") {
+        const i = id.slice(1);
+        if (field === "score") d.scores[i] = value;
+        if (field === "credit") d.credits[i] = value === "" ? null : parseFloat(value);
+      } else {
+        const c = d.custom[+id.slice(1)];
+        if (!c) return;
+        if (field === "credit") c[field] = parseFloat(value) || 0;
+        else c[field] = value;
+      }
+      persist();
+    }
+
+    document.getElementById("subjectBody").addEventListener("input", e => {
+      const el = e.target;
+      if (!el.dataset.field) return;
+      writeField(el.dataset.id, el.dataset.field, el.value);
+      updateRowStates();
+      renderStats();
+      document.getElementById("result").classList.remove("show");
+    });
+
+    document.getElementById("subjectBody").addEventListener("keydown", e => {
+      // Enter 跳到下一個成績欄
+      if (e.key === "Enter" && e.target.dataset.field === "score") {
+        e.preventDefault();
+        const all = Array.from(document.querySelectorAll('#subjectBody [data-field="score"]'));
+        const next = all[all.indexOf(e.target) + 1];
+        if (next) next.focus(); else document.querySelector(".btn.primary").focus();
+      }
+    });
+
+    document.getElementById("subjectBody").addEventListener("click", e => {
+      const id = e.target.dataset.del;
+      if (!id) return;
+      const d = semData(currentYear, currentSemester);
+      if (id[0] === "d") d.removed[id.slice(1)] = true;
+      else d.custom.splice(+id.slice(1), 1);
+      persist();
+      renderAll();
+      toast("已移除，可用「還原預設科目」找回");
+    });
+
+    document.getElementById("addRow").addEventListener("click", () => {
+      semData(currentYear, currentSemester).custom.push({ name: "", credit: 2, score: "" });
+      persist();
+      renderAll();
+      const names = document.querySelectorAll('#subjectBody [data-field="name"]');
+      if (names.length) names[names.length - 1].focus();
+    });
+
+    document.getElementById("fillNone").addEventListener("click", () => {
+      rowsOf(currentYear, currentSemester).forEach(r => { if (!String(r.score).trim()) writeField(r.id, "score", "無"); });
+      renderAll();
+    });
+
+    document.getElementById("resetSem").addEventListener("click", () => {
+      if (!confirm("確定清空" + currentYear + currentSemester + "的所有成績？")) return;
+      const d = semData(currentYear, currentSemester);
+      d.scores = {};
+      d.custom.forEach(c => c.score = "");
+      persist();
+      renderAll();
+    });
+
+    document.getElementById("restoreSem").addEventListener("click", () => {
+      if (!confirm("還原預設科目與學分？（已填的成績會保留，自訂科目會刪除）")) return;
+      const d = semData(currentYear, currentSemester);
+      d.removed = {}; d.credits = {}; d.custom = [];
+      persist();
+      renderAll();
+    });
+
+    document.getElementById("targetAvg").addEventListener("input", renderStats);
+
+    function csvCell(v) { v = String(v == null ? "" : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+    function downloadCsv(list, filename) {
+      const lines = [["學期", "科目", "學分", "成績", "等第", "GPA(4.3)"].join(",")];
+      list.forEach(([y, s]) => rowsOf(y, s).forEach(r => {
+        const sc = parseScore(r.score);
+        const g = (sc === null || Number.isNaN(sc)) ? null : gradeOf(sc);
+        lines.push([y + s, r.name, r.credit, r.score, g ? g[1] : "", g ? g[2] : ""].map(csvCell).join(","));
+      }));
+      const blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
+    document.getElementById("exportCsv").addEventListener("click", () => downloadCsv([[currentYear, currentSemester]], "成績_" + currentYear + currentSemester + ".csv"));
+    document.getElementById("exportAll").addEventListener("click", () => {
+      const all = [];
+      YEARS.forEach(y => SEMS.forEach(s => all.push([y, s])));
+      downloadCsv(all, "成績_全部.csv");
+    });
+
+    function verdictFor(avg) {
+      if (avg >= 90) return "🏆 神人等級，請收下我的膝蓋";
+      if (avg >= 85) return "🌟 非常優秀，書卷獎在招手";
+      if (avg >= 80) return "😊 表現很好，繼續保持";
+      if (avg >= 70) return "🙂 穩穩的，再努力一點就更好";
+      if (avg >= 60) return "😅 平安過關，下學期加油";
+      return "🫠 現實很骨感，但一切都還來得及";
     }
 
     function calculateAverage(event) {
       event.preventDefault();
-      const currentSubjects = subjects[currentYear][currentSemester];
-      let total = 0;
-      let totalCredits = 0;
-
-      currentSubjects.forEach((subj, index) => {
-        const input = document.querySelector(`[name='score${index}']`).value.trim();
-        if (input && input.toLowerCase() !== "無") {
-          const score = parseFloat(input);
-          if (!isNaN(score)) {
-            total += score * subj.credit;
-            totalCredits += subj.credit;
-          }
-        }
-      });
-
+      const st = renderStats();
       const resultDiv = document.getElementById("result");
-      if (totalCredits === 0) {
+      if (st.credits === 0) {
         resultDiv.textContent = "請輸入有效成績後再計算。";
       } else {
-        const avg = (total / totalCredits).toFixed(2);
-        resultDiv.textContent = `加權平均成績為：${avg}`;
+        resultDiv.innerHTML = `加權平均成績為：${st.avg.toFixed(2)}　GPA ${st.gpa43.toFixed(2)}<br><span style="font-weight:500">${verdictFor(st.avg)}</span>`;
       }
+      resultDiv.classList.remove("show");
+      void resultDiv.offsetWidth;
+      resultDiv.classList.add("show");
+    }
+    document.getElementById("gradeForm").addEventListener("submit", calculateAverage);
+
+    let toastTimer;
+    function toast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
     }
 
-    window.onload = updateSubjects;
+    // 對照表
+    document.getElementById("scaleBody").innerHTML = SCALE.map((r, i) => {
+      const hi = i === 0 ? 100 : SCALE[i - 1][0] - 1;
+      return `<tr><td>${r[0]}–${hi}</td><td>${r[1]}</td><td>${r[2].toFixed(1)}</td><td>${r[3].toFixed(1)}</td></tr>`;
+    }).join("");
+
+    renderAll();
   </script>
 </body>
 </html>
-

@@ -17,6 +17,7 @@ from flask_pymongo import PyMongo
 from urllib.parse import unquote
 import time
 from flask import send_from_directory
+from subject_links import find_subjects, find_semesters, public_data as subject_public_data
 
 
 app = Flask(__name__, static_folder='.', static_url_path='')
@@ -544,6 +545,13 @@ def load_all_courses():
                     print(f"❌ 無法解析 {filename}: {e}")
     return all_data
 
+@app.route('/api/subjects')
+def api_subjects():
+    # 首頁搜尋框即時建議用：科目、所在學期與雲端資料夾連結
+    resp = jsonify(subject_public_data())
+    resp.headers['Cache-Control'] = 'public, max-age=600'
+    return resp
+
 @app.route('/search')
 def search():
     raw_query = request.args.get('q', '').strip().lower()
@@ -727,7 +735,10 @@ def search():
             unique_results.append(r)
             seen_urls.add(r['url'])
 
-    return render_template('search_results.html', query=raw_query, results=unique_results)
+    subject_hits = find_subjects(raw_query)
+    semester_hits = find_semesters(raw_query)
+    return render_template('search_results.html', query=raw_query, results=unique_results,
+                           subject_hits=subject_hits, semester_hits=semester_hits)
 
 @app.route('/general_knowledge')
 def general_knowledge():

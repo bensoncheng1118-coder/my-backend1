@@ -11,486 +11,963 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
-      --primary-color: #4a90e2;
-      --secondary-color: #34495e;
-      --accent-purple: #9b59b6;
-      --accent-green: #2ecc71;
-      --accent-red: #e74c3c;
-      --bg-color: #f4f7f6;
-      --card-bg: #ffffff;
-      --text-color: #333;
-      --text-muted: #7f8c8d;
-      --radius-pill: 50px;
-      --radius-md: 12px;
-      --shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-      --transition: all 0.3s ease;
+      --bg: #f3f6fb;
+      --card: #ffffff;
+      --card-soft: #f7f9fc;
+      --line: #e3e8f0;
+      --text: #1f2a37;
+      --muted: #6b7a8c;
+      --primary: #3b7ddd;
+      --primary-soft: rgba(59, 125, 221, .12);
+      --stim: #3b7ddd;
+      --cm: #8e5bd0;
+      --sp: #e08a1e;
+      --ap: #e04f4f;
+      --mix: #1fa67a;
+      --grid: #edf1f6;
+      --axis: #b8c2cf;
+      --shadow: 0 6px 24px rgba(31, 42, 55, .07);
+      --radius: 16px;
     }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0f1520;
+        --card: #18212e;
+        --card-soft: #1e2938;
+        --line: #2a3647;
+        --text: #e6ecf3;
+        --muted: #93a1b3;
+        --primary: #6aa3f0;
+        --primary-soft: rgba(106, 163, 240, .16);
+        --stim: #6aa3f0;
+        --cm: #b48cf0;
+        --sp: #f2a640;
+        --ap: #f27171;
+        --mix: #3ccf9b;
+        --grid: #222d3c;
+        --axis: #4a586b;
+        --shadow: 0 6px 24px rgba(0, 0, 0, .35);
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #0f1520;
+      --card: #18212e;
+      --card-soft: #1e2938;
+      --line: #2a3647;
+      --text: #e6ecf3;
+      --muted: #93a1b3;
+      --primary: #6aa3f0;
+      --primary-soft: rgba(106, 163, 240, .16);
+      --stim: #6aa3f0;
+      --cm: #b48cf0;
+      --sp: #f2a640;
+      --ap: #f27171;
+      --mix: #3ccf9b;
+      --grid: #222d3c;
+      --axis: #4a586b;
+      --shadow: 0 6px 24px rgba(0, 0, 0, .35);
+    }
+
+    * { box-sizing: border-box; }
 
     body {
       font-family: 'Noto Sans TC', sans-serif;
       margin: 0;
-      padding: 0;
-      background-color: var(--bg-color);
-      color: var(--text-color);
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      line-height: 1.6;
     }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 20px;
+      background: color-mix(in srgb, var(--card) 88%, transparent);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .topbar a, .icon-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: .92rem;
+      background: var(--card-soft);
+      border: 1px solid var(--line);
+      padding: 7px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: color .2s, border-color .2s;
+    }
+
+    .topbar a:hover, .icon-btn:hover { color: var(--primary); border-color: var(--primary); }
+
+    .topbar .crumbs { display: flex; gap: 8px; flex-wrap: wrap; }
+    .topbar .crumbs a.active { color: var(--primary); border-color: var(--primary); background: var(--primary-soft); }
 
     .container {
-      width: 95%;
-      max-width: 1000px;
-      margin: 60px auto;
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 16px 60px;
     }
 
-    .header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    h1 {
-      font-weight: 700;
-      color: var(--secondary-color);
-      margin-bottom: 10px;
-      font-size: 1.8rem;
-    }
+    .hero { text-align: center; margin-bottom: 24px; }
+    .hero h1 { margin: 0 0 6px; font-size: 1.9rem; }
+    .hero p { margin: 0; color: var(--muted); }
 
     .card {
-      background: var(--card-bg);
-      border-radius: var(--radius-md);
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 30px;
+      padding: 22px;
       margin-bottom: 20px;
     }
 
-    /* Controls Area */
-    .controls-section {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 15px;
-      margin-bottom: 30px;
-      background: #fff;
-      padding: 20px;
-      border-radius: var(--radius-pill);
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    }
-
-    .controls-section label {
-      font-weight: 600;
-      color: var(--secondary-color);
-    }
-
-    input[type="number"] {
-      padding: 10px 15px;
+    .card h2 {
+      margin: 0 0 14px;
       font-size: 1.1rem;
-      border: 1px solid #ddd;
-      border-radius: var(--radius-pill);
-      width: 150px;
-      transition: var(--transition);
-      text-align: center;
-      background: #f9f9f9;
-    }
-
-    input[type="number"]:focus {
-      border-color: var(--primary-color);
-      background: #fff;
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-    }
-
-    /* Waveform Grid */
-    .wave-main {
-      margin-bottom: 30px;
-    }
-
-    .wave-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-    }
-
-    .wave-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background: #fafafa;
-      padding: 15px;
-      border-radius: var(--radius-md);
-      border: 1px solid #eee;
-      transition: var(--transition);
-    }
-
-    .wave-item:hover {
-      border-color: #ddd;
-      transform: translateY(-2px);
-    }
-
-    .wave-label {
-      font-weight: 700;
-      color: var(--secondary-color);
-      margin-bottom: 10px;
-      font-size: 1rem;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .canvas-wrapper {
-      width: 100%;
-      background: #fff;
-      border-radius: 8px;
-      border: 1px solid #eee;
-      overflow: hidden;
-      margin-bottom: 15px;
-    }
-
-    canvas {
-      width: 100%;
-      display: block;
-    }
-
-    /* Buttons */
-    .btn-pill {
-      padding: 8px 18px;
-      border: none;
-      border-radius: var(--radius-pill);
-      background-color: var(--primary-color);
-      color: white;
-      font-weight: 600;
-      cursor: pointer;
-      transition: var(--transition);
-      font-size: 0.9rem;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .btn-pill:hover {
-      background-color: #357abd;
-      transform: scale(1.05);
-    }
-
-    /* Modal Styling */
-    #modalOverlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(4px);
-      z-index: 999;
-    }
-
-    #infoModal {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      width: 90%;
-      max-width: 500px;
-      transform: translate(-50%, -50%);
-      background: white;
-      border-radius: var(--radius-md);
-      padding: 30px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
-      z-index: 1000;
-      animation: modalFade 0.3s ease;
-    }
-
-    @keyframes modalFade {
-      from {
-        opacity: 0;
-        transform: translate(-50%, -45%);
-      }
-
-      to {
-        opacity: 1;
-        transform: translate(-50%, -50%);
-      }
-    }
-
-    #modalTitle {
-      margin-top: 0;
-      color: var(--secondary-color);
-      border-bottom: 2px solid #f0f0f0;
-      padding-bottom: 10px;
       display: flex;
       align-items: center;
       gap: 10px;
     }
 
-    #modalBody {
-      font-size: 1rem;
-      line-height: 1.7;
-      color: #444;
-      margin: 20px 0;
+    .card h2 i { color: var(--primary); }
+
+    /* Controls */
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px 24px;
     }
 
-    .btn-close {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: var(--radius-pill);
-      background: var(--accent-red);
-      color: white;
-      font-weight: 700;
-      cursor: pointer;
-      transition: var(--transition);
-    }
-
-    .btn-close:hover {
-      filter: brightness(0.9);
-    }
-
-    #backBtn {
-      position: absolute;
-      top: 30px;
-      left: 30px;
-      text-decoration: none;
-      color: var(--text-muted);
-      font-weight: 600;
-      background: #fff;
-      padding: 8px 18px;
-      border-radius: var(--radius-pill);
-      box-shadow: var(--shadow);
+    .ctrl label {
       display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+      font-size: .92rem;
+      margin-bottom: 6px;
+    }
+
+    .ctrl label output { color: var(--primary); font-variant-numeric: tabular-nums; }
+
+    input[type="range"] { width: 100%; accent-color: var(--primary); }
+
+    .num-row { display: flex; gap: 8px; align-items: center; }
+
+    .num-row input[type="number"] {
+      width: 110px;
+      padding: 7px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: var(--card-soft);
+      color: var(--text);
+      font: inherit;
+      text-align: center;
+    }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+    .chip {
+      border: 1px solid var(--line);
+      background: var(--card-soft);
+      color: var(--text);
+      padding: 4px 11px;
+      border-radius: 999px;
+      font-size: .82rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .15s;
+    }
+
+    .chip:hover { border-color: var(--primary); color: var(--primary); }
+    .chip.on { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+    .btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+
+    .btn {
+      display: inline-flex;
       align-items: center;
       gap: 8px;
+      border: none;
+      padding: 9px 18px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-family: inherit;
+      font-size: .92rem;
+      cursor: pointer;
+      background: var(--primary);
+      color: #fff;
+      transition: transform .15s, filter .15s;
     }
 
-    #backBtn:hover {
-      color: var(--primary-color);
-      transform: translateX(-5px);
+    .btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .btn.ghost { background: var(--card-soft); color: var(--text); border: 1px solid var(--line); }
+
+    /* Insight */
+    .insight {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
     }
 
-    /* Hidden reason text */
-    .reason-data {
-      display: none;
+    .stat {
+      background: var(--card-soft);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
     }
 
-    @media (max-width: 768px) {
-      .container {
-        margin: 80px auto 20px;
-      }
+    .stat .k { font-size: .8rem; color: var(--muted); }
+    .stat .v { font-size: 1.05rem; font-weight: 700; margin-top: 2px; }
+    .stat .d { font-size: .82rem; color: var(--muted); margin-top: 4px; }
 
-      .controls-section {
-        flex-direction: column;
-        border-radius: 12px;
-      }
+    /* Plots */
+    .plot { margin-bottom: 14px; }
+
+    .plot-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .plot-title { font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+    .canvas-wrap {
+      position: relative;
+      width: 100%;
+      background: var(--card-soft);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    canvas { display: block; width: 100%; touch-action: none; }
+
+    .grid3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 18px;
+    }
+
+    .toggles { display: flex; flex-wrap: wrap; gap: 12px; font-size: .85rem; color: var(--muted); }
+    .toggles label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+
+    details.explain {
+      margin-top: 10px;
+      background: var(--card-soft);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 14px;
+    }
+
+    details.explain summary { cursor: pointer; font-weight: 600; color: var(--primary); }
+    details.explain p { margin: 10px 0 2px; font-size: .93rem; }
+
+    /* Quiz */
+    .quiz-q { margin-bottom: 16px; }
+    .quiz-q .q { font-weight: 600; margin-bottom: 8px; }
+    .quiz-opts { display: flex; flex-wrap: wrap; gap: 8px; }
+    .quiz-opts button { font-size: .88rem; }
+    .quiz-opts button.right { background: var(--mix); color: #fff; border-color: var(--mix); }
+    .quiz-opts button.wrong { background: var(--ap); color: #fff; border-color: var(--ap); }
+    .quiz-fb { font-size: .88rem; margin-top: 6px; color: var(--muted); min-height: 1.2em; }
+
+    .legend-note { font-size: .82rem; color: var(--muted); margin-top: 6px; }
+
+    @media (max-width: 640px) {
+      .hero h1 { font-size: 1.5rem; }
+      .card { padding: 16px; }
+      .topbar .crumbs a span { display: none; }
     }
   </style>
 </head>
 
 <body>
 
-  <a href="/" id="backBtn"><i class="fa-solid fa-chevron-left"></i> 返回首頁</a>
+  <div class="topbar">
+    <a href="/"><i class="fa-solid fa-chevron-left"></i> 返回首頁</a>
+    <div class="crumbs">
+      <a href="/wave3" class="active" title="耳蝸電位"><i class="fa-solid fa-wave-square"></i><span>耳蝸電位</span></a>
+      <a href="/two_tone" title="雙音抑制"><i class="fa-solid fa-chart-column"></i><span>雙音抑制</span></a>
+      <a href="/cochlear" title="rate-level function"><i class="fa-solid fa-chart-line"></i><span>rate-level</span></a>
+    </div>
+    <button class="icon-btn" id="themeBtn" title="切換深淺色"><i class="fa-solid fa-circle-half-stroke"></i></button>
+  </div>
 
   <div class="container">
-    <div class="header">
+    <div class="hero">
       <h1>耳蝸電位波形模擬</h1>
-      <p style="color: var(--text-muted);">探索聲音頻率對 CM、SP 與 AP 之影響</p>
+      <p>探索聲音頻率對 CM、SP 與 AP 之影響</p>
     </div>
 
+    <!-- Controls -->
     <div class="card">
-      <!-- Input Section -->
-      <div class="controls-section">
-        <label for="freqInput"><i class="fa-solid fa-ear-listen"></i> 輸入頻率 (Hz):</label>
-        <input id="freqInput" type="number" min="20" max="20000" value="1000" step="1" />
+      <h2><i class="fa-solid fa-sliders"></i> 刺激參數</h2>
+      <div class="controls">
+        <div class="ctrl">
+          <label for="freqRange">頻率 <output id="freqOut">1000 Hz</output></label>
+          <input type="range" id="freqRange" min="0" max="1000" step="1" />
+          <div class="num-row" style="margin-top:8px">
+            <input id="freqInput" type="number" min="20" max="20000" value="1000" step="1" aria-label="輸入頻率 (Hz)" />
+            <span style="color:var(--muted);font-size:.85rem">Hz（20 – 20000）</span>
+          </div>
+          <div class="chips" id="freqChips"></div>
+        </div>
+        <div class="ctrl">
+          <label for="levelRange">刺激強度 <output id="levelOut">70 dB SPL</output></label>
+          <input type="range" id="levelRange" min="20" max="100" step="5" value="70" />
+          <div class="legend-note">強度越大，CM、SP、AP 的振幅越大。</div>
+        </div>
+        <div class="ctrl">
+          <label>顯示時間範圍</label>
+          <div class="chips" id="winChips">
+            <button class="chip" data-win="5">5 ms</button>
+            <button class="chip on" data-win="10">10 ms</button>
+            <button class="chip" data-win="20">20 ms</button>
+          </div>
+          <div class="legend-note">把滑鼠移到任一波形上，可同步對照同一時間點的各電位。</div>
+        </div>
       </div>
-
-      <!-- Main Waveform -->
-      <div class="wave-main">
-        <div class="wave-label"><i class="fa-solid fa-wave-square" style="color: var(--primary-color);"></i> 輸入頻率聲波波形
-        </div>
-        <div class="canvas-wrapper">
-          <canvas id="topWaveform" width="900" height="150"></canvas>
-        </div>
+      <div class="btn-row">
+        <button class="btn" id="animBtn"><i class="fa-solid fa-play"></i> 播放波形動畫</button>
+        <button class="btn ghost" id="soundBtn"><i class="fa-solid fa-volume-high"></i> 聽聽這個頻率</button>
       </div>
+    </div>
 
-      <!-- Sub Waveforms Grid -->
-      <div class="wave-grid">
-        <!-- CM + SP -->
-        <div class="wave-item">
-          <div class="wave-label"><span style="color: var(--accent-purple);">●</span> CM + SP</div>
-          <div class="canvas-wrapper">
-            <canvas id="cmspWaveform" width="300" height="150"></canvas>
-          </div>
-          <button class="btn-pill" onclick="showInfo('CM + SP', 'reasonText1')">
-            <i class="fa-solid fa-circle-question"></i> 原理說明
-          </button>
+    <!-- Live insight -->
+    <div class="card">
+      <h2><i class="fa-solid fa-lightbulb"></i> 目前頻率的重點</h2>
+      <div class="insight">
+        <div class="stat">
+          <div class="k">SP 主導細胞</div>
+          <div class="v" id="spCell">—</div>
+          <div class="d">外毛細胞對低頻與高頻皆敏感；內毛細胞只對低頻敏感。</div>
         </div>
-
-        <!-- AP -->
-        <div class="wave-item">
-          <div class="wave-label"><span style="color: var(--accent-red);">●</span> AP</div>
-          <div class="canvas-wrapper">
-            <canvas id="apWaveform" width="300" height="150"></canvas>
-          </div>
-          <button class="btn-pill" onclick="showInfo('動作電位 AP', 'reasonText2')">
-            <i class="fa-solid fa-circle-question"></i> 原理說明
-          </button>
+        <div class="stat">
+          <div class="k">SP 偏移方向</div>
+          <div class="v" id="spDir">—</div>
+          <div class="d" id="spDirDesc">—</div>
         </div>
-
-        <!-- Combined -->
-        <div class="wave-item">
-          <div class="wave-label"><span style="color: var(--accent-green);">●</span> 綜合波形</div>
-          <div class="canvas-wrapper">
-            <canvas id="combinedWaveform" width="300" height="150"></canvas>
-          </div>
-          <button class="btn-pill" onclick="showInfo('綜合分析 (CM+SP+AP)', 'reasonText3')">
-            <i class="fa-solid fa-circle-question"></i> 原理說明
-          </button>
+        <div class="stat">
+          <div class="k">AP 相位鎖定</div>
+          <div class="v" id="plState">—</div>
+          <div class="d">相位鎖定只有在 5000 Hz 以下才完整。</div>
+        </div>
+        <div class="stat">
+          <div class="k">一個週期</div>
+          <div class="v" id="periodOut">—</div>
+          <div class="d" id="cyclesOut">—</div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Hidden Data -->
-  <div class="reason-data">
-    <div id="reasonText1">
-      外毛細胞對低頻與高頻皆敏感；內毛細胞只對低頻敏感，所以在低頻時是內毛細胞主導SP，而在高頻時是外毛細胞主導SP。低頻時可以完整去極化甚至去極化時間過長，所以圖形會出現正向偏移；高頻時還沒去極化完就馬上過極化，甚至過極化時間過長，所以圖形會出現負向偏移。
+    <!-- Waveforms -->
+    <div class="card">
+      <h2><i class="fa-solid fa-wave-square"></i> 波形</h2>
+
+      <div class="plot">
+        <div class="plot-head">
+          <div class="plot-title"><span class="dot" style="background:var(--stim)"></span> 輸入頻率聲波波形</div>
+        </div>
+        <div class="canvas-wrap"><canvas id="topWaveform" data-h="150"></canvas></div>
+      </div>
+
+      <div class="grid3">
+        <div class="plot">
+          <div class="plot-head">
+            <div class="plot-title"><span class="dot" style="background:var(--cm)"></span> CM + SP</div>
+            <div class="toggles"><label><input type="checkbox" id="showSPline" checked> SP 基線</label></div>
+          </div>
+          <div class="canvas-wrap"><canvas id="cmspWaveform" data-h="180"></canvas></div>
+          <details class="explain">
+            <summary><i class="fa-solid fa-circle-question"></i> 原理說明：CM + SP</summary>
+            <p id="reasonText1">外毛細胞對低頻與高頻皆敏感；內毛細胞只對低頻敏感，所以在低頻時是內毛細胞主導SP，而在高頻時是外毛細胞主導SP。低頻時可以完整去極化甚至去極化時間過長，所以圖形會出現正向偏移；高頻時還沒去極化完就馬上過極化，甚至過極化時間過長，所以圖形會出現負向偏移。</p>
+          </details>
+        </div>
+
+        <div class="plot">
+          <div class="plot-head">
+            <div class="plot-title"><span class="dot" style="background:var(--ap)"></span> AP</div>
+            <div class="toggles"><label><input type="checkbox" id="showStimOnAP" checked> 疊上聲波</label></div>
+          </div>
+          <div class="canvas-wrap"><canvas id="apWaveform" data-h="180"></canvas></div>
+          <details class="explain">
+            <summary><i class="fa-solid fa-circle-question"></i> 原理說明：動作電位 AP</summary>
+            <p id="reasonText2">在基底膜向上偏移時毛細胞會去極化，並釋放神經傳遞物質使聽神經去極化(即放電)；在基底膜向下偏移時毛細胞會過極化，停止釋放神經傳遞物質使聽神經過極化，因此會出現在聲波波峰時會放電，在聲波波谷時會停止放電(即相位鎖定phase lock)。注意：相位鎖定只有在 5000Hz 以下才完整。</p>
+          </details>
+        </div>
+
+        <div class="plot">
+          <div class="plot-head">
+            <div class="plot-title"><span class="dot" style="background:var(--mix)"></span> 綜合波形</div>
+            <div class="toggles">
+              <label><input type="checkbox" id="compAP"> AP</label>
+              <label><input type="checkbox" id="compCM"> CM+SP</label>
+            </div>
+          </div>
+          <div class="canvas-wrap"><canvas id="combinedWaveform" data-h="180"></canvas></div>
+          <details class="explain">
+            <summary><i class="fa-solid fa-circle-question"></i> 原理說明：綜合分析 (CM+SP+AP)</summary>
+            <p id="reasonText3">在聲音刺激的最一開始會同時產生CM、SP與AP，但因為一開始的AP太大進而蓋過CM與SP，所以綜合圖形的一開始為AP的波峰(先負再正)，後面AP的大小會逐漸變小與穩定，CM與SP就會逐漸顯現出來。</p>
+          </details>
+        </div>
+      </div>
     </div>
-    <div id="reasonText2">
-      在基底膜向上偏移時毛細胞會去極化，並釋放神經傳遞物質使聽神經去極化(即放電)；在基底膜向下偏移時毛細胞會過極化，停止釋放神經傳遞物質使聽神經過極化，因此會出現在聲波波峰時會放電，在聲波波谷時會停止放電(即相位鎖定phase
-      lock)。注意：相位鎖定只有在 5000Hz 以下才完整。</div>
-    <div id="reasonText3">
-      在聲音刺激的最一開始會同時產生CM、SP與AP，但因為一開始的AP太大進而蓋過CM與SP，所以綜合圖形的一開始為AP的波峰(先負再正)，後面AP的大小會逐漸變小與穩定，CM與SP就會逐漸顯現出來。</div>
-  </div>
 
-  <!-- Modern Modal -->
-  <div id="modalOverlay"></div>
-  <div id="infoModal">
-    <h2 id="modalTitle">原理說明</h2>
-    <div id="modalBody"></div>
-    <button class="btn-close" onclick="closeModal()">確認</button>
+    <!-- Period histogram -->
+    <div class="card">
+      <h2><i class="fa-solid fa-chart-simple"></i> 相位鎖定：週期直方圖</h2>
+      <p style="margin:0 0 12px;color:var(--muted);font-size:.92rem">
+        把聽神經每次放電發生在聲波週期的哪個相位統計起來。相位鎖定完整時，放電會集中在聲波波峰附近；超過 5000 Hz 時放電時間點不再跟著波峰，直方圖就會變平。
+      </p>
+      <div class="canvas-wrap"><canvas id="phaseHist" data-h="200"></canvas></div>
+      <div class="legend-note" id="vsOut"></div>
+    </div>
+
+    <!-- Quiz -->
+    <div class="card">
+      <h2><i class="fa-solid fa-circle-check"></i> 小測驗</h2>
+      <div id="quiz"></div>
+    </div>
   </div>
 
   <script>
-    // Elements
-    const canvases = {
-      top: document.getElementById('topWaveform'),
-      cmsp: document.getElementById('cmspWaveform'),
-      ap: document.getElementById('apWaveform'),
-      comb: document.getElementById('combinedWaveform')
-    };
-    const ctxs = {
-      top: canvases.top.getContext('2d'),
-      cmsp: canvases.cmsp.getContext('2d'),
-      ap: canvases.ap.getContext('2d'),
-      comb: canvases.comb.getContext('2d')
-    };
-    const freqInput = document.getElementById('freqInput');
-    const duration = 0.01; // 10ms
+    (function () {
+      // ---------- Theme ----------
+      const root = document.documentElement;
+      try {
+        const saved = localStorage.getItem('cochleaTheme');
+        if (saved) root.setAttribute('data-theme', saved);
+      } catch (e) { }
+      document.getElementById('themeBtn').addEventListener('click', function () {
+        const dark = getComputedStyle(root).getPropertyValue('--bg').trim() === '#0f1520';
+        const next = dark ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        try { localStorage.setItem('cochleaTheme', next); } catch (e) { }
+        drawAll();
+      });
 
-    function clearAndDrawAxis(ctx, canvas) {
-      const w = canvas.width;
-      const h = canvas.height;
-      ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(0, 0, w, h);
+      function css(name) { return getComputedStyle(root).getPropertyValue(name).trim(); }
 
-      // Axis
-      ctx.strokeStyle = '#eee';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(0, h / 2);
-      ctx.lineTo(w, h / 2);
-      ctx.stroke();
-    }
+      // ---------- State ----------
+      const state = {
+        freq: 1000,
+        level: 70,
+        win: 10,          // ms
+        progress: 1,      // animation progress 0..1
+        hoverT: null      // ms
+      };
 
-    function drawSine(ctx, canvas, freq, amp = 1, color = '#4a90e2', offset = 0) {
-      const w = canvas.width;
-      const h = canvas.height;
+      const freqRange = document.getElementById('freqRange');
+      const freqInput = document.getElementById('freqInput');
+      const levelRange = document.getElementById('levelRange');
+      const LOGMIN = Math.log10(20), LOGMAX = Math.log10(20000);
 
-      // Offset logic for CMSP
-      if (ctx === ctxs.cmsp) {
-        if (freq <= 4000) offset = 0.2;
-        else if (freq >= 5000) offset = -0.2;
-        else offset = 0.2 - (freq - 4000) / 1000 * 0.4;
+      function freqToSlider(f) { return Math.round((Math.log10(f) - LOGMIN) / (LOGMAX - LOGMIN) * 1000); }
+      function sliderToFreq(v) { return Math.round(Math.pow(10, LOGMIN + v / 1000 * (LOGMAX - LOGMIN))); }
+
+      const presets = [125, 250, 500, 1000, 2000, 4000, 4500, 5000, 8000];
+      const chipBox = document.getElementById('freqChips');
+      presets.forEach(function (f) {
+        const b = document.createElement('button');
+        b.className = 'chip';
+        b.textContent = f >= 1000 ? (f / 1000) + 'k' : String(f);
+        b.dataset.f = f;
+        b.addEventListener('click', function () { setFreq(f); });
+        chipBox.appendChild(b);
+      });
+
+      function setFreq(f) {
+        f = Math.max(20, Math.min(20000, Math.round(f)));
+        state.freq = f;
+        freqInput.value = f;
+        freqRange.value = freqToSlider(f);
+        document.getElementById('freqOut').textContent = f + ' Hz';
+        chipBox.querySelectorAll('.chip').forEach(function (c) { c.classList.toggle('on', +c.dataset.f === f); });
+        updateInsight();
+        drawAll();
       }
 
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      for (let i = 0; i < w; i++) {
-        const t = i / w * duration;
-        const val = amp * Math.sin(2 * Math.PI * freq * t) + offset;
-        const y = h / 2 - val * (h / 2) * 0.8;
-        i === 0 ? ctx.moveTo(i, y) : ctx.lineTo(i, y);
-      }
-      ctx.stroke();
-    }
-
-    function drawAP(ctx, canvas, freq) {
-      const w = canvas.width;
-      const h = canvas.height;
-      ctx.strokeStyle = '#e74c3c';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      const period = w / (freq * duration);
-      for (let i = 0; i < w; i++) {
-        const val = (i % period) < 4 ? 1 : 0;
-        const y = h / 2 - val * (h / 2) * 0.8;
-        if (val === 1) { ctx.lineTo(i, y); ctx.lineTo(i + 1, y); }
-        else { ctx.lineTo(i, h / 2); }
-      }
-      ctx.stroke();
-    }
-
-    function drawCombined(ctx, canvas, freq) {
-      const w = canvas.width;
-      const h = canvas.height;
-      ctx.strokeStyle = '#2ecc71';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      const period = w / (freq * duration);
-      for (let i = 0; i < w; i++) {
-        const t = i / w * duration;
-        let val;
-        if (i < 4) { // Initial AP
-          val = -0.8 + 0.1; // ap + sp
-        } else if (i < period) {
-          val = 0.1; // only sp roughly
-        } else {
-          val = 0.25 * Math.sin(2 * Math.PI * freq * t) + 0.1;
+      freqRange.addEventListener('input', function () { setFreq(sliderToFreq(+freqRange.value)); });
+      freqInput.addEventListener('input', function () {
+        const f = parseFloat(freqInput.value);
+        if (!isNaN(f) && f >= 20 && f <= 20000) {
+          state.freq = Math.round(f);
+          freqRange.value = freqToSlider(state.freq);
+          document.getElementById('freqOut').textContent = state.freq + ' Hz';
+          chipBox.querySelectorAll('.chip').forEach(function (c) { c.classList.toggle('on', +c.dataset.f === state.freq); });
+          updateInsight();
+          drawAll();
         }
-        const y = h / 2 - val * (h / 2) * 0.8;
-        i === 0 ? ctx.moveTo(i, y) : ctx.lineTo(i, y);
+      });
+      freqInput.addEventListener('change', function () { setFreq(parseFloat(freqInput.value) || 1000); });
+
+      levelRange.addEventListener('input', function () {
+        state.level = +levelRange.value;
+        document.getElementById('levelOut').textContent = state.level + ' dB SPL';
+        drawAll();
+      });
+
+      document.querySelectorAll('#winChips .chip').forEach(function (c) {
+        c.addEventListener('click', function () {
+          document.querySelectorAll('#winChips .chip').forEach(function (x) { x.classList.remove('on'); });
+          c.classList.add('on');
+          state.win = +c.dataset.win;
+          drawAll();
+        });
+      });
+
+      ['showSPline', 'showStimOnAP', 'compAP', 'compCM'].forEach(function (id) {
+        document.getElementById(id).addEventListener('change', drawAll);
+      });
+
+      // ---------- Model (keeps the original page's rules) ----------
+      // SP offset: <=4000 Hz positive, >=5000 Hz negative, linear in between
+      function spOffset(f) {
+        if (f <= 4000) return 0.2;
+        if (f >= 5000) return -0.2;
+        return 0.2 - (f - 4000) / 1000 * 0.4;
       }
-      ctx.stroke();
-    }
 
-    function update() {
-      const freq = parseFloat(freqInput.value);
-      if (isNaN(freq)) return;
+      function levelGain() { return 0.25 + 0.75 * (state.level - 20) / 80; }
 
-      Object.keys(canvases).forEach(k => clearAndDrawAxis(ctxs[k], canvases[k]));
+      // deterministic pseudo random
+      function rng(seed) {
+        let s = seed >>> 0;
+        return function () {
+          s = (s * 1664525 + 1013904223) >>> 0;
+          return s / 4294967296;
+        };
+      }
 
-      drawSine(ctxs.top, canvases.top, freq);
-      drawSine(ctxs.cmsp, canvases.cmsp, freq, 0.7, '#9b59b6');
-      drawAP(ctxs.ap, canvases.ap, freq);
-      drawCombined(ctxs.comb, canvases.comb, freq);
-    }
+      function gaussRand(r) {
+        let u = 0, v = 0;
+        while (u === 0) u = r();
+        while (v === 0) v = r();
+        return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+      }
 
-    // Modal Logic
-    window.showInfo = (title, textId) => {
-      document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-circle-info"></i> ${title}`;
-      document.getElementById('modalBody').textContent = document.getElementById(textId).textContent;
-      document.getElementById('modalOverlay').style.display = 'block';
-      document.getElementById('infoModal').style.display = 'block';
-    }
+      // spike jitter as a fraction of one period
+      function jitterFrac(f) {
+        if (f < 5000) return 0.04 + 0.06 * (f / 5000);
+        return 0.6; // phase locking lost
+      }
 
-    window.closeModal = () => {
-      document.getElementById('modalOverlay').style.display = 'none';
-      document.getElementById('infoModal').style.display = 'none';
-    }
+      // AP spike times (ms) within window: at each waveform peak (sin peak at 1/4 period)
+      function spikeTimes(f, winMs) {
+        const T = 1000 / f;
+        const r = rng(Math.round(f) * 7 + 3);
+        const times = [];
+        const j = jitterFrac(f);
+        for (let k = 0; ; k++) {
+          const base = (k + 0.25) * T;
+          if (base > winMs + T) break;
+          let t = base + gaussRand(r) * j * T;
+          if (f >= 5000) t = base + (r() - 0.5) * T * 1.0;
+          if (t >= 0 && t <= winMs) times.push(t);
+        }
+        return times;
+      }
 
-    freqInput.oninput = update;
-    update();
+      function stim(t) { return Math.sin(2 * Math.PI * state.freq * t / 1000); }
+
+      // ---------- Canvas helpers ----------
+      const canvasIds = ['topWaveform', 'cmspWaveform', 'apWaveform', 'combinedWaveform', 'phaseHist'];
+      const canv = {};
+      canvasIds.forEach(function (id) { canv[id] = document.getElementById(id); });
+
+      function prep(c) {
+        const dpr = window.devicePixelRatio || 1;
+        const w = c.clientWidth || c.parentElement.clientWidth;
+        const h = +c.dataset.h;
+        if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) {
+          c.width = Math.round(w * dpr);
+          c.height = Math.round(h * dpr);
+        }
+        c.style.height = h + 'px';
+        const ctx = c.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, w, h);
+        return { ctx: ctx, w: w, h: h };
+      }
+
+      const PAD = { l: 34, r: 10, t: 12, b: 24 };
+
+      function frame(g, yLabels) {
+        const ctx = g.ctx, w = g.w, h = g.h;
+        const x0 = PAD.l, x1 = w - PAD.r, y0 = PAD.t, y1 = h - PAD.b;
+        ctx.strokeStyle = css('--grid');
+        ctx.lineWidth = 1;
+        // vertical grid every ms (or 2ms for 20ms)
+        const step = state.win <= 5 ? 1 : state.win <= 10 ? 1 : 2;
+        ctx.font = '11px "Noto Sans TC", sans-serif';
+        ctx.fillStyle = css('--muted');
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        for (let t = 0; t <= state.win + 1e-9; t += step) {
+          const x = x0 + t / state.win * (x1 - x0);
+          ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke();
+          ctx.textAlign = t === state.win ? 'right' : 'center';
+          ctx.fillText(t + (t === state.win ? ' ms' : ''), t === state.win ? x + 2 : x, y1 + 5);
+        }
+        // zero line
+        ctx.strokeStyle = css('--axis');
+        const ym = (y0 + y1) / 2;
+        ctx.beginPath(); ctx.moveTo(x0, ym); ctx.lineTo(x1, ym); ctx.stroke();
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        if (yLabels) {
+          ctx.fillText('+', x0 - 8, y0 + 8);
+          ctx.fillText('0', x0 - 8, ym);
+          ctx.fillText('−', x0 - 8, y1 - 8);
+        }
+        return { x0: x0, x1: x1, y0: y0, y1: y1, ym: ym, amp: (y1 - y0) / 2 * 0.92 };
+      }
+
+      function tx(F, t) { return F.x0 + t / state.win * (F.x1 - F.x0); }
+      function vy(F, v) { return F.ym - v * F.amp; }
+
+      function plotFn(ctx, F, fn, color, width, alpha, dash) {
+        const n = Math.max(600, Math.round((F.x1 - F.x0) * 2));
+        const tEnd = state.win * state.progress;
+        ctx.save();
+        ctx.globalAlpha = alpha == null ? 1 : alpha;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        if (dash) ctx.setLineDash(dash);
+        ctx.beginPath();
+        for (let i = 0; i <= n; i++) {
+          const t = i / n * state.win;
+          if (t > tEnd) break;
+          const x = tx(F, t), y = vy(F, fn(t));
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function hoverLine(ctx, F, label) {
+        if (state.hoverT == null) return;
+        const x = tx(F, state.hoverT);
+        ctx.save();
+        ctx.strokeStyle = css('--text');
+        ctx.globalAlpha = .35;
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath(); ctx.moveTo(x, F.y0); ctx.lineTo(x, F.y1); ctx.stroke();
+        ctx.restore();
+        if (label) {
+          ctx.fillStyle = css('--text');
+          ctx.font = '600 11px "Noto Sans TC", sans-serif';
+          ctx.textAlign = x > (F.x0 + F.x1) / 2 ? 'right' : 'left';
+          ctx.textBaseline = 'top';
+          ctx.fillText('t = ' + state.hoverT.toFixed(2) + ' ms', x + (ctx.textAlign === 'left' ? 6 : -6), F.y0 + 2);
+        }
+      }
+
+      // ---------- Signal pieces ----------
+      function cmspFn(t) {
+        const g = levelGain();
+        return g * (0.7 * stim(t) + spOffset(state.freq)) * 0.85;
+      }
+
+      let spikes = [];
+      const SPIKE_W = 0.06; // ms
+      function apFn(t) {
+        const g = levelGain();
+        let v = 0;
+        for (let i = 0; i < spikes.length; i++) {
+          const d = t - spikes[i];
+          if (d > -0.3 && d < 0.3) v += Math.exp(-(d * d) / (2 * SPIKE_W * SPIKE_W));
+        }
+        const amp = state.freq >= 5000 ? 0.7 : 0.9;
+        return Math.min(1, v) * amp * g;
+      }
+
+      // compound action potential: N1 (negative) then P1 (positive) at onset, then smaller, decaying
+      function combAPpart(t) {
+        const g = levelGain();
+        const n1 = -1.0 * Math.exp(-Math.pow((t - 1.0) / 0.22, 2));
+        const p1 = 0.55 * Math.exp(-Math.pow((t - 1.55) / 0.28, 2));
+        const n2 = -0.35 * Math.exp(-Math.pow((t - 2.1) / 0.25, 2));
+        const tail = -0.12 * Math.exp(-t / 3) * (1 - Math.cos(2 * Math.PI * state.freq * t / 1000)) * 0.5;
+        return g * (n1 + p1 + n2 + tail);
+      }
+
+      function combCMpart(t) {
+        const g = levelGain();
+        const ramp = 1 - Math.exp(-Math.max(0, t - 0.3) / 1.2);
+        return g * ramp * (0.25 * stim(t) + spOffset(state.freq) * 0.5);
+      }
+
+      function combFn(t) { return Math.max(-1.05, Math.min(1.05, combAPpart(t) + combCMpart(t))); }
+
+      // ---------- Draw ----------
+      function drawAll() {
+        spikes = spikeTimes(state.freq, state.win);
+
+        // top stimulus
+        let g = prep(canv.topWaveform);
+        let F = frame(g, true);
+        plotFn(g.ctx, F, function (t) { return stim(t) * (0.35 + 0.65 * (state.level - 20) / 80); }, css('--stim'), 2);
+        hoverLine(g.ctx, F, true);
+
+        // CM + SP
+        g = prep(canv.cmspWaveform);
+        F = frame(g, true);
+        if (document.getElementById('showSPline').checked) {
+          const off = spOffset(state.freq) * levelGain() * 0.85;
+          g.ctx.save();
+          g.ctx.strokeStyle = css('--sp');
+          g.ctx.setLineDash([6, 4]);
+          g.ctx.lineWidth = 2;
+          g.ctx.beginPath(); g.ctx.moveTo(F.x0, vy(F, off)); g.ctx.lineTo(F.x1, vy(F, off)); g.ctx.stroke();
+          g.ctx.fillStyle = css('--sp');
+          g.ctx.font = '600 11px "Noto Sans TC", sans-serif';
+          g.ctx.textAlign = 'right';
+          g.ctx.textBaseline = off >= 0 ? 'bottom' : 'top';
+          g.ctx.fillText('SP ' + (off > 0.001 ? '正向偏移' : off < -0.001 ? '負向偏移' : '≈ 0'), F.x1 - 4, vy(F, off) + (off >= 0 ? -3 : 3));
+          g.ctx.restore();
+        }
+        plotFn(g.ctx, F, cmspFn, css('--cm'), 2);
+        hoverLine(g.ctx, F, false);
+
+        // AP
+        g = prep(canv.apWaveform);
+        F = frame(g, true);
+        if (document.getElementById('showStimOnAP').checked) {
+          plotFn(g.ctx, F, function (t) { return stim(t) * 0.6; }, css('--stim'), 1.2, .35);
+        }
+        plotFn(g.ctx, F, apFn, css('--ap'), 2);
+        hoverLine(g.ctx, F, false);
+
+        // Combined
+        g = prep(canv.combinedWaveform);
+        F = frame(g, true);
+        if (document.getElementById('compAP').checked) plotFn(g.ctx, F, combAPpart, css('--ap'), 1.4, .55, [5, 3]);
+        if (document.getElementById('compCM').checked) plotFn(g.ctx, F, combCMpart, css('--cm'), 1.4, .55, [5, 3]);
+        plotFn(g.ctx, F, combFn, css('--mix'), 2.2);
+        // N1 / P1 labels
+        if (state.progress > 0.18 && state.win <= 10) {
+          g.ctx.fillStyle = css('--text');
+          g.ctx.font = '600 11px "Noto Sans TC", sans-serif';
+          g.ctx.textAlign = 'center';
+          g.ctx.textBaseline = 'top';
+          g.ctx.fillText('N1', tx(F, 1.0), vy(F, combFn(1.0)) + 4);
+          g.ctx.textBaseline = 'bottom';
+          g.ctx.fillText('P1', tx(F, 1.55), vy(F, combFn(1.55)) - 4);
+        }
+        hoverLine(g.ctx, F, false);
+
+        drawHist();
+      }
+
+      function drawHist() {
+        const g = prep(canv.phaseHist);
+        const ctx = g.ctx, w = g.w, h = g.h;
+        const x0 = 46, x1 = w - 14, y0 = 14, y1 = h - 30;
+        const bins = 24;
+        const counts = new Array(bins).fill(0);
+        const f = state.freq;
+        const r = rng(Math.round(f) * 13 + 1);
+        const j = jitterFrac(f);
+        const N = 3000;
+        let cx = 0, cy = 0;
+        for (let i = 0; i < N; i++) {
+          let ph;
+          if (f < 5000) ph = 0.25 + gaussRand(r) * j;
+          else ph = r();
+          ph = ((ph % 1) + 1) % 1;
+          counts[Math.floor(ph * bins) % bins]++;
+          cx += Math.cos(2 * Math.PI * ph); cy += Math.sin(2 * Math.PI * ph);
+        }
+        const vs = Math.sqrt(cx * cx + cy * cy) / N;
+        const maxC = Math.max.apply(null, counts);
+
+        // axes
+        ctx.strokeStyle = css('--axis');
+        ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0, y1); ctx.lineTo(x1, y1); ctx.stroke();
+        // stimulus cycle reference
+        ctx.save();
+        ctx.strokeStyle = css('--stim');
+        ctx.globalAlpha = .45;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        for (let i = 0; i <= 200; i++) {
+          const p = i / 200;
+          const x = x0 + p * (x1 - x0);
+          const y = (y0 + y1) / 2 - Math.sin(2 * Math.PI * p) * (y1 - y0) * 0.4;
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.restore();
+
+        const bw = (x1 - x0) / bins;
+        ctx.fillStyle = css('--ap');
+        for (let b = 0; b < bins; b++) {
+          const hh = counts[b] / maxC * (y1 - y0) * 0.95;
+          ctx.globalAlpha = .85;
+          ctx.fillRect(x0 + b * bw + 1, y1 - hh, bw - 2, hh);
+        }
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = css('--muted');
+        ctx.font = '11px "Noto Sans TC", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ['0', '¼ 週期（波峰）', '½', '¾（波谷）', '1 週期'].forEach(function (s, i) {
+          ctx.fillText(s, x0 + i / 4 * (x1 - x0), y1 + 6);
+        });
+        ctx.save();
+        ctx.translate(14, (y0 + y1) / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.textBaseline = 'middle';
+        ctx.fillText('放電次數', 0, 0);
+        ctx.restore();
+
+        document.getElementById('vsOut').textContent =
+          '同步指數 (vector strength) ≈ ' + vs.toFixed(2) + '（1 = 每次都在同一相位放電，0 = 完全隨機）。' +
+          (f < 5000 ? '目前頻率低於 5000 Hz，放電集中在波峰。' : '目前頻率 ≥ 5000 Hz，相位鎖定不完整，放電散布在整個週期。');
+      }
+
+      function updateInsight() {
+        const f = state.freq;
+        const off = spOffset(f);
+        document.getElementById('spCell').textContent = f <= 4000 ? '內毛細胞（低頻）' : f >= 5000 ? '外毛細胞（高頻）' : '過渡區（4000–5000 Hz）';
+        document.getElementById('spDir').textContent = off > 0.001 ? '正向偏移 ▲' : off < -0.001 ? '負向偏移 ▼' : '接近 0';
+        document.getElementById('spDirDesc').textContent = off > 0.001
+          ? '低頻時可以完整去極化甚至去極化時間過長。'
+          : off < -0.001 ? '高頻時還沒去極化完就馬上過極化，甚至過極化時間過長。' : '正負偏移的交界。';
+        const pl = document.getElementById('plState');
+        pl.textContent = f < 5000 ? '完整 ✓' : '不完整 ✗';
+        pl.style.color = f < 5000 ? css('--mix') : css('--ap');
+        const T = 1000 / f;
+        document.getElementById('periodOut').textContent = T >= 1 ? T.toFixed(2) + ' ms' : (T * 1000).toFixed(0) + ' µs';
+        document.getElementById('cyclesOut').textContent = '目前視窗內約 ' + Math.round(state.win / T) + ' 個週期';
+      }
+
+      // ---------- Hover sync ----------
+      ['topWaveform', 'cmspWaveform', 'apWaveform', 'combinedWaveform'].forEach(function (id) {
+        const c = canv[id];
+        c.addEventListener('pointermove', function (e) {
+          const rect = c.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const t = (x - PAD.l) / (rect.width - PAD.l - PAD.r) * state.win;
+          state.hoverT = (t >= 0 && t <= state.win) ? t : null;
+          drawAll();
+        });
+        c.addEventListener('pointerleave', function () { state.hoverT = null; drawAll(); });
+      });
+
+      // ---------- Animation ----------
+      let animId = null;
+      document.getElementById('animBtn').addEventListener('click', function () {
+        if (animId) cancelAnimationFrame(animId);
+        const start = performance.now();
+        const dur = 2600;
+        function step(now) {
+          state.progress = Math.min(1, (now - start) / dur);
+          drawAll();
+          if (state.progress < 1) animId = requestAnimationFrame(step);
+          else animId = null;
+        }
+        animId = requestAnimationFrame(step);
+      });
+
+      // ---------- Sound ----------
+      let audioCtx = null;
+      document.getElementById('soundBtn').addEventListener('click', function () {
+        try {
+          audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.frequency.value = state.freq;
+          const peak = 0.02 + 0.18 * (state.level - 20) / 80;
+          const now = audioCtx.currentTime;
+          gain.gain.setValueAtTime(0, now);
+          gain.gain.linearRampToValueAtTime(peak, now + 0.03);
+          gain.gain.setValueAtTime(peak, now + 0.8);
+          gain.gain.linearRampToValueAtTime(0, now + 0.9);
+          osc.connect(gain).connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.95);
+        } catch (e) { }
+      });
+
+      // ---------- Quiz ----------
+      const quiz = [
+        {
+          q: '1. 給 1000 Hz 純音時，SP 會往哪個方向偏移？',
+          opts: ['正向偏移', '負向偏移', '不偏移'], a: 0,
+          why: '低頻時內毛細胞主導 SP，可以完整去極化甚至去極化時間過長，所以出現正向偏移。'
+        },
+        {
+          q: '2. 在高頻（例如 8000 Hz）時，主導 SP 的是？',
+          opts: ['內毛細胞', '外毛細胞', '聽神經'], a: 1,
+          why: '內毛細胞只對低頻敏感，外毛細胞對低頻與高頻皆敏感，所以高頻時由外毛細胞主導 SP。'
+        },
+        {
+          q: '3. 聽神經在聲波的哪個時間點放電？',
+          opts: ['波峰（基底膜向上偏移）', '波谷（基底膜向下偏移）', '隨機'], a: 0,
+          why: '基底膜向上偏移時毛細胞去極化、釋放神經傳遞物質使聽神經放電，這就是相位鎖定（5000 Hz 以下才完整）。'
+        },
+        {
+          q: '4. 綜合波形一開始看到的大波是什麼？',
+          opts: ['CM', 'SP', 'AP（先負再正）'], a: 2,
+          why: '一開始的 AP 太大蓋過 CM 與 SP，所以綜合圖形一開始為 AP 的波峰（先負再正），之後 CM 與 SP 才逐漸顯現。'
+        }
+      ];
+      const quizBox = document.getElementById('quiz');
+      quiz.forEach(function (item) {
+        const wrap = document.createElement('div');
+        wrap.className = 'quiz-q';
+        const q = document.createElement('div');
+        q.className = 'q';
+        q.textContent = item.q;
+        const opts = document.createElement('div');
+        opts.className = 'quiz-opts';
+        const fb = document.createElement('div');
+        fb.className = 'quiz-fb';
+        item.opts.forEach(function (o, i) {
+          const b = document.createElement('button');
+          b.className = 'chip';
+          b.textContent = o;
+          b.addEventListener('click', function () {
+            opts.querySelectorAll('button').forEach(function (x) { x.classList.remove('right', 'wrong'); });
+            b.classList.add(i === item.a ? 'right' : 'wrong');
+            fb.textContent = (i === item.a ? '答對了！' : '再想想：') + item.why;
+          });
+          opts.appendChild(b);
+        });
+        wrap.appendChild(q); wrap.appendChild(opts); wrap.appendChild(fb);
+        quizBox.appendChild(wrap);
+      });
+
+      // ---------- Init ----------
+      let rt = null;
+      window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(drawAll, 80); });
+      if (window.matchMedia) {
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        if (mq.addEventListener) mq.addEventListener('change', drawAll);
+      }
+      setFreq(1000);
+    })();
   </script>
 </body>
 

@@ -389,6 +389,37 @@ def appointment():
     appointments_sorted = sorted(appointments, key=lambda x: x['datetime'])
     return render_template('appointment.html', appointments=appointments_sorted)
 
+@app.route('/api/appointment/busy')
+def appointment_busy():
+    # 回傳某天已被預約的時段（只給時間，不含姓名電話）
+    try:
+        day = datetime.strptime(request.args.get('date', ''), '%Y-%m-%d')
+    except ValueError:
+        return jsonify({'busy': [], 'error': 'bad date'}), 400
+    tz = pytz.timezone('Asia/Taipei')
+    start = tz.localize(day)
+    try:
+        items = calendar_service.events().list(
+            calendarId=CALENDAR_ID,
+            timeMin=start.isoformat(),
+            timeMax=(start + timedelta(days=1)).isoformat(),
+            timeZone='Asia/Taipei',
+            singleEvents=True,
+            orderBy='startTime'
+        ).execute().get('items', [])
+    except Exception as e:
+        return jsonify({'busy': [], 'error': str(e)})
+    busy = []
+    for ev in items:
+        if ev.get('status') == 'cancelled':
+            continue
+        s, e = ev.get('start', {}), ev.get('end', {})
+        if s.get('dateTime') and e.get('dateTime'):
+            busy.append({'start': s['dateTime'], 'end': e['dateTime']})
+        else:  # 全天事件
+            busy.append({'start': start.isoformat(), 'end': (start + timedelta(days=1)).isoformat()})
+    return jsonify({'busy': busy})
+
 @app.route('/grade_calculator', methods=['GET', 'POST'])
 def grade_calculator():
     result = None

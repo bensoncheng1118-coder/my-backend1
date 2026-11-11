@@ -1155,6 +1155,12 @@ def phonetics():
     return send_from_directory(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'phonetics'), 'voice-lab.html')
 
 
+# 聽覺與構音解剖構造：互動 3D 模型（聽覺系統、口腔・咽・喉）
+# 模型資料在 static/anatomy3d/，程式在 static/anatomy3d/app.js
+@app.route('/anatomy')
+def anatomy():
+    return render_template('anatomy.html')
+
 print(app.url_map)
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

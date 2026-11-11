@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>聽覺與構音解剖構造</title>
+  <meta name="description" content="互動 3D 解剖模型：周邊與中樞聽覺系統、口腔、咽、喉的骨骼、軟骨與肌肉，點選即可放大並查看功能。" />
+  <meta name="anatomy-base" content="/static/anatomy3d/" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg: #eef2f8;
+      --stage: radial-gradient(ellipse at 50% 40%, #ffffff 0%, #e4eaf3 70%, #d7dfeb 100%);
+      --card: #ffffff;
+      --card-soft: #f5f7fb;
+      --line: #e1e6ee;
+      --text: #1f2a37;
+      --muted: #66768a;
+      --primary: #3b7ddd;
+      --primary-soft: rgba(59, 125, 221, .12);
+      --lbl-bg: rgba(255, 255, 255, .88);
+      --shadow: 0 6px 24px rgba(31, 42, 55, .10);
+      --radius: 14px;
+      --panel-w: 360px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0d131c;
+        --stage: radial-gradient(ellipse at 50% 40%, #1e2a3a 0%, #111a26 70%, #0b1119 100%);
+        --card: #17202c;
+        --card-soft: #1d2836;
+        --line: #2a3647;
+        --text: #e6ecf3;
+        --muted: #93a1b3;
+        --primary: #6aa3f0;
+        --primary-soft: rgba(106, 163, 240, .16);
+        --lbl-bg: rgba(23, 32, 44, .88);
+        --shadow: 0 6px 24px rgba(0, 0, 0, .4);
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #0d131c;
+      --stage: radial-gradient(ellipse at 50% 40%, #1e2a3a 0%, #111a26 70%, #0b1119 100%);
+      --card: #17202c;
+      --card-soft: #1d2836;
+      --line: #2a3647;
+      --text: #e6ecf3;
+      --muted: #93a1b3;
+      --primary: #6aa3f0;
+      --primary-soft: rgba(106, 163, 240, .16);
+      --lbl-bg: rgba(23, 32, 44, .88);
+      --shadow: 0 6px 24px rgba(0, 0, 0, .4);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: 'Noto Sans TC', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* 上方列 */
+    .topbar {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding: 10px 16px;
+      background: color-mix(in srgb, var(--card) 92%, transparent);
+      border-bottom: 1px solid var(--line);
+      z-index: 20;
+    }
+    .topbar h1 { font-size: 1.05rem; margin: 0 6px 0 4px; white-space: nowrap; }
+    .pill, .icon-btn, .seg button, .tbtn {
+      display: inline-flex; align-items: center; gap: 7px;
+      text-decoration: none; color: var(--muted); font: 600 .88rem 'Noto Sans TC', sans-serif;
+      background: var(--card-soft); border: 1px solid var(--line);
+      padding: 7px 13px; border-radius: 999px; cursor: pointer; white-space: nowrap;
+    }
+    .pill:hover, .icon-btn:hover, .seg button:hover, .tbtn:hover { color: var(--primary); border-color: var(--primary); }
+    .icon-btn { padding: 7px 10px; }
+    .seg { display: inline-flex; gap: 0; background: var(--card-soft); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+    .seg button { border: 0; background: transparent; padding: 6px 14px; }
+    .seg button.on { background: var(--primary); color: #fff; }
+    .spacer { flex: 1; }
+
+    .viewbar {
+      display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+      padding: 8px 16px; border-bottom: 1px solid var(--line); background: var(--card); z-index: 15;
+    }
+    #views { display: flex; gap: 6px; flex-wrap: wrap; }
+    #views button { flex: none; white-space: nowrap; font: 500 .85rem 'Noto Sans TC', sans-serif; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--text); cursor: pointer; }
+    #views button.on { background: var(--primary-soft); color: var(--primary); border-color: var(--primary); font-weight: 700; }
+
+    /* 主要區域 */
+    main { flex: 1; display: flex; min-height: 0; position: relative; }
+    #stage { flex: 1; position: relative; background: var(--stage); min-width: 0; overflow: hidden; }
+    #stage canvas { display: block; touch-action: none; cursor: grab; }
+    .label-layer { position: absolute; inset: 0; pointer-events: none; }
+    .lbl {
+      pointer-events: auto; cursor: pointer;
+      font: 600 12px 'Noto Sans TC', sans-serif; color: var(--text);
+      background: var(--lbl-bg); border: 1px solid var(--line); border-radius: 999px;
+      padding: 2px 9px; white-space: nowrap; box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+      backdrop-filter: blur(4px);
+    }
+    .lbl:hover { border-color: var(--primary); color: var(--primary); }
+    .lbl.sel { background: var(--primary); color: #fff; border-color: var(--primary); }
+    body.nolabels .lbl:not(.sel) { display: none; }
+
+    #tip { position: absolute; pointer-events: none; background: var(--card); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 4px 9px; font-size: .82rem; box-shadow: var(--shadow); z-index: 5; }
+    #loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-weight: 600; background: color-mix(in srgb, var(--bg) 60%, transparent); z-index: 6; }
+    #loading[hidden] { display: none; }
+
+    .controls {
+      position: absolute; left: 12px; bottom: 12px; right: 12px; z-index: 4;
+      display: flex; gap: 6px; flex-wrap: wrap; align-items: center; pointer-events: none;
+    }
+    .controls > * { pointer-events: auto; }
+    .tbtn { box-shadow: var(--shadow); background: var(--card); }
+    .tbtn.on { color: #fff; border-color: var(--primary); background: var(--primary); }
+    body.layers-hidden #layers { display: none; }
+    #earWrap { display: inline-flex; gap: 0; }
+    #earWrap[hidden], #playWrap[hidden] { display: none; }
+    #earWrap button { border-radius: 0; margin-left: -1px; }
+    #earWrap button:first-child { border-radius: 999px 0 0 999px; }
+    #earWrap button:last-child { border-radius: 0 999px 999px 0; }
+    #layers {
+      position: absolute; top: 12px; left: 12px; z-index: 4; display: flex; flex-direction: column; gap: 4px;
+      background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; box-shadow: var(--shadow);
+      font-size: .82rem; color: var(--text);
+    }
+    #layers label { display: flex; gap: 6px; align-items: center; cursor: pointer; white-space: nowrap; }
+    #layers::before { content: '顯示圖層'; font-weight: 700; color: var(--muted); font-size: .75rem; margin-bottom: 2px; }
+
+    /* 右側資訊面板 */
+    #info {
+      width: var(--panel-w); flex: none; overflow-y: auto; background: var(--card); border-left: 1px solid var(--line);
+      padding: 18px 20px 28px; line-height: 1.65; font-size: .93rem;
+    }
+    #info h2 { margin: 6px 0 0; font-size: 1.35rem; }
+    #info .en { color: var(--muted); font-size: .88rem; margin-bottom: 8px; }
+    #info h3 { margin: 16px 0 4px; font-size: .92rem; color: var(--primary); }
+    #info p { margin: 4px 0; }
+    #info ul { margin: 4px 0; padding-left: 20px; }
+    #info li { margin: 3px 0; }
+    #info .head { display: flex; justify-content: space-between; align-items: center; }
+    #info .cat { font-size: .78rem; font-weight: 700; color: var(--primary); background: var(--primary-soft); padding: 3px 10px; border-radius: 999px; }
+    #info .abr { background: var(--card-soft); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; margin-top: 12px; font-size: .86rem; }
+    #info .tools { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+    #info .tools a { font-size: .84rem; color: var(--primary); text-decoration: none; border: 1px solid var(--primary); border-radius: 999px; padding: 4px 11px; }
+    #info .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+    #info .chips button, .path-nav button {
+      font: 600 .82rem 'Noto Sans TC', sans-serif; border: 1px solid var(--line); background: var(--card-soft); color: var(--text);
+      border-radius: 999px; padding: 5px 11px; cursor: pointer;
+    }
+    #info .chips button:hover, .path-nav button:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+    .path-nav { display: flex; gap: 6px; justify-content: space-between; margin-top: 18px; padding-top: 12px; border-top: 1px dashed var(--line); }
+    .path-nav button { flex: 1; text-align: center; }
+    .path-nav button:disabled { opacity: .4; cursor: default; }
+    #info .src { color: var(--muted); font-size: .78rem; margin-top: 14px; }
+    #info .empty { text-align: center; color: var(--muted); padding-top: 30px; }
+    #info .empty i { font-size: 2rem; color: var(--primary); }
+    #info .empty h2 { color: var(--text); font-size: 1.15rem; margin: 10px 0; }
+    #info .empty ul { text-align: left; font-size: .86rem; }
+    .close { padding: 5px 9px; }
+
+    /* 構造目錄 */
+    #index {
+      position: absolute; top: 0; left: 0; bottom: 0; width: 300px; z-index: 12; background: var(--card);
+      border-right: 1px solid var(--line); box-shadow: var(--shadow); transform: translateX(-105%); transition: transform .25s;
+      display: flex; flex-direction: column;
+    }
+    body.index-open #index { transform: none; }
+    #index .ih { display: flex; gap: 8px; align-items: center; padding: 12px; border-bottom: 1px solid var(--line); }
+    #search { flex: 1; font: inherit; padding: 7px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--card-soft); color: var(--text); }
+    #index-list { overflow-y: auto; padding: 6px 10px 20px; }
+    #index-list .grp-t { font-size: .76rem; font-weight: 700; color: var(--muted); margin: 12px 4px 4px; }
+    #index-list button { display: block; width: 100%; text-align: left; border: 0; background: transparent; color: var(--text); padding: 6px 8px; border-radius: 8px; cursor: pointer; font: 500 .9rem 'Noto Sans TC', sans-serif; }
+    #index-list button small { display: block; color: var(--muted); font-size: .74rem; font-weight: 400; }
+    #index-list button:hover, #index-list button.on { background: var(--primary-soft); color: var(--primary); }
+    #index-list .none { color: var(--muted); padding: 10px; }
+
+    footer.credit { font-size: .74rem; color: var(--muted); padding: 6px 16px; border-top: 1px solid var(--line); background: var(--card); }
+    footer.credit a { color: inherit; }
+    #sheetBtn { display: none; }
+
+    @media (max-width: 860px) {
+      .topbar h1 { display: none; }
+      .topbar { padding: 8px 12px; gap: 6px; }
+      .viewbar { padding: 6px 12px; overflow-x: auto; flex-wrap: nowrap; }
+      #views { flex-wrap: nowrap; }
+      #info {
+        position: absolute; left: 0; right: 0; bottom: 0; width: auto; max-height: 58%; z-index: 10;
+        border-left: 0; border-top: 1px solid var(--line); border-radius: 16px 16px 0 0; box-shadow: 0 -6px 24px rgba(0, 0, 0, .18);
+        transform: translateY(calc(100% - 0px)); transition: transform .25s; padding: 14px 16px 24px;
+      }
+      body.sheet-open #info { transform: none; }
+      body.sheet-open .controls { bottom: calc(58% + 10px); }
+      #sheetBtn { display: inline-flex; }
+      #layers { font-size: .76rem; padding: 6px 10px; max-height: 45%; overflow-y: auto; }
+      body:not(.layers-shown) #layers { display: none; }
+      .tbtn span { display: none; }
+      .pill span { display: none; }
+      #index { width: 86%; }
+      footer.credit { display: none; }
+    }
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+
+<body>
+  <div class="topbar">
+    <a class="pill" href="/"><i class="fa-solid fa-chevron-left"></i><span>返回首頁</span></a>
+    <h1>聽覺與構音解剖構造</h1>
+    <div class="seg" id="systems">
+      <button data-s="aud" class="on"><i class="fa-solid fa-ear-listen"></i> 聽覺系統</button>
+      <button data-s="oral"><i class="fa-solid fa-comment-dots"></i> 口腔・咽・喉</button>
+    </div>
+    <div class="spacer"></div>
+    <button class="pill" id="indexBtn" title="構造目錄"><i class="fa-solid fa-list"></i><span>構造目錄</span></button>
+    <button class="icon-btn" id="themeBtn" title="切換深淺色"><i class="fa-solid fa-circle-half-stroke"></i></button>
+  </div>
+  <div class="viewbar"><div id="views"></div></div>
+
+  <main>
+    <div id="stage">
+      <div id="layers"></div>
+      <div id="loading"><span><i class="fa-solid fa-spinner fa-spin"></i> 載入 3D 模型中…</span></div>
+      <div id="tip" hidden></div>
+      <div class="controls">
+        <button class="tbtn" id="resetBtn" title="回到此視角"><i class="fa-solid fa-rotate-left"></i><span>重置視角</span></button>
+        <button class="tbtn on" id="labelBtn" title="顯示名稱標籤"><i class="fa-solid fa-tag"></i><span>標籤</span></button>
+        <button class="tbtn" id="layerBtn" title="顯示／隱藏圖層選單"><i class="fa-solid fa-layer-group"></i><span>圖層</span></button>
+        <button class="tbtn on" id="focusBtn" title="選取時淡化其他構造"><i class="fa-solid fa-eye-low-vision"></i><span>聚焦</span></button>
+        <span id="playWrap"><button class="tbtn" id="playBtn"><i class="fa-solid fa-play"></i> 聲音傳導動畫</button></span>
+        <span id="earWrap" hidden>
+          <button class="tbtn on" data-ear="R" title="右耳刺激（紅）">右耳</button><button class="tbtn" data-ear="L" title="左耳刺激（藍）">左耳</button><button class="tbtn" data-ear="B" title="雙耳刺激">雙耳</button>
+        </span>
+        <button class="tbtn" id="sheetBtn"><i class="fa-solid fa-circle-info"></i> 說明</button>
+      </div>
+    </div>
+    <aside id="info" aria-live="polite"></aside>
+    <nav id="index" aria-label="構造目錄">
+      <div class="ih"><input id="search" type="search" placeholder="搜尋構造（中文或英文）" />
+        <button class="icon-btn" id="indexClose" title="關閉"><i class="fa-solid fa-xmark"></i></button></div>
+      <div id="index-list"></div>
+    </nav>
+  </main>
+  <footer class="credit">
+    3D 形狀資料：<a href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/" target="_blank" rel="noopener">BodyParts3D</a>
+    © The Database Center for Life Science（CC BY-SA 2.1 JP，已精簡網格）。聽小骨、耳蝸、柯地氏器、腦幹聽覺神經核與傳導束為依解剖位置建立的示意模型，比例經調整。
+  </footer>
+  <script type="module" src="/static/anatomy3d/app.js"></script>
+</body>
+
+</html>

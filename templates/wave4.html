@@ -9,359 +9,685 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
-      --primary-color: #4a90e2;
-      --secondary-color: #34495e;
-      --bg-color: #f4f7f6;
-      --card-bg: #ffffff;
-      --text-color: #333;
-      --text-muted: #7f8c8d;
+      --primary: #4a90e2;
+      --primary-dark: #357abd;
+      --primary-soft: rgba(74, 144, 226, 0.12);
+      --success: #2ecc71;
+      --danger: #e74c3c;
+      --warning: #f39c12;
+      --ink: #2c3e50;
+      --bg: #f4f7f6;
+      --card: #ffffff;
+      --text: #333;
+      --muted: #6b7a89;
+      --line: #e6ebef;
       --radius-pill: 50px;
-      --radius-md: 12px;
-      --shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-      --transition: all 0.3s ease;
+      --radius-card: 16px;
+      --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.08);
     }
+
+    * { box-sizing: border-box; }
 
     body {
       font-family: 'Noto Sans TC', sans-serif;
       margin: 0;
-      padding: 0;
-      background-color: var(--bg-color);
-      color: var(--text-color);
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
+    }
+
+    .topbar {
       display: flex;
-      flex-direction: column;
       align-items: center;
-    }
-
-    .container {
-      width: 95%;
-      max-width: 900px;
-      margin: 60px auto;
-    }
-
-    .header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    h1 {
-      font-weight: 700;
-      color: var(--secondary-color);
-      margin-bottom: 10px;
-      font-size: 1.8rem;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border-radius: var(--radius-md);
-      box-shadow: var(--shadow);
-      padding: 35px;
-      margin-bottom: 20px;
-    }
-
-    /* Tabs / Segmented Controls */
-    .btn-group {
-      display: flex;
-      justify-content: center;
+      justify-content: space-between;
       gap: 12px;
-      margin-bottom: 25px;
       flex-wrap: wrap;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px 16px 0;
     }
 
-    .btn-pill {
-      padding: 12px 28px;
-      border: 2px solid transparent;
-      border-radius: var(--radius-pill);
-      background-color: #eee;
-      color: var(--text-muted);
-      font-weight: 600;
-      cursor: pointer;
-      transition: var(--transition);
-      font-size: 1rem;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .btn-pill:hover {
-      background-color: #e0e0e0;
-    }
-
-    .btn-pill.active {
-      color: white;
-    }
-
-    .btn-pill.active.beat {
-      background-color: var(--primary-color);
-      box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3);
-    }
-
-    .btn-pill.active.am {
-      background-color: #f39c12;
-      box-shadow: 0 4px 10px rgba(243, 156, 18, 0.3);
-    }
-
-    #sub-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 30px;
-      background: #f9f9f9;
-      padding: 8px;
-      border-radius: var(--radius-pill);
-      display: inline-flex;
-      position: relative;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
-    .btn-sub {
-      padding: 8px 20px;
-      border: none;
-      background: transparent;
-      color: var(--text-muted);
-      font-weight: 600;
-      border-radius: var(--radius-pill);
-      cursor: pointer;
-      transition: var(--transition);
-      font-size: 0.9rem;
-    }
-
-    .btn-sub.active {
-      background: white;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    }
-
-    .btn-sub.active.beat {
-      color: var(--primary-color);
-    }
-
-    .btn-sub.active.am {
-      color: #f39c12;
-    }
-
-    /* Visualization Areas */
-    .viz-container {
-      background: #fafafa;
-      border: 1px solid #eee;
-      border-radius: var(--radius-md);
-      padding: 15px;
-      margin-top: 20px;
-      min-height: 320px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-
-    #waveformCanvas,
-    #barChart {
-      width: 100% !important;
-      height: 320px !important;
-      background: #fff;
-      border-radius: 8px;
-      display: block;
-    }
-
-    #backBtn {
-      position: absolute;
-      top: 30px;
-      left: 30px;
+    .back-btn {
       text-decoration: none;
-      color: var(--text-muted);
+      color: var(--muted);
       font-weight: 600;
-      background: #fff;
-      padding: 8px 18px;
+      padding: 9px 18px;
       border-radius: var(--radius-pill);
-      box-shadow: var(--shadow);
-      display: flex;
+      background: #fff;
+      box-shadow: var(--shadow-sm);
+      display: inline-flex;
       align-items: center;
       gap: 8px;
-      transition: var(--transition);
+      transition: all .2s;
     }
 
-    #backBtn:hover {
-      color: var(--primary-color);
-      transform: translateX(-5px);
+    .back-btn:hover { color: var(--primary); box-shadow: var(--shadow-md); transform: translateX(-3px); }
+
+    .tool-nav { display: flex; gap: 6px; flex-wrap: wrap; background: #fff; padding: 5px; border-radius: var(--radius-pill); box-shadow: var(--shadow-sm); }
+    .tool-nav a { text-decoration: none; color: var(--muted); font-size: .9rem; font-weight: 600; padding: 7px 14px; border-radius: var(--radius-pill); transition: all .2s; }
+    .tool-nav a:hover { color: var(--primary); background: var(--primary-soft); }
+    .tool-nav a.current { background: var(--primary); color: #fff; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 10px 16px 50px; }
+
+    .header { text-align: center; margin: 18px 0 24px; }
+    .header h1 { font-weight: 700; color: var(--ink); margin: 0 0 6px; font-size: 1.9rem; }
+    .header p { color: var(--muted); margin: 0; }
+
+    .card { background: var(--card); border-radius: var(--radius-card); box-shadow: var(--shadow-md); padding: 24px; margin-bottom: 20px; }
+    .card h2 { font-size: 1.05rem; color: var(--ink); margin: 0 0 14px; display: flex; align-items: center; gap: 8px; }
+
+    .mode-switcher { display: flex; justify-content: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+    .mode-btn {
+      padding: 11px 24px; border: 2px solid #eee; border-radius: var(--radius-pill); background: #fff;
+      color: var(--muted); font-weight: 600; cursor: pointer; font-size: 1rem; font-family: inherit;
+      transition: all .25s cubic-bezier(.175, .885, .32, 1.275);
     }
+    .mode-btn:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); }
+    .mode-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 4px 12px rgba(74, 144, 226, .3); }
 
-    @media (max-width: 600px) {
-      .container {
-        margin: 80px auto 20px;
-      }
-
-      .card {
-        padding: 20px;
-      }
-
-      .btn-pill {
-        padding: 10px 15px;
-        font-size: 0.9rem;
-      }
+    .sub-group { display: none; justify-content: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .sub-group.show { display: flex; }
+    .pill-sm {
+      padding: 7px 16px; border-radius: var(--radius-pill); border: 2px solid #ddd; background: #fff;
+      color: var(--muted); font-weight: 600; cursor: pointer; font-family: inherit; font-size: .9rem; transition: all .2s;
     }
+    .pill-sm:hover { border-color: var(--success); color: var(--success); }
+    .pill-sm.active { background: var(--success); color: #fff; border-color: var(--success); }
+
+    .layout { display: grid; grid-template-columns: 360px 1fr; gap: 20px; align-items: start; }
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+    .comp {
+      border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px;
+      background: #fafcfd; position: relative;
+    }
+    .comp-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; font-weight: 700; font-size: .92rem; }
+    .comp-head .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+    .btn-remove {
+      background: #fff; color: var(--danger); border: 2px solid #ffe3e0; width: 28px; height: 28px; border-radius: 50%;
+      cursor: pointer; font-size: 1rem; line-height: 1; transition: all .2s;
+    }
+    .btn-remove:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+
+    .slider-row { display: grid; grid-template-columns: 74px 1fr 82px; gap: 8px; align-items: center; margin: 6px 0; font-size: .88rem; }
+    .slider-row label { color: var(--muted); font-weight: 600; }
+    .slider-row input[type=range] { width: 100%; accent-color: var(--primary); }
+    .slider-row input[type=number] {
+      width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 4px 6px; font-size: .88rem; font-family: inherit;
+    }
+    .slider-row input[type=number]:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+
+    .row-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .btn {
+      padding: 9px 16px; border: none; border-radius: var(--radius-pill); font-size: .92rem; cursor: pointer; font-weight: 700;
+      display: inline-flex; align-items: center; gap: 7px; font-family: inherit; transition: all .2s;
+    }
+    .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 4px 10px rgba(74, 144, 226, .25); }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+    .btn-success { background: var(--success); color: #fff; box-shadow: 0 4px 10px rgba(46, 204, 113, .25); }
+    .btn-success:hover { background: #27ae60; transform: translateY(-2px); }
+    .btn-ghost { background: #f1f4f7; color: var(--ink); }
+    .btn-ghost:hover { background: #e4e9ee; }
+    .btn-danger { background: var(--danger); color: #fff; }
+
+    .preset-label { font-size: .85rem; color: var(--muted); font-weight: 600; margin: 14px 0 6px; }
+
+    .toolbar { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .toggles { display: flex; gap: 14px; flex-wrap: wrap; font-size: .9rem; color: var(--muted); }
+    .toggles label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+    .toggles input { accent-color: var(--primary); }
+
+    .canvas-wrap { position: relative; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #fff; }
+    .canvas-wrap canvas { display: block; width: 100%; }
+    #waveCanvas { height: 340px; }
+    #specCanvas { height: 200px; }
+    .canvas-title { font-size: .85rem; font-weight: 700; color: var(--muted); margin: 16px 0 6px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; }
+    .readout { position: absolute; top: 8px; right: 10px; background: rgba(44, 62, 80, .85); color: #fff; font-size: .78rem; padding: 4px 8px; border-radius: 6px; pointer-events: none; display: none; font-variant-numeric: tabular-nums; }
+
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 16px; }
+    .stat { background: #f7f9fb; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+    .stat .k { font-size: .78rem; color: var(--muted); font-weight: 600; }
+    .stat .v { font-size: 1.15rem; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; margin-top: 2px; }
+
+    .play-box { margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: var(--primary-soft); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; font-size: .88rem; }
+    .play-box input[type=range] { accent-color: var(--primary); width: 120px; }
+    .hint { font-size: .8rem; color: var(--muted); }
+
+    .notes { line-height: 1.75; font-size: .95rem; }
+    .notes h3 { font-size: 1rem; color: var(--ink); margin: 14px 0 4px; }
+    .notes code { background: #f1f4f7; padding: 1px 6px; border-radius: 4px; font-size: .9em; }
+    details.notes summary { cursor: pointer; font-weight: 700; color: var(--ink); }
+  </style>
+  <style>
+    .mode-btn.active.am { background: #f39c12; border-color: #f39c12; box-shadow: 0 4px 12px rgba(243, 156, 18, .3); }
+    .view-tabs { display: inline-flex; gap: 4px; background: #f1f4f7; padding: 4px; border-radius: var(--radius-pill); }
+    .view-tabs button {
+      padding: 7px 16px; border: none; background: transparent; color: var(--muted); font-weight: 600;
+      border-radius: var(--radius-pill); cursor: pointer; font-family: inherit; font-size: .88rem; transition: all .2s;
+    }
+    .view-tabs button.active { background: #fff; color: var(--primary); box-shadow: 0 2px 5px rgba(0, 0, 0, .06); }
+    body.am-mode .view-tabs button.active { color: #f39c12; }
+    #mainCanvas { height: 380px; }
+    .perc { margin-top: 14px; border-radius: 12px; padding: 12px 14px; border: 1px solid var(--line); background: #fbfcfd; font-size: .92rem; }
+    .perc-bar { position: relative; height: 12px; border-radius: 6px; margin: 10px 0 4px;
+      background: linear-gradient(90deg, #4a90e2 0%, #4a90e2 30%, #e67e22 30%, #e67e22 70%, #2ecc71 70%, #2ecc71 100%); }
+    .perc-bar .mark { position: absolute; top: -5px; width: 4px; height: 22px; background: #2c3e50; border-radius: 2px; transform: translateX(-2px); transition: left .2s; }
+    .perc-scale { display: flex; justify-content: space-between; font-size: .75rem; color: var(--muted); }
   </style>
 </head>
 
 <body>
 
-  <a href="{{ url_for('index') }}" id="backBtn"><i class="fa-solid fa-chevron-left"></i> 返回首頁</a>
+  <div class="topbar">
+    <a href="/" class="back-btn"><i class="fa-solid fa-arrow-left"></i> 返回首頁</a>
+    <nav class="tool-nav" aria-label="聲學工具">
+      <a href="/wave">波形繪製</a>
+      <a href="/wave4" class="current">拍音與振幅調變</a>
+      <a href="/wave2">聲強與聲壓衰減</a>
+    </nav>
+  </div>
 
   <div class="container">
     <div class="header">
-      <h1>拍音與振幅調變</h1>
-      <p style="color: var(--text-muted);">雙頻合成與調變訊號視覺化工具</p>
+      <h1><i class="fa-solid fa-drum" style="color:var(--primary)"></i> 拍音與振幅調變</h1>
+      <p>雙頻合成與調變訊號視覺化：調參數、看包絡線、比頻譜、直接聽差別</p>
     </div>
 
     <div class="card">
-      <!-- Main Mode Switcher -->
-      <div class="btn-group">
-        <button id="btnBeat" class="btn-pill"><i class="fa-solid fa-drum"></i> 拍音 (Beats)</button>
-        <button id="btnAM" class="btn-pill"><i class="fa-solid fa-tower-broadcast"></i> 振幅調變 (AM)</button>
+      <div class="mode-switcher">
+        <button class="mode-btn active" data-mode="beat"><i class="fa-solid fa-drum"></i> 拍音 (Beats)</button>
+        <button class="mode-btn" data-mode="am"><i class="fa-solid fa-tower-broadcast"></i> 振幅調變 (AM)</button>
       </div>
 
-      <!-- Sub Mode Switcher -->
-      <div id="sub-buttons">
-        <button id="btnComposite" class="btn-sub">複合波形圖</button>
-        <button id="btnComponent" class="btn-sub">組成頻譜圖</button>
-      </div>
+      <div class="layout">
+        <div>
+          <div id="controls"></div>
+          <div class="comp" style="background:#fff">
+            <div class="comp-head"><span><i class="fa-regular fa-clock"></i> 顯示時間範圍</span></div>
+            <div class="slider-row">
+              <label>視窗 ms</label>
+              <input type="range" id="winRange" min="10" max="2000" step="10" value="1000">
+              <input type="number" id="winNum" min="1" max="5000" step="10" value="1000" title="毫秒 (ms)">
+            </div>
+          </div>
+          <div class="preset-label">快速範例</div>
+          <div class="row-actions" id="presets"></div>
+        </div>
 
-      <!-- Visualization Output -->
-      <div class="viz-container">
-        <canvas id="waveformCanvas" width="840" height="320"></canvas>
-        <canvas id="barChart" style="display:none;" width="840" height="320"></canvas>
+        <div>
+          <div class="toolbar">
+            <div class="view-tabs" role="tablist">
+              <button data-view="composite" class="active">複合波形圖</button>
+              <button data-view="parts">組成成分波形</button>
+              <button data-view="spectrum">組成頻譜圖</button>
+            </div>
+            <div class="toggles">
+              <label id="tgEnvWrap"><input type="checkbox" id="tgEnv" checked> 包絡線</label>
+              <label id="tgCompsWrap"><input type="checkbox" id="tgComps"> 疊上成分</label>
+              <label><input type="checkbox" id="tgAnim"> 動態播放</label>
+            </div>
+          </div>
+
+          <div class="canvas-title"><span id="viewTitle">複合波形</span><span id="formula"></span></div>
+          <div class="canvas-wrap">
+            <canvas id="mainCanvas"></canvas>
+            <div class="readout" id="readout"></div>
+          </div>
+
+          <div class="stats" id="stats"></div>
+
+          <div class="perc" id="percBox">
+            <b><i class="fa-solid fa-ear-listen"></i> 聽起來像什麼？</b>
+            <div class="perc-bar"><div class="mark" id="percMark"></div></div>
+            <div class="perc-scale"><span>0 Hz</span><span>拍音 (&lt; 約 15 Hz)</span><span>粗糙感</span><span>分開的兩個音 (&gt; 臨界頻寬)</span></div>
+            <div id="percText" style="margin-top:8px"></div>
+          </div>
+
+          <div class="play-box">
+            <button class="btn btn-primary" id="btnPlay"><i class="fa-solid fa-play"></i> 播放 3 秒</button>
+            <button class="btn btn-ghost" id="btnPng"><i class="fa-solid fa-download"></i> 下載圖片</button>
+            <label>音量 <input type="range" id="vol" min="0" max="1" step="0.01" value="0.25"></label>
+            <span class="hint">低頻（如 50 Hz）用手機或筆電喇叭可能聽不清楚，建議改用「可聽範例」或戴耳機。</span>
+          </div>
+        </div>
       </div>
+    </div>
+
+    <div class="card">
+      <details class="notes" open>
+        <summary><i class="fa-solid fa-book-open"></i> 觀念說明</summary>
+        <div id="notesBody"></div>
+      </details>
     </div>
   </div>
 
   <script>
-    const refs = {
-      btnBeat: document.getElementById('btnBeat'),
-      btnAM: document.getElementById('btnAM'),
-      btnComposite: document.getElementById('btnComposite'),
-      btnComponent: document.getElementById('btnComponent'),
-      waveformCanvas: document.getElementById('waveformCanvas'),
-      barCanvas: document.getElementById('barChart')
-    };
+    (function () {
+      const state = {
+        mode: 'beat',
+        view: 'composite',
+        beat: { f1: 50, f2: 55, a1: 1, a2: 1 },
+        am: { fc: 100, fm: 5, m: 0.7 },
+        winMs: 1000,
+        offset: 0
+      };
+      const C_BEAT = '#4a90e2', C_AM = '#f39c12', C_ENV = '#e74c3c';
+      const el = (id) => document.getElementById(id);
+      const canvas = el('mainCanvas');
 
-    const waveformCtx = refs.waveformCanvas.getContext('2d');
-    let currentMain = 'beat';
-    let currentSub = 'composite';
-    let barChartInstance = null;
-
-    const points = 1000;
-    const duration = 1.0;
-
-    function clearCanvas() {
-      waveformCtx.clearRect(0, 0, refs.waveformCanvas.width, refs.waveformCanvas.height);
-      waveformCtx.fillStyle = "#fff";
-      waveformCtx.fillRect(0, 0, refs.waveformCanvas.width, refs.waveformCanvas.height);
-
-      // Axis
-      waveformCtx.strokeStyle = "#eee";
-      waveformCtx.lineWidth = 1;
-      waveformCtx.beginPath();
-      waveformCtx.moveTo(0, refs.waveformCanvas.height / 2);
-      waveformCtx.lineTo(refs.waveformCanvas.width, refs.waveformCanvas.height / 2);
-      waveformCtx.stroke();
-    }
-
-    function drawWave(x, y, color) {
-      waveformCtx.strokeStyle = color;
-      waveformCtx.lineWidth = 2.5;
-      waveformCtx.shadowBlur = 4;
-      waveformCtx.shadowColor = color + "44";
-      waveformCtx.beginPath();
-      for (let i = 0; i < x.length; i++) {
-        const px = x[i] * refs.waveformCanvas.width;
-        const py = refs.waveformCanvas.height / 2 - y[i] * (refs.waveformCanvas.height / 2) * 0.8;
-        i === 0 ? waveformCtx.moveTo(px, py) : waveformCtx.lineTo(px, py);
+      function fmt(n, d) {
+        if (!isFinite(n)) return '—';
+        return Number(n.toFixed(d === undefined ? 2 : d)).toString();
       }
-      waveformCtx.stroke();
-      waveformCtx.shadowBlur = 0;
-    }
-
-    function update() {
-      // Update Buttons
-      refs.btnBeat.classList.toggle('active', currentMain === 'beat');
-      refs.btnBeat.classList.toggle('beat', currentMain === 'beat');
-
-      refs.btnAM.classList.toggle('active', currentMain === 'am');
-      refs.btnAM.classList.toggle('am', currentMain === 'am');
-
-      refs.btnComposite.classList.toggle('active', currentSub === 'composite');
-      refs.btnComposite.classList.toggle(currentMain, currentSub === 'composite');
-
-      refs.btnComponent.classList.toggle('active', currentSub === 'component');
-      refs.btnComponent.classList.toggle(currentMain, currentSub === 'component');
-
-      // Clear previous classes if mode changed
-      if (currentMain === 'beat') {
-        refs.btnComposite.classList.remove('am');
-        refs.btnComponent.classList.remove('am');
-      } else {
-        refs.btnComposite.classList.remove('beat');
-        refs.btnComponent.classList.remove('beat');
+      function fmtHz(f) { return fmt(f, 2) + ' Hz'; }
+      function niceStep(range, target) {
+        const raw = range / target;
+        const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+        const n = raw / mag;
+        return (n < 1.5 ? 1 : n < 3 ? 2 : n < 7 ? 5 : 10) * mag;
+      }
+      function setupCanvas(c) {
+        const dpr = window.devicePixelRatio || 1;
+        const rect = c.getBoundingClientRect();
+        const w = Math.max(200, Math.round(rect.width)), h = Math.round(rect.height);
+        if (c.width !== w * dpr || c.height !== h * dpr) { c.width = w * dpr; c.height = h * dpr; }
+        const ctx = c.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        return { ctx: ctx, w: w, h: h };
       }
 
-      if (currentSub === 'composite') {
-        refs.barCanvas.style.display = 'none';
-        refs.waveformCanvas.style.display = 'block';
-        clearCanvas();
-
-        const x = [], y = [];
-        for (let i = 0; i < points; i++) {
-          const t = i / points * duration;
-          x.push(t);
-          let val;
-          if (currentMain === 'beat') {
-            // Beat: sin(2pi*50*t) + sin(2pi*55*t)
-            val = (Math.sin(2 * Math.PI * 50 * t) + Math.sin(2 * Math.PI * 55 * t)) / 2;
-          } else {
-            // AM: (1 + 0.7*sin(2pi*5*t)) * sin(2pi*100*t)
-            val = (1 + 0.7 * Math.sin(2 * Math.PI * 5 * t)) * Math.sin(2 * Math.PI * 100 * t);
-          }
-          y.push(val);
+      // ---------- model ----------
+      function parts() {
+        if (state.mode === 'beat') {
+          const b = state.beat;
+          return [
+            { name: 'f₁ = ' + fmtHz(b.f1), color: '#4a90e2', fn: function (t) { return b.a1 * Math.sin(2 * Math.PI * b.f1 * t); } },
+            { name: 'f₂ = ' + fmtHz(b.f2), color: '#9b59b6', fn: function (t) { return b.a2 * Math.sin(2 * Math.PI * b.f2 * t); } }
+          ];
         }
-        drawWave(x, y, currentMain === 'beat' ? '#4a90e2' : '#f39c12');
-      } else {
-        refs.waveformCanvas.style.display = 'none';
-        refs.barCanvas.style.display = 'block';
+        const p = state.am;
+        return [
+          { name: '載波 fc = ' + fmtHz(p.fc), color: '#f39c12', fn: function (t) { return Math.sin(2 * Math.PI * p.fc * t); } },
+          { name: '調變訊號 1 + m·sin(2πfm·t)，fm = ' + fmtHz(p.fm), color: '#16a085', fn: function (t) { return 1 + p.m * Math.sin(2 * Math.PI * p.fm * t); } }
+        ];
+      }
+      function signalAt(t) {
+        if (state.mode === 'beat') {
+          const b = state.beat;
+          return b.a1 * Math.sin(2 * Math.PI * b.f1 * t) + b.a2 * Math.sin(2 * Math.PI * b.f2 * t);
+        }
+        const p = state.am;
+        return (1 + p.m * Math.sin(2 * Math.PI * p.fm * t)) * Math.sin(2 * Math.PI * p.fc * t);
+      }
+      function envelopeAt(t) {
+        if (state.mode === 'beat') {
+          const b = state.beat;
+          return Math.sqrt(b.a1 * b.a1 + b.a2 * b.a2 + 2 * b.a1 * b.a2 * Math.cos(2 * Math.PI * (b.f2 - b.f1) * t));
+        }
+        const p = state.am;
+        return 1 + p.m * Math.sin(2 * Math.PI * p.fm * t);
+      }
+      function spectrum() {
+        if (state.mode === 'beat') {
+          const b = state.beat;
+          return [ { f: b.f1, a: b.a1, label: 'f₁', color: '#4a90e2' }, { f: b.f2, a: b.a2, label: 'f₂', color: '#9b59b6' } ];
+        }
+        const p = state.am;
+        const out = [ { f: p.fc, a: 1, label: 'fc', color: '#f39c12' } ];
+        if (p.m > 0) {
+          out.push({ f: p.fc - p.fm, a: p.m / 2, label: 'fc−fm', color: '#e67e22' });
+          out.push({ f: p.fc + p.fm, a: p.m / 2, label: 'fc+fm', color: '#e67e22' });
+        }
+        return out;
+      }
 
-        const labels = currentMain === 'beat' ? ['50 Hz', '55 Hz'] : ['100 Hz (載波)', '5 Hz (調變)'];
-        const data = currentMain === 'beat' ? [1.0, 1.0] : [1.0, 0.7];
-        const colors = currentMain === 'beat' ? ['#4a90e2', '#357abd'] : ['#f39c12', '#e67e22'];
+      // ---------- controls ----------
+      function sliderRow(label, min, max, step, value, onChange) {
+        const row = document.createElement('div');
+        row.className = 'slider-row';
+        const lab = document.createElement('label'); lab.textContent = label;
+        const r = document.createElement('input');
+        r.type = 'range'; r.min = min; r.max = max; r.step = step; r.value = value;
+        const n = document.createElement('input');
+        n.type = 'number'; n.step = step; n.value = value;
+        r.addEventListener('input', function () { n.value = r.value; onChange(parseFloat(r.value)); });
+        n.addEventListener('input', function () {
+          const v = parseFloat(n.value);
+          if (!isNaN(v)) { r.value = Math.min(max, Math.max(min, v)); onChange(v); }
+        });
+        row.appendChild(lab); row.appendChild(r); row.appendChild(n);
+        return row;
+      }
+      function box(title, color, rows) {
+        const b = document.createElement('div');
+        b.className = 'comp';
+        const h = document.createElement('div');
+        h.className = 'comp-head';
+        h.innerHTML = '<span><span class="dot" style="background:' + color + '"></span>' + title + '</span>';
+        b.appendChild(h);
+        rows.forEach(function (r) { b.appendChild(r); });
+        return b;
+      }
+      function buildControls() {
+        const c = el('controls');
+        c.innerHTML = '';
+        if (state.mode === 'beat') {
+          const b = state.beat;
+          c.appendChild(box('頻率 1', '#4a90e2', [
+            sliderRow('f₁ Hz', 20, 2000, 0.5, b.f1, function (v) { b.f1 = v; redraw(); }),
+            sliderRow('振幅 A₁', 0, 1, 0.01, b.a1, function (v) { b.a1 = v; redraw(); })
+          ]));
+          c.appendChild(box('頻率 2', '#9b59b6', [
+            sliderRow('f₂ Hz', 20, 2000, 0.5, b.f2, function (v) { b.f2 = v; redraw(); }),
+            sliderRow('振幅 A₂', 0, 1, 0.01, b.a2, function (v) { b.a2 = v; redraw(); })
+          ]));
+        } else {
+          const p = state.am;
+          c.appendChild(box('振幅調變參數', '#f39c12', [
+            sliderRow('載波 fc', 20, 2000, 1, p.fc, function (v) { p.fc = v; redraw(); }),
+            sliderRow('調變 fm', 0.5, 200, 0.5, p.fm, function (v) { p.fm = v; redraw(); }),
+            sliderRow('深度 m', 0, 1.5, 0.01, p.m, function (v) { p.m = v; redraw(); })
+          ]));
+        }
+        const pr = el('presets');
+        pr.innerHTML = '';
+        const list = state.mode === 'beat' ? [
+          ['課本範例 50/55 Hz', function () { Object.assign(state.beat, { f1: 50, f2: 55, a1: 1, a2: 1 }); state.winMs = 1000; }],
+          ['可聽拍音 440/444 Hz', function () { Object.assign(state.beat, { f1: 440, f2: 444, a1: 1, a2: 1 }); state.winMs = 1000; }],
+          ['粗糙感 440/470 Hz', function () { Object.assign(state.beat, { f1: 440, f2: 470, a1: 1, a2: 1 }); state.winMs = 200; }],
+          ['振幅不等 440/444', function () { Object.assign(state.beat, { f1: 440, f2: 444, a1: 1, a2: 0.4 }); state.winMs = 1000; }]
+        ] : [
+          ['課本範例 100 Hz / 5 Hz', function () { Object.assign(state.am, { fc: 100, fm: 5, m: 0.7 }); state.winMs = 1000; }],
+          ['可聽 1000 Hz / 4 Hz', function () { Object.assign(state.am, { fc: 1000, fm: 4, m: 0.8 }); state.winMs = 1000; }],
+          ['100% 調變', function () { state.am.m = 1; }],
+          ['過調變 m = 1.4', function () { state.am.m = 1.4; }]
+        ];
+        list.forEach(function (it) {
+          const btn = document.createElement('button');
+          btn.className = 'btn btn-ghost';
+          btn.textContent = it[0];
+          btn.onclick = function () { it[1](); syncWin(); buildControls(); redraw(); };
+          pr.appendChild(btn);
+        });
+        el('tgCompsWrap').style.display = state.view === 'composite' ? '' : 'none';
+        el('tgEnvWrap').style.display = state.view === 'spectrum' ? 'none' : '';
+        el('percBox').style.display = state.mode === 'beat' ? '' : 'none';
+        document.body.classList.toggle('am-mode', state.mode === 'am');
+        updateNotes();
+      }
+      function syncWin() { el('winNum').value = state.winMs; el('winRange').value = Math.min(2000, state.winMs); }
 
-        if (barChartInstance) barChartInstance.destroy();
-        barChartInstance = new Chart(refs.barCanvas.getContext('2d'), {
-          type: 'bar',
-          data: {
-            labels: labels,
-            datasets: [{
-              data: data,
-              backgroundColor: colors,
-              borderRadius: 6
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: { y: { beginAtZero: true, max: 1.2 } },
-            plugins: { legend: { display: false } }
+      // ---------- drawing ----------
+      function drawAxesTime(ctx, x0, y0, w, h, yMax, showLabels) {
+        ctx.font = '11px "Noto Sans TC", sans-serif';
+        ctx.fillStyle = '#8a97a5';
+        ctx.strokeStyle = '#eef2f5';
+        ctx.lineWidth = 1;
+        const xs = niceStep(state.winMs, 8);
+        for (let ms = 0; ms <= state.winMs + 1e-9; ms += xs) {
+          const x = x0 + w * ms / state.winMs;
+          ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y0 + h); ctx.stroke();
+          if (showLabels) { ctx.textAlign = 'center'; ctx.fillText(fmt(ms + state.offset * 1000, 1), x, y0 + h + 16); }
+        }
+        const mid = y0 + h / 2;
+        ctx.strokeStyle = '#c7d0d9';
+        ctx.beginPath(); ctx.moveTo(x0, mid); ctx.lineTo(x0 + w, mid); ctx.stroke();
+        ctx.textAlign = 'right';
+        ctx.fillText(fmt(yMax, 1), x0 - 6, y0 + 10);
+        ctx.fillText('0', x0 - 6, mid + 4);
+        ctx.fillText('-' + fmt(yMax, 1), x0 - 6, y0 + h);
+      }
+      function plot(ctx, fn, x0, y0, w, h, yMax, color, width, dash) {
+        const N = Math.max(800, Math.round(w * 3));
+        const T = state.winMs / 1000;
+        ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineJoin = 'round';
+        ctx.setLineDash(dash || []);
+        ctx.beginPath();
+        for (let i = 0; i <= N; i++) {
+          const t = state.offset + T * i / N;
+          const x = x0 + w * i / N;
+          const y = y0 + h / 2 - fn(t) / yMax * (h / 2);
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      function peakAmp() { return state.mode === 'beat' ? state.beat.a1 + state.beat.a2 : 1 + state.am.m; }
+
+      function drawComposite(ctx, W, H) {
+        const padL = 44, padR = 12, padT = 12, padB = 30;
+        const w = W - padL - padR, h = H - padT - padB;
+        const yMax = Math.max(0.5, peakAmp()) * 1.1;
+        drawAxesTime(ctx, padL, padT, w, h, yMax, true);
+        ctx.fillStyle = '#8a97a5'; ctx.textAlign = 'right'; ctx.fillText('ms', W - padR, H - 2);
+        if (el('tgComps').checked) parts().forEach(function (p, i) {
+          if (state.mode === 'am' && i === 1) return;
+          plot(ctx, p.fn, padL, padT, w, h, yMax, p.color + '88', 1, [4, 3]);
+        });
+        plot(ctx, signalAt, padL, padT, w, h, yMax, state.mode === 'beat' ? C_BEAT : C_AM, 1.8);
+        if (el('tgEnv').checked) {
+          plot(ctx, envelopeAt, padL, padT, w, h, yMax, C_ENV, 2, [6, 4]);
+          plot(ctx, function (t) { return -envelopeAt(t); }, padL, padT, w, h, yMax, C_ENV, 2, [6, 4]);
+        }
+        canvas._map = { padL: padL, pw: w };
+      }
+      function drawParts(ctx, W, H) {
+        const padL = 44, padR = 12, padB = 26;
+        const ps = parts();
+        const rows = ps.length + 1;
+        const gap = 22;
+        const rh = (H - padB - gap * rows) / rows;
+        const w = W - padL - padR;
+        const all = ps.concat([{ name: state.mode === 'beat' ? '合成 = f₁ + f₂' : '合成 = 載波 × 調變訊號', color: state.mode === 'beat' ? C_BEAT : C_AM, fn: signalAt }]);
+        all.forEach(function (p, i) {
+          const y0 = gap + i * (rh + gap);
+          let yMax;
+          if (i === all.length - 1) yMax = Math.max(0.5, peakAmp()) * 1.1;
+          else if (state.mode === 'am' && i === 1) yMax = Math.max(1, 1 + state.am.m) * 1.1;
+          else yMax = 1.1;
+          drawAxesTime(ctx, padL, y0, w, rh, yMax, i === all.length - 1);
+          ctx.fillStyle = p.color; ctx.font = 'bold 12px "Noto Sans TC", sans-serif'; ctx.textAlign = 'left';
+          ctx.fillText(p.name, padL + 4, y0 - 6);
+          plot(ctx, p.fn, padL, y0, w, rh, yMax, p.color, 1.6);
+          if (i === all.length - 1 && el('tgEnv').checked) {
+            plot(ctx, envelopeAt, padL, y0, w, rh, yMax, C_ENV, 1.6, [6, 4]);
+            plot(ctx, function (t) { return -envelopeAt(t); }, padL, y0, w, rh, yMax, C_ENV, 1.6, [6, 4]);
           }
         });
+        ctx.fillStyle = '#8a97a5'; ctx.font = '11px "Noto Sans TC", sans-serif'; ctx.textAlign = 'right'; ctx.fillText('ms', W - padR, H - 2);
+        canvas._map = null;
       }
-    }
+      function drawSpectrum(ctx, W, H) {
+        const padL = 44, padR = 16, padT = 26, padB = 30;
+        const w = W - padL - padR, h = H - padT - padB;
+        const lines = spectrum();
+        const fs = lines.map(function (l) { return l.f; });
+        const fmin = Math.min.apply(null, fs), fmax = Math.max.apply(null, fs);
+        const span = Math.max(fmax - fmin, 4);
+        let lo = Math.max(0, fmin - span * 0.6), hi = fmax + span * 0.6;
+        const aMax = 1.2;
+        const xOf = function (f) { return padL + w * (f - lo) / (hi - lo); };
+        const yOf = function (a) { return padT + h - h * a / aMax; };
+        ctx.font = '11px "Noto Sans TC", sans-serif';
+        ctx.fillStyle = '#8a97a5'; ctx.strokeStyle = '#eef2f5'; ctx.lineWidth = 1;
+        const st = niceStep(hi - lo, 8);
+        for (let f = Math.ceil(lo / st) * st; f <= hi + 1e-9; f += st) {
+          const x = xOf(f);
+          ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, padT + h); ctx.stroke();
+          ctx.textAlign = 'center'; ctx.fillText(fmt(f, 1), x, H - 12);
+        }
+        ctx.textAlign = 'right'; ctx.fillText('Hz', W - 2, H - 1);
+        [0, 0.25, 0.5, 0.75, 1].forEach(function (a) {
+          ctx.fillText(fmt(a, 2), padL - 6, yOf(a) + 4);
+          ctx.beginPath(); ctx.moveTo(padL, yOf(a)); ctx.lineTo(padL + w, yOf(a)); ctx.stroke();
+        });
+        ctx.strokeStyle = '#c7d0d9';
+        ctx.beginPath(); ctx.moveTo(padL, yOf(0)); ctx.lineTo(padL + w, yOf(0)); ctx.stroke();
+        const bw = Math.max(10, Math.min(36, w / 20));
+        lines.forEach(function (l) {
+          const x = xOf(l.f);
+          ctx.fillStyle = l.color;
+          const top = yOf(l.a);
+          ctx.beginPath();
+          if (ctx.roundRect) ctx.roundRect(x - bw / 2, top, bw, yOf(0) - top, [6, 6, 0, 0]);
+          else ctx.rect(x - bw / 2, top, bw, yOf(0) - top);
+          ctx.fill();
+          ctx.fillStyle = '#2c3e50'; ctx.textAlign = 'center'; ctx.font = 'bold 12px "Noto Sans TC", sans-serif';
+          ctx.fillText(l.label + '  ' + fmt(l.f, 1) + ' Hz', x, top - 14);
+          ctx.font = '11px "Noto Sans TC", sans-serif'; ctx.fillStyle = '#6b7a89';
+          ctx.fillText('振幅 ' + fmt(l.a, 2), x, top - 2);
+        });
+        if (state.mode === 'beat') {
+          const b = state.beat;
+          const y = padT + 8;
+          ctx.strokeStyle = C_ENV; ctx.fillStyle = C_ENV; ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.moveTo(xOf(b.f1), y + 14); ctx.lineTo(xOf(b.f2), y + 14); ctx.stroke();
+          ctx.textAlign = 'center';
+          ctx.fillText('相差 ' + fmt(Math.abs(b.f2 - b.f1), 2) + ' Hz = 每秒拍數', (xOf(b.f1) + xOf(b.f2)) / 2, y + 30 > yOf(1) - 30 ? y + 6 : y + 30);
+        }
+        canvas._map = null;
+      }
 
-    refs.btnBeat.onclick = () => { currentMain = 'beat'; update(); };
-    refs.btnAM.onclick = () => { currentMain = 'am'; update(); };
-    refs.btnComposite.onclick = () => { currentSub = 'composite'; update(); };
-    refs.btnComponent.onclick = () => { currentSub = 'component'; update(); };
+      function draw() {
+        const s = setupCanvas(canvas);
+        const ctx = s.ctx;
+        ctx.clearRect(0, 0, s.w, s.h);
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, s.w, s.h);
+        if (state.view === 'composite') drawComposite(ctx, s.w, s.h);
+        else if (state.view === 'parts') drawParts(ctx, s.w, s.h);
+        else drawSpectrum(ctx, s.w, s.h);
+      }
 
-    // Init
-    update();
+      function stat(k, v) { return '<div class="stat"><div class="k">' + k + '</div><div class="v">' + v + '</div></div>'; }
+      function updateStats() {
+        let html = '';
+        if (state.mode === 'beat') {
+          const b = state.beat;
+          const df = Math.abs(b.f2 - b.f1);
+          html += stat('拍頻 |f₂ − f₁|', fmtHz(df));
+          html += stat('拍的週期 1/Δf', df > 0 ? fmt(1000 / df, 1) + ' ms' : '—');
+          html += stat('感知音高 ≈ (f₁+f₂)/2', fmtHz((b.f1 + b.f2) / 2));
+          html += stat('視窗內拍數', fmt(df * state.winMs / 1000, 1));
+          html += stat('最大 / 最小振幅', fmt(b.a1 + b.a2, 2) + ' / ' + fmt(Math.abs(b.a1 - b.a2), 2));
+          const mid = (b.f1 + b.f2) / 2;
+          const cb = 24.7 * (4.37 * mid / 1000 + 1);
+          const pos = Math.min(100, df < 15 ? df / 15 * 30 : df < cb ? 30 + (df - 15) / Math.max(1, cb - 15) * 40 : 70 + Math.min(30, (df - cb) / cb * 30));
+          el('percMark').style.left = pos + '%';
+          let txt;
+          if (df === 0) txt = '兩頻率相同：沒有拍音，只會依相位相加或相消。';
+          else if (df < 15) txt = '相差 ' + fmt(df, 1) + ' Hz：聽到一個音高約 ' + fmt(mid, 0) + ' Hz 的聲音，響度每秒忽大忽小 ' + fmt(df, 1) + ' 次（拍音）。';
+          else if (df < cb) txt = '相差 ' + fmt(df, 1) + ' Hz：起伏太快、聽不出一拍一拍，變成粗糙、刺耳的感覺。（此頻率附近臨界頻寬約 ' + fmt(cb, 0) + ' Hz）';
+          else txt = '相差 ' + fmt(df, 1) + ' Hz，超過臨界頻寬（約 ' + fmt(cb, 0) + ' Hz）：耳朵可以分辨出兩個不同的音。';
+          el('percText').textContent = txt;
+        } else {
+          const p = state.am;
+          html += stat('載波頻率 fc', fmtHz(p.fc));
+          html += stat('邊帶 fc ± fm', fmtHz(p.fc - p.fm) + '、' + fmtHz(p.fc + p.fm));
+          html += stat('邊帶振幅 m/2', fmt(p.m / 2, 3));
+          html += stat('頻寬 2fm', fmtHz(2 * p.fm));
+          html += stat('包絡線週期 1/fm', fmt(1000 / p.fm, 1) + ' ms');
+          html += stat('調變狀態', p.m > 1 ? '過調變' : p.m === 1 ? '100% 調變' : '調變深度 ' + Math.round(p.m * 100) + '%');
+        }
+        el('stats').innerHTML = html;
+        el('formula').textContent = state.mode === 'beat'
+          ? 'y = A₁sin(2πf₁t) + A₂sin(2πf₂t)'
+          : 'y = [1 + m·sin(2πfm·t)]·sin(2πfc·t)';
+        el('viewTitle').textContent = { composite: '複合波形', parts: '組成成分波形（由上而下：成分 → 合成）', spectrum: '組成頻譜（振幅 vs. 頻率）' }[state.view];
+      }
+
+      const NOTES = {
+        beat: '<h3>拍音 (Beats)</h3>兩個<b>頻率相近</b>的正弦波相加時，兩者的相位會週期性地「同相（相加）」與「反相（抵消）」，使合成波的振幅忽大忽小，這就是拍音。<br><b>拍頻 = |f₁ − f₂|</b>，也就是每秒聽到的響度起伏次數；聽到的音高大約是兩者的平均。<br>頻譜上仍然只有 f₁、f₂ 兩條線，拍頻本身<b>不是</b>一個新的頻率成分。<br>兩頻率差距變大時，會從「拍音」變成「粗糙感」，再大到超過臨界頻寬時則可以聽成兩個分開的音。',
+        am: '<h3>振幅調變 (AM)</h3>以較低的<b>調變頻率 fm</b> 改變<b>載波 fc</b> 的振幅：合成波 = 載波 × (1 + m·sin 2πfm·t)。<br>波形外觀與拍音很像（都有包絡線起伏），但頻譜不同：AM 有 <b>三條線</b>：載波 fc 與兩個邊帶 <b>fc − fm、fc + fm</b>（振幅各為 m/2）；拍音只有兩條線。<br>調變深度 m 決定起伏的程度，m > 1 時包絡線失真，稱為過調變。'
+      };
+      function updateNotes() { el('notesBody').innerHTML = NOTES[state.mode]; }
+
+      function redraw() { draw(); updateStats(); }
+
+      // ---------- events ----------
+      document.querySelectorAll('.mode-btn').forEach(function (b) {
+        b.addEventListener('click', function () {
+          state.mode = b.dataset.mode;
+          document.querySelectorAll('.mode-btn').forEach(function (x) { x.classList.toggle('active', x === b); x.classList.toggle('am', x === b && state.mode === 'am'); });
+          state.winMs = 1000; state.offset = 0; syncWin();
+          buildControls(); redraw();
+        });
+      });
+      document.querySelectorAll('[data-view]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          state.view = b.dataset.view;
+          document.querySelectorAll('[data-view]').forEach(function (x) { x.classList.toggle('active', x === b); });
+          buildControls(); redraw();
+        });
+      });
+      el('winRange').addEventListener('input', function () { state.winMs = parseFloat(this.value); el('winNum').value = this.value; redraw(); });
+      el('winNum').addEventListener('input', function () {
+        const v = parseFloat(this.value);
+        if (!isNaN(v) && v > 0) { state.winMs = v; el('winRange').value = Math.min(2000, v); redraw(); }
+      });
+      ['tgEnv', 'tgComps'].forEach(function (id) { el(id).addEventListener('change', redraw); });
+
+      let animId = null, lastTs = 0;
+      function animate(ts) {
+        if (lastTs) state.offset += (ts - lastTs) / 1000 * 0.25 * state.winMs / 1000;
+        lastTs = ts; draw();
+        animId = requestAnimationFrame(animate);
+      }
+      el('tgAnim').addEventListener('change', function () {
+        if (this.checked) { lastTs = 0; animId = requestAnimationFrame(animate); }
+        else { cancelAnimationFrame(animId); state.offset = 0; draw(); }
+      });
+
+      canvas.addEventListener('mousemove', function (e) {
+        const m = canvas._map;
+        const ro = el('readout');
+        if (!m) { ro.style.display = 'none'; return; }
+        const x = e.clientX - canvas.getBoundingClientRect().left;
+        if (x < m.padL || x > m.padL + m.pw) { ro.style.display = 'none'; return; }
+        const t = state.offset + (x - m.padL) / m.pw * state.winMs / 1000;
+        ro.style.display = 'block';
+        ro.textContent = 't = ' + fmt(t * 1000, 2) + ' ms，y = ' + fmt(signalAt(t), 3) + '，包絡 = ' + fmt(envelopeAt(t), 3);
+      });
+      canvas.addEventListener('mouseleave', function () { el('readout').style.display = 'none'; });
+
+      el('btnPng').addEventListener('click', function () {
+        const a = document.createElement('a');
+        a.download = (state.mode === 'beat' ? 'beats' : 'am') + '-' + state.view + '.png';
+        a.href = canvas.toDataURL('image/png');
+        a.click();
+      });
+
+      let audioCtx = null, src = null;
+      el('btnPlay').addEventListener('click', function () {
+        const btn = this;
+        if (src) { try { src.stop(); } catch (err) { } return; }
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        const sr = audioCtx.sampleRate, len = Math.floor(sr * 3);
+        const buf = audioCtx.createBuffer(1, len, sr);
+        const d = buf.getChannelData(0);
+        const peak = Math.max(0.001, peakAmp());
+        const vol = parseFloat(el('vol').value), fade = Math.floor(sr * 0.03);
+        for (let i = 0; i < len; i++) {
+          let g = 1;
+          if (i < fade) g = i / fade; else if (i > len - fade) g = (len - i) / fade;
+          d[i] = signalAt(i / sr) / peak * vol * g;
+        }
+        src = audioCtx.createBufferSource();
+        src.buffer = buf;
+        src.connect(audioCtx.destination);
+        src.onended = function () { src = null; btn.innerHTML = '<i class="fa-solid fa-play"></i> 播放 3 秒'; };
+        src.start();
+        btn.innerHTML = '<i class="fa-solid fa-stop"></i> 停止';
+      });
+
+      window.addEventListener('resize', draw);
+      buildControls();
+      redraw();
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+    })();
   </script>
 </body>
 

@@ -11,339 +11,259 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
-      --primary-color: #4a90e2;
-      --secondary-color: #34495e;
-      --success-color: #2ecc71;
-      --danger-color: #e74c3c;
-      --bg-color: #f4f7f6;
-      --card-bg: #ffffff;
-      --text-color: #333;
-      --text-muted: #7f8c8d;
+      --primary: #4a90e2;
+      --primary-dark: #357abd;
+      --primary-soft: rgba(74, 144, 226, 0.12);
+      --success: #2ecc71;
+      --danger: #e74c3c;
+      --warning: #f39c12;
+      --ink: #2c3e50;
+      --bg: #f4f7f6;
+      --card: #ffffff;
+      --text: #333;
+      --muted: #6b7a89;
+      --line: #e6ebef;
       --radius-pill: 50px;
-      --radius-md: 12px;
-      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      --transition: all 0.3s ease;
+      --radius-card: 16px;
+      --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.08);
     }
+
+    * { box-sizing: border-box; }
 
     body {
       font-family: 'Noto Sans TC', sans-serif;
       margin: 0;
-      padding: 0;
-      background-color: var(--bg-color);
-      color: var(--text-color);
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
+    }
+
+    .topbar {
       display: flex;
-      flex-direction: column;
       align-items: center;
-    }
-
-    .container {
-      width: 95%;
-      max-width: 600px;
-      margin: 60px auto;
-    }
-
-    .header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    h1 {
-      font-weight: 700;
-      color: var(--secondary-color);
-      margin-bottom: 10px;
-      font-size: 1.8rem;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border-radius: var(--radius-md);
-      box-shadow: var(--shadow);
-      padding: 35px;
-      margin-bottom: 20px;
-    }
-
-    /* Tabs / Mode Switcher */
-    .btn-group {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 30px;
+      justify-content: space-between;
+      gap: 12px;
       flex-wrap: wrap;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px 16px 0;
     }
 
-    .btn-tab {
-      padding: 10px 20px;
-      border: 2px solid transparent;
-      border-radius: var(--radius-pill);
-      background-color: #eee;
-      color: var(--text-muted);
-      font-weight: 600;
-      cursor: pointer;
-      transition: var(--transition);
-      font-size: 0.95rem;
-      flex: 1;
-      min-width: 140px;
-      text-align: center;
-    }
-
-    .btn-tab:hover {
-      background-color: #e0e0e0;
-    }
-
-    .btn-tab.active {
-      background-color: var(--primary-color);
-      color: white;
-      box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3);
-    }
-
-    label {
-      display: block;
-      margin: 15px 0 8px;
-      font-weight: 600;
-      color: var(--secondary-color);
-    }
-
-    input[type="number"],
-    select {
-      width: 100%;
-      padding: 12px 15px;
-      font-size: 1rem;
-      border: 1px solid #ddd;
-      border-radius: var(--radius-md);
-      box-sizing: border-box;
-      transition: var(--transition);
-      background: #f9f9f9;
-    }
-
-    input[type="number"]:focus,
-    select:focus {
-      border-color: var(--primary-color);
-      background: #fff;
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-    }
-
-    .btn-main {
-      width: 100%;
-      margin-top: 25px;
-      padding: 14px;
-      font-size: 1.1rem;
-      background-color: var(--primary-color);
-      color: white;
-      border: none;
-      border-radius: var(--radius-pill);
-      cursor: pointer;
-      font-weight: 700;
-      transition: var(--transition);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .btn-main:hover {
-      background-color: #357abd;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 15px rgba(74, 144, 226, 0.3);
-    }
-
-    #result {
-      margin-top: 30px;
-      font-size: 1.1rem;
-      background: #eef5fc;
-      padding: 20px;
-      border-radius: var(--radius-md);
-      border-left: 5px solid var(--primary-color);
-      min-height: 1.5em;
-      color: var(--secondary-color);
-      font-weight: 500;
-      transition: var(--transition);
-    }
-
-    .input-section {
-      display: none;
-      animation: fadeIn 0.4s ease;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* Modal Styling */
-    #instructionModal {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      width: 90%;
-      max-width: 550px;
-      max-height: 85vh;
-      overflow-y: auto;
-      transform: translate(-50%, -50%);
-      background: white;
-      border-radius: var(--radius-md);
-      padding: 35px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
-      z-index: 1000;
-    }
-
-    #instructionModal h2 {
-      margin-top: 0;
-      color: var(--secondary-color);
-      border-bottom: 2px solid #eee;
-      padding-bottom: 10px;
-    }
-
-    #instructionModal pre {
-      white-space: pre-wrap;
-      font-family: 'Noto Sans TC', sans-serif;
-      font-size: 0.95rem;
-      line-height: 1.6;
-      color: #444;
-      background: #fcfcfc;
-      padding: 15px;
-      border-radius: 8px;
-    }
-
-    #modalOverlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(3px);
-      z-index: 999;
-    }
-
-    .btn-close {
-      margin-top: 20px;
-      background-color: var(--danger-color);
-      color: white;
-      width: 100%;
-      border: none;
-      padding: 12px;
-      border-radius: var(--radius-pill);
-      font-weight: 700;
-      cursor: pointer;
-      transition: var(--transition);
-    }
-
-    .btn-close:hover {
-      background-color: #c0392b;
-    }
-
-    #backBtn {
-      position: absolute;
-      top: 30px;
-      left: 30px;
+    .back-btn {
       text-decoration: none;
-      color: var(--text-muted);
+      color: var(--muted);
       font-weight: 600;
-      background: #fff;
-      padding: 8px 18px;
+      padding: 9px 18px;
       border-radius: var(--radius-pill);
-      box-shadow: var(--shadow);
-      display: flex;
+      background: #fff;
+      box-shadow: var(--shadow-sm);
+      display: inline-flex;
       align-items: center;
       gap: 8px;
-      transition: var(--transition);
+      transition: all .2s;
     }
 
-    #backBtn:hover {
-      color: var(--primary-color);
-      transform: translateX(-5px);
+    .back-btn:hover { color: var(--primary); box-shadow: var(--shadow-md); transform: translateX(-3px); }
+
+    .tool-nav { display: flex; gap: 6px; flex-wrap: wrap; background: #fff; padding: 5px; border-radius: var(--radius-pill); box-shadow: var(--shadow-sm); }
+    .tool-nav a { text-decoration: none; color: var(--muted); font-size: .9rem; font-weight: 600; padding: 7px 14px; border-radius: var(--radius-pill); transition: all .2s; }
+    .tool-nav a:hover { color: var(--primary); background: var(--primary-soft); }
+    .tool-nav a.current { background: var(--primary); color: #fff; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 10px 16px 50px; }
+
+    .header { text-align: center; margin: 18px 0 24px; }
+    .header h1 { font-weight: 700; color: var(--ink); margin: 0 0 6px; font-size: 1.9rem; }
+    .header p { color: var(--muted); margin: 0; }
+
+    .card { background: var(--card); border-radius: var(--radius-card); box-shadow: var(--shadow-md); padding: 24px; margin-bottom: 20px; }
+    .card h2 { font-size: 1.05rem; color: var(--ink); margin: 0 0 14px; display: flex; align-items: center; gap: 8px; }
+
+    .mode-switcher { display: flex; justify-content: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+    .mode-btn {
+      padding: 11px 24px; border: 2px solid #eee; border-radius: var(--radius-pill); background: #fff;
+      color: var(--muted); font-weight: 600; cursor: pointer; font-size: 1rem; font-family: inherit;
+      transition: all .25s cubic-bezier(.175, .885, .32, 1.275);
     }
+    .mode-btn:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); }
+    .mode-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 4px 12px rgba(74, 144, 226, .3); }
 
-    @media (max-width: 480px) {
-      .container {
-        margin: 80px auto 20px;
-      }
-
-      .card {
-        padding: 20px;
-      }
-
-      .btn-tab {
-        padding: 8px 12px;
-        font-size: 0.85rem;
-      }
+    .sub-group { display: none; justify-content: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .sub-group.show { display: flex; }
+    .pill-sm {
+      padding: 7px 16px; border-radius: var(--radius-pill); border: 2px solid #ddd; background: #fff;
+      color: var(--muted); font-weight: 600; cursor: pointer; font-family: inherit; font-size: .9rem; transition: all .2s;
     }
+    .pill-sm:hover { border-color: var(--success); color: var(--success); }
+    .pill-sm.active { background: var(--success); color: #fff; border-color: var(--success); }
+
+    .layout { display: grid; grid-template-columns: 360px 1fr; gap: 20px; align-items: start; }
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+    .comp {
+      border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px;
+      background: #fafcfd; position: relative;
+    }
+    .comp-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; font-weight: 700; font-size: .92rem; }
+    .comp-head .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+    .btn-remove {
+      background: #fff; color: var(--danger); border: 2px solid #ffe3e0; width: 28px; height: 28px; border-radius: 50%;
+      cursor: pointer; font-size: 1rem; line-height: 1; transition: all .2s;
+    }
+    .btn-remove:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+
+    .slider-row { display: grid; grid-template-columns: 74px 1fr 82px; gap: 8px; align-items: center; margin: 6px 0; font-size: .88rem; }
+    .slider-row label { color: var(--muted); font-weight: 600; }
+    .slider-row input[type=range] { width: 100%; accent-color: var(--primary); }
+    .slider-row input[type=number] {
+      width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 4px 6px; font-size: .88rem; font-family: inherit;
+    }
+    .slider-row input[type=number]:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+
+    .row-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .btn {
+      padding: 9px 16px; border: none; border-radius: var(--radius-pill); font-size: .92rem; cursor: pointer; font-weight: 700;
+      display: inline-flex; align-items: center; gap: 7px; font-family: inherit; transition: all .2s;
+    }
+    .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 4px 10px rgba(74, 144, 226, .25); }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+    .btn-success { background: var(--success); color: #fff; box-shadow: 0 4px 10px rgba(46, 204, 113, .25); }
+    .btn-success:hover { background: #27ae60; transform: translateY(-2px); }
+    .btn-ghost { background: #f1f4f7; color: var(--ink); }
+    .btn-ghost:hover { background: #e4e9ee; }
+    .btn-danger { background: var(--danger); color: #fff; }
+
+    .preset-label { font-size: .85rem; color: var(--muted); font-weight: 600; margin: 14px 0 6px; }
+
+    .toolbar { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .toggles { display: flex; gap: 14px; flex-wrap: wrap; font-size: .9rem; color: var(--muted); }
+    .toggles label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+    .toggles input { accent-color: var(--primary); }
+
+    .canvas-wrap { position: relative; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #fff; }
+    .canvas-wrap canvas { display: block; width: 100%; }
+    #waveCanvas { height: 340px; }
+    #specCanvas { height: 200px; }
+    .canvas-title { font-size: .85rem; font-weight: 700; color: var(--muted); margin: 16px 0 6px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; }
+    .readout { position: absolute; top: 8px; right: 10px; background: rgba(44, 62, 80, .85); color: #fff; font-size: .78rem; padding: 4px 8px; border-radius: 6px; pointer-events: none; display: none; font-variant-numeric: tabular-nums; }
+
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 16px; }
+    .stat { background: #f7f9fb; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+    .stat .k { font-size: .78rem; color: var(--muted); font-weight: 600; }
+    .stat .v { font-size: 1.15rem; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; margin-top: 2px; }
+
+    .play-box { margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: var(--primary-soft); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; font-size: .88rem; }
+    .play-box input[type=range] { accent-color: var(--primary); width: 120px; }
+    .hint { font-size: .8rem; color: var(--muted); }
+
+    .notes { line-height: 1.75; font-size: .95rem; }
+    .notes h3 { font-size: 1rem; color: var(--ink); margin: 14px 0 4px; }
+    .notes code { background: #f1f4f7; padding: 1px 6px; border-radius: 4px; font-size: .9em; }
+    details.notes summary { cursor: pointer; font-weight: 700; color: var(--ink); }
+  </style>
+  <style>
+    .container { max-width: 960px; }
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 22px; }
+    .tab {
+      padding: 10px 18px; border: 2px solid #eee; border-radius: var(--radius-pill); background: #fff; color: var(--muted);
+      font-weight: 600; cursor: pointer; font-family: inherit; font-size: .95rem; display: inline-flex; gap: 7px; align-items: center; transition: all .2s;
+    }
+    .tab:hover { border-color: var(--primary); color: var(--primary); }
+    .tab.active { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(74, 144, 226, .3); }
+    .panel { display: none; }
+    .panel.show { display: block; animation: fade .25s ease; }
+    @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+    @media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+
+    .field { margin-bottom: 14px; }
+    .field > label { display: block; font-weight: 600; color: var(--muted); font-size: .88rem; margin-bottom: 6px; }
+    .field input, .field select {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 1rem; font-family: inherit; background: #fbfcfd;
+    }
+    .field input:focus, .field select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); background: #fff; }
+    .seg { display: inline-flex; background: #f1f4f7; padding: 4px; border-radius: var(--radius-pill); gap: 4px; flex-wrap: wrap; }
+    .seg button { border: none; background: transparent; padding: 7px 14px; border-radius: var(--radius-pill); font-weight: 600; color: var(--muted); cursor: pointer; font-family: inherit; font-size: .88rem; }
+    .seg button.active { background: #fff; color: var(--primary); box-shadow: 0 2px 5px rgba(0, 0, 0, .06); }
+    .unit-row { display: flex; gap: 8px; }
+    .unit-row input { flex: 1; }
+    .unit-row select { width: 120px; flex: none; }
+
+    .result { background: #f7f9fb; border: 1px solid var(--line); border-radius: 14px; padding: 18px; min-height: 120px; }
+    .result .big { font-size: 2rem; font-weight: 700; color: var(--primary); font-variant-numeric: tabular-nums; }
+    .result .big.neg { color: var(--danger); }
+    .result .big.pos { color: var(--success); }
+    .result .sub { color: var(--muted); font-size: .9rem; }
+    .steps { margin-top: 12px; font-size: .92rem; line-height: 1.9; border-top: 1px dashed #d8e0e7; padding-top: 10px; }
+    .steps code { background: #fff; border: 1px solid var(--line); padding: 1px 6px; border-radius: 4px; font-size: .9em; }
+    .err { color: var(--danger); font-weight: 600; }
+
+    .meter { margin-top: 16px; }
+    .meter-bar { position: relative; height: 14px; border-radius: 7px; background: linear-gradient(90deg, #2ecc71 0%, #a3d96b 30%, #f1c40f 55%, #e67e22 72%, #e74c3c 90%, #8e1b10 100%); }
+    .meter-bar .mark { position: absolute; top: -6px; width: 4px; height: 26px; background: #2c3e50; border-radius: 2px; transform: translateX(-2px); transition: left .3s; }
+    .meter-ticks { position: relative; height: 52px; font-size: .72rem; color: var(--muted); }
+    .meter-ticks span { position: absolute; transform: translateX(-50%); text-align: center; top: 4px; white-space: nowrap; }
+
+    #decayCanvas { height: 280px; }
+    .src-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+    .src-row input { flex: 1; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 1rem; font-family: inherit; }
+    .table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+    .table th, .table td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; }
+    .table th { color: var(--muted); font-weight: 600; font-size: .82rem; }
+    .table td.num { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--ink); }
+
+    .method pre {
+      white-space: pre-wrap; font-family: inherit; line-height: 1.85; font-size: .98rem; margin: 0;
+      background: #fbfcfd; border: 1px solid var(--line); border-radius: 12px; padding: 18px;
+    }
+    .formula-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 16px; }
+    .fcard { border-radius: 12px; padding: 12px 14px; background: var(--primary-soft); }
+    .fcard .t { font-size: .8rem; color: var(--muted); font-weight: 700; }
+    .fcard .f { font-size: 1.05rem; font-weight: 700; color: var(--ink); margin-top: 4px; }
+
+    .quiz-q { font-size: 1.08rem; line-height: 1.8; background: #fbfcfd; border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+    .score { font-weight: 700; color: var(--ink); }
   </style>
 </head>
 
 <body>
 
-  <a href="/" id="backBtn"><i class="fa-solid fa-chevron-left"></i> 返回首頁</a>
+  <div class="topbar">
+    <a href="/" class="back-btn"><i class="fa-solid fa-arrow-left"></i> 返回首頁</a>
+    <nav class="tool-nav" aria-label="聲學工具">
+      <a href="/wave">波形繪製</a>
+      <a href="/wave4">拍音與振幅調變</a>
+      <a href="/wave2" class="current">聲強與聲壓衰減</a>
+    </nav>
+  </div>
 
   <div class="container">
     <div class="header">
-      <h1>聲壓與聲強分析工具</h1>
+      <h1><i class="fa-solid fa-volume-high" style="color:var(--primary)"></i> 聲壓與聲強分析工具</h1>
+      <p>分貝換算、距離衰減（反比平方律）、多聲源相加，附計算步驟與隨機練習題</p>
     </div>
 
     <div class="card">
-      <!-- Main Navigation -->
-      <div class="btn-group">
-        <button id="btnInstruction" class="btn-tab" type="button"><i class="fa-solid fa-book"></i> 計算方法</button>
-        <button id="btnDbCalc" class="btn-tab" type="button"><i class="fa-solid fa-calculator"></i> 分貝計算</button>
-        <button id="btnDecayCalc" class="btn-tab" type="button"><i class="fa-solid fa-chart-line"></i> 分貝變化</button>
+      <div class="tabs">
+        <button class="tab" data-tab="method"><i class="fa-solid fa-book"></i> 計算方法</button>
+        <button class="tab active" data-tab="db"><i class="fa-solid fa-calculator"></i> 分貝計算</button>
+        <button class="tab" data-tab="decay"><i class="fa-solid fa-chart-line"></i> 分貝變化</button>
+        <button class="tab" data-tab="sum"><i class="fa-solid fa-plus-minus"></i> 分貝相加</button>
+        <button class="tab" data-tab="quiz"><i class="fa-solid fa-pen-to-square"></i> 練習題</button>
       </div>
 
-      <!-- Section: Db Calculator -->
-      <div id="dbCalcSection" class="input-section">
-        <label for="dbInputType">選擇輸入類型</label>
-        <select id="dbInputType">
-          <option value="intensity">聲強 (強度值 W/m²)</option>
-          <option value="pressure">聲壓 (壓力值 Pa)</option>
-        </select>
-
-        <label for="dbInputValue">輸入聲壓或聲強值</label>
-        <input type="number" id="dbInputValue" step="any" min="0" placeholder="請輸入正數" />
-
-        <button id="dbCalculateBtn" class="btn-main" type="button">
-          <i class="fa-solid fa-play"></i> 開始計算
-        </button>
-      </div>
-
-      <!-- Section: Decay Calculator -->
-      <div id="decayCalcSection" class="input-section">
-        <label for="decayInputType">選擇分析類型</label>
-        <select id="decayInputType">
-          <option value="intensity">聲強 (Power / Intensity)</option>
-          <option value="pressure">聲壓 (Pressure)</option>
-        </select>
-
-        <label for="decayDistance1">起點距離 1 (m)</label>
-        <input type="number" id="decayDistance1" step="any" min="0.001" placeholder="距離 1" />
-
-        <label for="decayDistance2">終點距離 2 (m)</label>
-        <input type="number" id="decayDistance2" step="any" min="0.001" placeholder="距離 2" />
-
-        <button id="decayCalculateBtn" class="btn-main" type="button">
-          <i class="fa-solid fa-bolt"></i> 計算分貝差
-        </button>
-      </div>
-
-      <!-- Result Display Area -->
-      <div id="result">點擊上方按鈕開始計算...</div>
-    </div>
-  </div>
-
-  <!-- Instruction Modal -->
-  <div id="modalOverlay"></div>
-  <div id="instructionModal" role="dialog" aria-modal="true">
-    <h2>分貝考題計算方法</h2>
-    <pre>
+      <!-- 計算方法 -->
+      <div class="panel method" id="panel-method">
+        <div class="formula-cards">
+          <div class="fcard"><div class="t">聲強級 (IL)</div><div class="f">10 · log(I / I₀)</div><div class="sub">I₀ = 10⁻¹² W/m²</div></div>
+          <div class="fcard"><div class="t">聲壓級 (SPL)</div><div class="f">20 · log(p / p₀)</div><div class="sub">p₀ = 20 μPa</div></div>
+          <div class="fcard"><div class="t">距離變化</div><div class="f">ΔdB = 20 · log(r₁ / r₂)</div><div class="sub">距離加倍 ≈ −6 dB</div></div>
+          <div class="fcard"><div class="t">聲源相加</div><div class="f">10 · log Σ 10^(Lᵢ/10)</div><div class="sub">兩個相同聲源 ≈ +3 dB</div></div>
+        </div>
+        <h2>分貝考題計算方法</h2>
+        <pre>
 一、 分貝數值計算:
 (一)先看給的是聲強(I)還是聲壓(p)?
 1. 聲強: 10 * log(I1 / I0), (I0 = 10^-12 W/m²)
@@ -358,103 +278,457 @@
 例題：
 在距離聲源 10m 處聲音為 20dB，則距離 100m 處為幾分貝？
 距離變為 10 倍，不論用聲強或聲壓計算，皆相差 -20dB。
-計算：20 + (-20) = 0 dB。
-    </pre>
-    <button id="closeInstructionBtn" class="btn-close" type="button">確認並關閉</button>
+計算：20 + (-20) = 0 dB。</pre>
+        <div class="row-actions" style="margin-top:14px">
+          <button class="btn btn-primary" id="tryExample"><i class="fa-solid fa-flask"></i> 用「分貝變化」驗算這題例題</button>
+        </div>
+      </div>
+
+      <!-- 分貝計算 -->
+      <div class="panel show" id="panel-db">
+        <div class="grid2">
+          <div>
+            <div class="field">
+              <label>計算方向</label>
+              <div class="seg" id="dbDir">
+                <button class="active" data-v="toDb">物理量 → 分貝</button>
+                <button data-v="fromDb">分貝 → 物理量</button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="dbInputType">選擇輸入類型</label>
+              <select id="dbInputType">
+                <option value="intensity">聲強 (強度值 W/m²)</option>
+                <option value="pressure">聲壓 (壓力值 Pa)</option>
+              </select>
+            </div>
+            <div class="field" id="valField">
+              <label for="dbInputValue" id="valLabel">輸入聲壓或聲強值</label>
+              <div class="unit-row">
+                <input type="number" id="dbInputValue" step="any" min="0" placeholder="可輸入 1e-6 這種科學記號" />
+                <select id="dbUnit"></select>
+              </div>
+            </div>
+            <div class="field" id="dbField" style="display:none">
+              <label for="dbLevel">輸入分貝值 (dB)</label>
+              <input type="number" id="dbLevel" step="any" placeholder="例如 60" />
+            </div>
+            <div class="row-actions" id="dbExamples"></div>
+          </div>
+          <div>
+            <div class="result" id="dbResult"><span class="sub">輸入數值後會自動計算…</span></div>
+            <div class="meter">
+              <div class="meter-bar"><div class="mark" id="meterMark" style="left:0%"></div></div>
+              <div class="meter-ticks" id="meterTicks"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 分貝變化 -->
+      <div class="panel" id="panel-decay">
+        <div class="grid2">
+          <div>
+            <div class="field">
+              <label for="decayInputType">選擇分析類型</label>
+              <select id="decayInputType">
+                <option value="intensity">聲強 (Power / Intensity)</option>
+                <option value="pressure">聲壓 (Pressure)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="decayDistance1">起點距離 1 (m)</label>
+              <input type="number" id="decayDistance1" step="any" min="0.001" placeholder="距離 1" value="10" />
+            </div>
+            <div class="field">
+              <label for="decayDistance2">終點距離 2 (m)</label>
+              <input type="number" id="decayDistance2" step="any" min="0.001" placeholder="距離 2" value="100" />
+            </div>
+            <div class="field">
+              <label for="decayLevel1">起點的分貝值 (選填，dB)</label>
+              <input type="number" id="decayLevel1" step="any" placeholder="填了就會算出終點的分貝" value="20" />
+            </div>
+          </div>
+          <div>
+            <div class="result" id="decayResult"></div>
+          </div>
+        </div>
+        <div class="canvas-title"><span>分貝 vs. 距離（對數距離軸）</span><span class="hint">每加倍距離約 −6 dB；每 10 倍距離 −20 dB</span></div>
+        <div class="canvas-wrap"><canvas id="decayCanvas"></canvas></div>
+      </div>
+
+      <!-- 分貝相加 -->
+      <div class="panel" id="panel-sum">
+        <div class="grid2">
+          <div>
+            <p class="hint" style="margin-top:0">多個<b>不相關</b>聲源同時發聲時，要先把分貝換回聲強再相加，不能直接把 dB 相加。</p>
+            <div id="srcList"></div>
+            <div class="row-actions">
+              <button class="btn btn-success" id="addSrc"><i class="fa-solid fa-plus"></i> 新增聲源</button>
+              <button class="btn btn-ghost" id="sumEx1">範例：60 + 60 dB</button>
+              <button class="btn btn-ghost" id="sumEx2">範例：80 + 70 dB</button>
+            </div>
+          </div>
+          <div>
+            <div class="result" id="sumResult"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 練習題 -->
+      <div class="panel" id="panel-quiz">
+        <div class="quiz-q" id="quizQ"></div>
+        <div class="unit-row" style="max-width:420px">
+          <input type="number" id="quizAns" step="any" placeholder="你的答案 (dB)，按 Enter 送出" style="padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:1rem;font-family:inherit" />
+          <button class="btn btn-primary" id="quizCheck">對答案</button>
+        </div>
+        <div class="row-actions">
+          <button class="btn btn-ghost" id="quizNext"><i class="fa-solid fa-shuffle"></i> 換一題</button>
+          <button class="btn btn-ghost" id="quizShow"><i class="fa-regular fa-eye"></i> 看解答</button>
+          <span class="score" id="quizScore" style="align-self:center"></span>
+        </div>
+        <div class="result" id="quizResult" style="margin-top:14px;min-height:0"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><i class="fa-solid fa-table-list"></i> 常見聲音的分貝參考</h2>
+      <table class="table">
+        <thead><tr><th>聲音</th><th>約略 dB SPL</th><th>聲壓 (Pa)</th><th>聲強 (W/m²)</th></tr></thead>
+        <tbody id="refTable"></tbody>
+      </table>
+      <p class="hint">數值為常見教科書的約略值，實際依距離與環境而異。</p>
+    </div>
   </div>
 
   <script>
-    (() => {
-      const refs = {
-        btnInstruction: document.getElementById('btnInstruction'),
-        btnDbCalc: document.getElementById('btnDbCalc'),
-        btnDecayCalc: document.getElementById('btnDecayCalc'),
-        dbCalcSection: document.getElementById('dbCalcSection'),
-        decayCalcSection: document.getElementById('decayCalcSection'),
-        resultEl: document.getElementById('result'),
-        modalOverlay: document.getElementById('modalOverlay'),
-        modal: document.getElementById('instructionModal'),
-        btnCloseModal: document.getElementById('closeInstructionBtn'),
-        // Inputs
-        dbType: document.getElementById('dbInputType'),
-        dbVal: document.getElementById('dbInputValue'),
-        dbCalcBtn: document.getElementById('dbCalculateBtn'),
-        decayType: document.getElementById('decayInputType'),
-        d1: document.getElementById('decayDistance1'),
-        d2: document.getElementById('decayDistance2'),
-        decayCalcBtn: document.getElementById('decayCalculateBtn')
-      };
-
+    (function () {
       const I0 = 1e-12;
       const p0 = 20e-6;
+      const el = (id) => document.getElementById(id);
+      const log10 = Math.log10;
 
-      function resetActive() {
-        [refs.btnDbCalc, refs.btnDecayCalc, refs.btnInstruction].forEach(b => b.classList.remove('active'));
+      function fmt(n, d) {
+        if (!isFinite(n)) return '—';
+        return Number(n.toFixed(d === undefined ? 2 : d)).toString();
+      }
+      function sci(x) {
+        if (x === 0) return '0';
+        if (!isFinite(x)) return '—';
+        const e = Math.floor(log10(Math.abs(x)));
+        if (e >= -2 && e <= 3) return Number(x.toPrecision(4)).toString();
+        const m = x / Math.pow(10, e);
+        return Number(m.toPrecision(3)) + ' × 10<sup>' + e + '</sup>';
       }
 
-      function showSection(type) {
-        resetActive();
-        refs.dbCalcSection.style.display = type === 'db' ? 'block' : 'none';
-        refs.decayCalcSection.style.display = type === 'decay' ? 'block' : 'none';
+      // ---------- tabs ----------
+      function showTab(name) {
+        document.querySelectorAll('.tab').forEach(function (t) { t.classList.toggle('active', t.dataset.tab === name); });
+        document.querySelectorAll('.panel').forEach(function (p) { p.classList.toggle('show', p.id === 'panel-' + name); });
+        if (name === 'decay') calcDecay();
+        try { history.replaceState(null, '', '#' + name); } catch (e) { }
+      }
+      document.querySelectorAll('.tab').forEach(function (t) { t.addEventListener('click', function () { showTab(t.dataset.tab); }); });
 
-        if (type === 'db') refs.btnDbCalc.classList.add('active');
-        if (type === 'decay') refs.btnDecayCalc.classList.add('active');
-
-        refs.resultEl.textContent = '等待輸入...';
+      // ---------- reference levels ----------
+      const REFS = [
+        [0, '聽覺閾值 (1 kHz)'], [10, '呼吸聲'], [30, '耳語、安靜圖書館'], [60, '一般對話'],
+        [85, '職業噪音容許標準'], [100, '電鑽、地下鐵'], [120, '痛覺閾值'], [140, '槍聲、飛機引擎旁']
+      ];
+      el('refTable').innerHTML = REFS.map(function (r) {
+        const p = p0 * Math.pow(10, r[0] / 20), I = I0 * Math.pow(10, r[0] / 10);
+        return '<tr><td>' + r[1] + '</td><td class="num">' + r[0] + ' dB</td><td>' + sci(p) + '</td><td>' + sci(I) + '</td></tr>';
+      }).join('');
+      el('meterTicks').innerHTML = [0, 30, 60, 85, 120, 140].map(function (v, i) {
+        const name = { 0: '聽閾', 30: '耳語', 60: '對話', 85: '85 標準', 120: '痛閾', 140: '' }[v];
+        const pos = v / 140 * 100;
+        return '<span style="left:' + pos + '%;' + (i === 0 ? 'transform:none;' : '') + (v === 140 ? 'transform:translateX(-100%);' : '') + '">' + v + '<br>' + name + '</span>';
+      }).join('');
+      function setMeter(db) {
+        el('meterMark').style.left = Math.max(0, Math.min(100, db / 140 * 100)) + '%';
+      }
+      function describe(db) {
+        let best = REFS[0];
+        REFS.forEach(function (r) { if (Math.abs(r[0] - db) < Math.abs(best[0] - db)) best = r; });
+        if (db < 0) return '低於標準聽覺閾值';
+        return '接近「' + best[1] + '」(' + best[0] + ' dB)';
       }
 
-      refs.btnDbCalc.onclick = () => showSection('db');
-      refs.btnDecayCalc.onclick = () => showSection('decay');
-
-      refs.btnInstruction.onclick = () => {
-        refs.modal.style.display = 'block';
-        refs.modalOverlay.style.display = 'block';
+      // ---------- dB calculator ----------
+      let dir = 'toDb';
+      const UNITS = {
+        intensity: [['W/m²', 1], ['mW/m²', 1e-3], ['μW/m²', 1e-6], ['pW/m²', 1e-12]],
+        pressure: [['Pa', 1], ['mPa', 1e-3], ['μPa', 1e-6]]
       };
+      function fillUnits() {
+        const t = el('dbInputType').value;
+        el('dbUnit').innerHTML = UNITS[t].map(function (u, i) { return '<option value="' + u[1] + '">' + u[0] + '</option>'; }).join('');
+        el('valLabel').textContent = t === 'intensity' ? '輸入聲強值 I' : '輸入聲壓值 p';
+        const ex = el('dbExamples');
+        ex.innerHTML = '';
+        const list = t === 'intensity' ? [['10⁻⁶ W/m²', '1e-6'], ['1 W/m²', '1'], ['10⁻¹² W/m²', '1e-12']] : [['0.02 Pa', '0.02'], ['2 Pa', '2'], ['20 Pa', '20']];
+        if (dir === 'fromDb') list.length = 0;
+        list.forEach(function (it) {
+          const b = document.createElement('button');
+          b.className = 'btn btn-ghost';
+          b.textContent = '試試 ' + it[0];
+          b.onclick = function () { el('dbInputValue').value = it[1]; el('dbUnit').value = '1'; calcDb(); };
+          ex.appendChild(b);
+        });
+      }
+      document.querySelectorAll('#dbDir button').forEach(function (b) {
+        b.addEventListener('click', function () {
+          dir = b.dataset.v;
+          document.querySelectorAll('#dbDir button').forEach(function (x) { x.classList.toggle('active', x === b); });
+          el('valField').style.display = dir === 'toDb' ? '' : 'none';
+          el('dbField').style.display = dir === 'fromDb' ? '' : 'none';
+          fillUnits(); calcDb();
+        });
+      });
+      el('dbInputType').addEventListener('change', function () { fillUnits(); calcDb(); });
+      ['dbInputValue', 'dbUnit', 'dbLevel'].forEach(function (id) { el(id).addEventListener('input', calcDb); });
 
-      const hideModal = () => {
-        refs.modal.style.display = 'none';
-        refs.modalOverlay.style.display = 'none';
-      };
-      refs.btnCloseModal.onclick = hideModal;
-      refs.modalOverlay.onclick = hideModal;
-
-      // Logic for Db Calculation
-      refs.dbCalcBtn.onclick = () => {
-        const val = parseFloat(refs.dbVal.value);
-        if (isNaN(val) || val <= 0) {
-          refs.resultEl.textContent = '❌ 請輸入有效的正數';
-          return;
+      function calcDb() {
+        const t = el('dbInputType').value;
+        const out = el('dbResult');
+        if (dir === 'toDb') {
+          const raw = el('dbInputValue').value;
+          if (raw === '') { out.innerHTML = '<span class="sub">輸入數值後會自動計算…</span>'; return; }
+          const val = parseFloat(raw) * parseFloat(el('dbUnit').value);
+          if (isNaN(val) || val <= 0) { out.innerHTML = '<span class="err">❌ 請輸入有效的正數</span>'; return; }
+          let db, steps;
+          if (t === 'intensity') {
+            db = 10 * log10(val / I0);
+            steps = '公式：<code>L = 10 · log(I / I₀)</code><br>代入：<code>10 · log(' + sci(val) + ' / 10<sup>-12</sup>)</code><br>' +
+              '比值 I / I₀ = ' + sci(val / I0) + '，log 值 = ' + fmt(log10(val / I0), 4) + '<br>結果：10 × ' + fmt(log10(val / I0), 4) + ' = <b>' + fmt(db) + ' dB</b>';
+          } else {
+            db = 20 * log10(val / p0);
+            steps = '公式：<code>L = 20 · log(p / p₀)</code><br>代入：<code>20 · log(' + sci(val) + ' / 2 × 10<sup>-5</sup>)</code><br>' +
+              '比值 p / p₀ = ' + sci(val / p0) + '，log 值 = ' + fmt(log10(val / p0), 4) + '<br>結果：20 × ' + fmt(log10(val / p0), 4) + ' = <b>' + fmt(db) + ' dB</b>';
+          }
+          out.innerHTML = '<div class="sub">計算結果</div><div class="big">' + fmt(db) + ' dB</div>' +
+            '<div class="sub">' + (t === 'intensity' ? '聲強級 dB IL' : '聲壓級 dB SPL') + '，' + describe(db) + '</div>' +
+            '<div class="steps">' + steps + '</div>';
+          setMeter(db);
+        } else {
+          const db = parseFloat(el('dbLevel').value);
+          if (isNaN(db)) { out.innerHTML = '<span class="sub">輸入分貝值後會自動計算…</span>'; return; }
+          const I = I0 * Math.pow(10, db / 10), p = p0 * Math.pow(10, db / 20);
+          const main = t === 'intensity'
+            ? '<div class="big">' + sci(I) + ' W/m²</div>'
+            : '<div class="big">' + sci(p) + ' Pa</div>';
+          const steps = t === 'intensity'
+            ? '由 <code>L = 10 · log(I / I₀)</code> 反推：<code>I = I₀ × 10<sup>L/10</sup></code><br>= 10<sup>-12</sup> × 10<sup>' + fmt(db / 10, 3) + '</sup> = <b>' + sci(I) + ' W/m²</b>'
+            : '由 <code>L = 20 · log(p / p₀)</code> 反推：<code>p = p₀ × 10<sup>L/20</sup></code><br>= 2 × 10<sup>-5</sup> × 10<sup>' + fmt(db / 20, 3) + '</sup> = <b>' + sci(p) + ' Pa</b>';
+          out.innerHTML = '<div class="sub">' + (t === 'intensity' ? '對應聲強' : '對應聲壓') + '</div>' + main +
+            '<div class="sub">' + describe(db) + '</div><div class="steps">' + steps + '</div>';
+          setMeter(db);
         }
+      }
 
-        let db = (refs.dbType.value === 'intensity')
-          ? 10 * Math.log10(val / I0)
-          : 20 * Math.log10(val / p0);
+      // ---------- decay ----------
+      ['decayInputType', 'decayDistance1', 'decayDistance2', 'decayLevel1'].forEach(function (id) { el(id).addEventListener('input', calcDecay); });
+      el('tryExample').addEventListener('click', function () {
+        el('decayDistance1').value = 10; el('decayDistance2').value = 100; el('decayLevel1').value = 20;
+        showTab('decay');
+      });
 
-        refs.resultEl.innerHTML = `計算結果:<br><strong style="font-size:1.4rem; color:#4a90e2;">${db.toFixed(2)} dB</strong>`;
-      };
-
-      // Logic for Decay Calculation
-      refs.decayCalcBtn.onclick = () => {
-        const r1 = parseFloat(refs.d1.value);
-        const r2 = parseFloat(refs.d2.value);
-
+      function calcDecay() {
+        const r1 = parseFloat(el('decayDistance1').value);
+        const r2 = parseFloat(el('decayDistance2').value);
+        const L1raw = el('decayLevel1').value;
+        const L1 = parseFloat(L1raw);
+        const t = el('decayInputType').value;
+        const out = el('decayResult');
         if (isNaN(r1) || r1 <= 0 || isNaN(r2) || r2 <= 0) {
-          refs.resultEl.textContent = '❌ 請輸入有效的距離數值';
+          out.innerHTML = '<span class="err">❌ 請輸入有效的距離數值</span>';
+          drawDecay(null);
           return;
         }
-
-        // dB difference is always 20*log10(r1/r2) for both pressure and intensity-based distance changes 
-        // because Intensity follows 1/r^2 (10*log(r1^2/r2^2) = 20*log(r1/r2))
-        // and Pressure follows 1/r (20*log(r1/r2))
-        const diff = 20 * Math.log10(r1 / r2);
+        // dB difference is 20*log10(r1/r2) for both: I ∝ 1/r² → 10log(r1²/r2²); p ∝ 1/r → 20log(r1/r2)
+        const diff = 20 * log10(r1 / r2);
         const sign = diff > 0 ? '增加' : (diff < 0 ? '減少' : '無變化');
+        const ratio = r2 / r1;
+        let steps;
+        if (t === 'intensity') {
+          steps = '聲強與距離平方成反比：<code>I₂ / I₁ = (r₁ / r₂)²</code> = (' + fmt(r1, 3) + ' / ' + fmt(r2, 3) + ')² = ' + sci(Math.pow(r1 / r2, 2)) +
+            '<br>分貝差 = <code>10 · log(I₂ / I₁)</code> = 10 · log(' + sci(Math.pow(r1 / r2, 2)) + ') = <b>' + fmt(diff) + ' dB</b>';
+        } else {
+          steps = '聲壓與距離成反比：<code>p₂ / p₁ = r₁ / r₂</code> = ' + fmt(r1, 3) + ' / ' + fmt(r2, 3) + ' = ' + sci(r1 / r2) +
+            '<br>分貝差 = <code>20 · log(p₂ / p₁)</code> = 20 · log(' + sci(r1 / r2) + ') = <b>' + fmt(diff) + ' dB</b>';
+        }
+        steps += '<br>（兩種算法結果相同，都等於 <code>20 · log(r₁ / r₂)</code>）';
+        let extra = '';
+        if (L1raw !== '' && !isNaN(L1)) {
+          extra = '<div class="steps">終點分貝：' + fmt(L1) + ' + (' + fmt(diff) + ') = <b style="font-size:1.2rem">' + fmt(L1 + diff) + ' dB</b></div>';
+        }
+        out.innerHTML = '<div class="sub">分貝差值（距離變為 ' + fmt(ratio, 3) + ' 倍）</div>' +
+          '<div class="big ' + (diff > 0 ? 'pos' : diff < 0 ? 'neg' : '') + '">' + (diff > 0 ? '+' : '') + fmt(diff) + ' dB</div>' +
+          '<div class="sub">' + sign + '；' + (t === 'intensity' ? '聲強變為 ' + sci(Math.pow(r1 / r2, 2)) + ' 倍' : '聲壓變為 ' + sci(r1 / r2) + ' 倍') + '</div>' +
+          '<div class="steps">' + steps + '</div>' + extra;
+        drawDecay({ r1: r1, r2: r2, L1: (L1raw !== '' && !isNaN(L1)) ? L1 : 0, rel: L1raw === '' || isNaN(L1) });
+      }
 
-        refs.resultEl.innerHTML = `分貝差值:<br><strong style="font-size:1.4rem; color:${diff >= 0 ? '#2ecc71' : '#e74c3c'};">${diff.toFixed(2)} dB</strong> (${sign})`;
-      };
+      function drawDecay(d) {
+        const c = el('decayCanvas');
+        if (!c.offsetParent) return;
+        const dpr = window.devicePixelRatio || 1;
+        const rect = c.getBoundingClientRect();
+        const W = Math.max(200, Math.round(rect.width)), H = Math.round(rect.height);
+        c.width = W * dpr; c.height = H * dpr;
+        const ctx = c.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
+        if (!d) return;
+        const padL = 54, padR = 16, padT = 16, padB = 34;
+        const w = W - padL - padR, h = H - padT - padB;
+        const rmin = Math.min(d.r1, d.r2), rmax = Math.max(d.r1, d.r2);
+        const lo = Math.pow(10, Math.floor(log10(rmin)) - (rmin === rmax ? 1 : 0)), hi = Math.pow(10, Math.ceil(log10(rmax)) + (rmin === rmax ? 1 : 0));
+        const lvl = function (r) { return d.L1 + 20 * log10(d.r1 / r); };
+        const yHi = lvl(lo), yLo = lvl(hi);
+        const pad = (yHi - yLo) * 0.08 + 1;
+        const ymax = yHi + pad, ymin = yLo - pad;
+        const xOf = function (r) { return padL + w * (log10(r) - log10(lo)) / (log10(hi) - log10(lo)); };
+        const yOf = function (v) { return padT + h * (ymax - v) / (ymax - ymin); };
+        ctx.font = '11px "Noto Sans TC", sans-serif';
+        ctx.strokeStyle = '#eef2f5'; ctx.fillStyle = '#8a97a5'; ctx.lineWidth = 1;
+        for (let e = log10(lo); e <= log10(hi) + 1e-9; e++) {
+          for (let k = 1; k < 10; k++) {
+            const r = k * Math.pow(10, e);
+            if (r > hi * 1.0001) break;
+            const x = xOf(r);
+            ctx.strokeStyle = k === 1 ? '#dde4ea' : '#f3f6f8';
+            ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, padT + h); ctx.stroke();
+            if (k === 1) { ctx.textAlign = 'center'; ctx.fillText(fmt(r, 3) + ' m', x, H - 14); }
+          }
+        }
+        const step = Math.max(1, Math.round((ymax - ymin) / 6 / 5) * 5) || 5;
+        ctx.strokeStyle = '#eef2f5';
+        for (let v = Math.ceil(ymin / step) * step; v <= ymax; v += step) {
+          ctx.beginPath(); ctx.moveTo(padL, yOf(v)); ctx.lineTo(padL + w, yOf(v)); ctx.stroke();
+          ctx.textAlign = 'right'; ctx.fillText(fmt(v, 0) + (d.rel ? '' : ' dB'), padL - 6, yOf(v) + 4);
+        }
+        if (d.rel) { ctx.save(); ctx.translate(12, padT + h / 2); ctx.rotate(-Math.PI / 2); ctx.textAlign = 'center'; ctx.fillText('相對 dB', 0, 0); ctx.restore(); }
+        ctx.strokeStyle = '#4a90e2'; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(xOf(lo), yOf(lvl(lo))); ctx.lineTo(xOf(hi), yOf(lvl(hi))); ctx.stroke();
+        [[d.r1, '起點', '#2c3e50'], [d.r2, '終點', '#e74c3c']].forEach(function (p) {
+          const x = xOf(p[0]), y = yOf(lvl(p[0]));
+          ctx.setLineDash([4, 4]); ctx.strokeStyle = p[2] + '88'; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, padT + h); ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = p[2]; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill();
+          ctx.font = 'bold 12px "Noto Sans TC", sans-serif';
+          ctx.textAlign = x > padL + w - 80 ? 'right' : 'left';
+          ctx.fillText(p[1] + ' ' + fmt(p[0], 3) + ' m，' + fmt(lvl(p[0])) + (d.rel ? '（相對）' : ' dB'), x + (ctx.textAlign === 'left' ? 10 : -10), y - 10);
+          ctx.font = '11px "Noto Sans TC", sans-serif';
+        });
+      }
 
-      // Inits
-      showSection('db');
+      // ---------- sum ----------
+      let sources = [60, 60];
+      function renderSources() {
+        const list = el('srcList');
+        list.innerHTML = '';
+        sources.forEach(function (v, i) {
+          const row = document.createElement('div');
+          row.className = 'src-row';
+          const lab = document.createElement('span');
+          lab.textContent = '聲源 ' + (i + 1);
+          lab.style.cssText = 'width:60px;color:var(--muted);font-weight:600;font-size:.9rem';
+          const inp = document.createElement('input');
+          inp.type = 'number'; inp.step = 'any'; inp.value = v; inp.placeholder = 'dB';
+          inp.addEventListener('input', function () { sources[i] = parseFloat(inp.value); calcSum(); });
+          const rm = document.createElement('button');
+          rm.className = 'btn-remove'; rm.textContent = '×'; rm.title = '移除';
+          rm.disabled = sources.length <= 1;
+          rm.onclick = function () { sources.splice(i, 1); renderSources(); calcSum(); };
+          row.appendChild(lab); row.appendChild(inp); row.appendChild(rm);
+          list.appendChild(row);
+        });
+      }
+      function calcSum() {
+        const vals = sources.filter(function (v) { return !isNaN(v); });
+        const out = el('sumResult');
+        if (!vals.length) { out.innerHTML = '<span class="sub">請輸入至少一個分貝值</span>'; return; }
+        const terms = vals.map(function (v) { return Math.pow(10, v / 10); });
+        const total = 10 * log10(terms.reduce(function (a, b) { return a + b; }, 0));
+        const naive = vals.reduce(function (a, b) { return a + b; }, 0);
+        const allSame = vals.every(function (v) { return v === vals[0]; });
+        let steps = '1. 每個分貝換回相對聲強：' + vals.map(function (v) { return '10<sup>' + fmt(v / 10, 2) + '</sup>'; }).join(' + ') +
+          '<br>2. 相加：' + sci(terms.reduce(function (a, b) { return a + b; }, 0)) +
+          '<br>3. 取 10 · log：<b>' + fmt(total) + ' dB</b>';
+        if (allSame && vals.length > 1) steps += '<br>捷徑：' + vals.length + ' 個相同聲源 = ' + fmt(vals[0]) + ' + 10 · log(' + vals.length + ') = ' + fmt(vals[0]) + ' + ' + fmt(10 * log10(vals.length)) + ' dB';
+        if (vals.length === 2 && !allSame) {
+          const d = Math.abs(vals[0] - vals[1]);
+          steps += '<br>小提醒：兩聲源相差 ' + fmt(d, 1) + ' dB，總和只比較大者多 ' + fmt(total - Math.max(vals[0], vals[1])) + ' dB（相差 10 dB 以上時，較小者幾乎可忽略）';
+        }
+        out.innerHTML = '<div class="sub">合成總聲級</div><div class="big">' + fmt(total) + ' dB</div>' +
+          '<div class="sub">⚠ 直接相加會得到 ' + fmt(naive) + ' dB，這是錯的</div><div class="steps">' + steps + '</div>';
+      }
+      el('addSrc').addEventListener('click', function () { if (sources.length < 10) { sources.push(60); renderSources(); calcSum(); } });
+      el('sumEx1').addEventListener('click', function () { sources = [60, 60]; renderSources(); calcSum(); });
+      el('sumEx2').addEventListener('click', function () { sources = [80, 70]; renderSources(); calcSum(); });
 
+      // ---------- quiz ----------
+      let quiz = null, right = 0, total = 0;
+      const pick = function (a) { return a[Math.floor(Math.random() * a.length)]; };
+      function newQuiz() {
+        const kind = pick(['I', 'p', 'decay', 'decay', 'sum']);
+        if (kind === 'I') {
+          const e = pick([-10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0]);
+          const m = pick([1, 1, 1, 2, 5]);
+          const I = m * Math.pow(10, e);
+          const ans = 10 * log10(I / I0);
+          quiz = { q: '某聲音的聲強為 <b>' + sci(I) + ' W/m²</b>，請問其聲強級為多少 dB？', ans: ans,
+            sol: '10 · log(' + sci(I) + ' / 10<sup>-12</sup>) = 10 · log(' + sci(I / I0) + ') = <b>' + fmt(ans) + ' dB</b>' };
+        } else if (kind === 'p') {
+          const p = pick([0.0002, 0.002, 0.02, 0.2, 2, 20, 0.04, 0.2, 200]);
+          const ans = 20 * log10(p / p0);
+          quiz = { q: '某聲音的聲壓為 <b>' + sci(p) + ' Pa</b>，請問其聲壓級為多少 dB SPL？', ans: ans,
+            sol: '20 · log(' + sci(p) + ' / 2 × 10<sup>-5</sup>) = 20 · log(' + sci(p / p0) + ') = <b>' + fmt(ans) + ' dB</b>' };
+        } else if (kind === 'decay') {
+          const r1 = pick([1, 2, 5, 10, 20]);
+          const k = pick([2, 4, 10, 0.5, 0.1, 100]);
+          const r2 = +(r1 * k).toPrecision(4);
+          const L1 = pick([20, 40, 60, 70, 80, 90]);
+          const diff = 20 * log10(r1 / r2);
+          quiz = { q: '在距離聲源 <b>' + r1 + ' m</b> 處聲音為 <b>' + L1 + ' dB</b>，則距離 <b>' + r2 + ' m</b> 處為幾分貝？', ans: L1 + diff,
+            sol: '距離變為 ' + fmt(r2 / r1, 3) + ' 倍，分貝差 = 20 · log(' + r1 + ' / ' + r2 + ') = ' + fmt(diff) + ' dB<br>' + L1 + ' + (' + fmt(diff) + ') = <b>' + fmt(L1 + diff) + ' dB</b>' };
+        } else {
+          const a = pick([50, 60, 70, 80]);
+          const b = a - pick([0, 0, 3, 6, 10]);
+          const ans = 10 * log10(Math.pow(10, a / 10) + Math.pow(10, b / 10));
+          quiz = { q: '兩個不相關的聲源分別為 <b>' + a + ' dB</b> 與 <b>' + b + ' dB</b>，同時發聲時總聲級約為多少 dB？', ans: ans,
+            sol: '10 · log(10<sup>' + a / 10 + '</sup> + 10<sup>' + b / 10 + '</sup>) = <b>' + fmt(ans) + ' dB</b>' };
+        }
+        el('quizQ').innerHTML = quiz.q;
+        el('quizAns').value = '';
+        el('quizResult').innerHTML = '<span class="sub">答案誤差在 ±0.5 dB 內就算對。</span>';
+      }
+      function checkQuiz() {
+        const v = parseFloat(el('quizAns').value);
+        if (isNaN(v)) { el('quizResult').innerHTML = '<span class="err">請先輸入答案</span>'; return; }
+        total++;
+        const ok = Math.abs(v - quiz.ans) <= 0.5;
+        if (ok) right++;
+        el('quizResult').innerHTML = (ok ? '<b style="color:var(--success)">✔ 答對了！</b>' : '<b style="color:var(--danger)">✘ 再想想，正確答案是 ' + fmt(quiz.ans) + ' dB</b>') +
+          '<div class="steps">' + quiz.sol + '</div>';
+        el('quizScore').textContent = '得分 ' + right + ' / ' + total;
+      }
+      el('quizCheck').addEventListener('click', checkQuiz);
+      el('quizAns').addEventListener('keydown', function (e) { if (e.key === 'Enter') checkQuiz(); });
+      el('quizNext').addEventListener('click', newQuiz);
+      el('quizShow').addEventListener('click', function () { el('quizResult').innerHTML = '<div class="steps" style="border:none;margin:0;padding:0">' + quiz.sol + '</div>'; });
+
+      window.addEventListener('resize', function () { if (el('panel-decay').classList.contains('show')) calcDecay(); });
+
+      // ---------- init ----------
+      fillUnits();
+      calcDb();
+      renderSources(); calcSum();
+      newQuiz();
+      const h = (location.hash || '').replace('#', '');
+      if (['method', 'db', 'decay', 'sum', 'quiz'].indexOf(h) >= 0) showTab(h);
     })();
   </script>
 </body>

@@ -1,1093 +1,1125 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>rate-level function</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    max-width: 600px;
-    margin: 2rem auto;
-    padding: 0 1rem;
-    background: white;
-    color: #222;
-  }
-  h1 {
-    text-align: center;
-    margin-bottom: 1rem;
-  }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>rate-level function</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg: #f3f6fb;
+      --card: #ffffff;
+      --card-soft: #f7f9fc;
+      --line: #e3e8f0;
+      --text: #1f2a37;
+      --muted: #6b7a8c;
+      --primary: #3b7ddd;
+      --primary-soft: rgba(59, 125, 221, .12);
+      --stim: #3b7ddd;
+      --cm: #8e5bd0;
+      --sp: #e08a1e;
+      --ap: #e04f4f;
+      --mix: #1fa67a;
+      --grid: #edf1f6;
+      --axis: #b8c2cf;
+      --shadow: 0 6px 24px rgba(31, 42, 55, .07);
+      --radius: 16px;
+    }
 
-  #cochlea-bar {
-    display: flex;
-    flex-direction: row; /* 由左到右 */
-    justify-content: space-between;
-    margin-bottom: 1rem;
-  }
-  .segment {
-    flex: 1; /* 五等寬按鈕 */
-    margin: 0 4px;
-    background: #ccc;
-    border: 1px solid #666;
-    cursor: pointer;
-    position: relative;
-    border-radius: 4px;
-    transition: background-color 0.3s;
-    height: 40px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 0.85rem;
-    text-align: center;
-    user-select: none;
-  }
-  .segment:hover {
-    background-color: #69a;
-  }
-  .segment span {
-    display: block;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    width: 100%;
-    white-space: normal; /* 允許換行 */
-  }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0f1520;
+        --card: #18212e;
+        --card-soft: #1e2938;
+        --line: #2a3647;
+        --text: #e6ecf3;
+        --muted: #93a1b3;
+        --primary: #6aa3f0;
+        --primary-soft: rgba(106, 163, 240, .16);
+        --stim: #6aa3f0;
+        --cm: #b48cf0;
+        --sp: #f2a640;
+        --ap: #f27171;
+        --mix: #3ccf9b;
+        --grid: #222d3c;
+        --axis: #4a586b;
+        --shadow: 0 6px 24px rgba(0, 0, 0, .35);
+      }
+    }
 
-  /* 獨立模組 */
-  #ratelevel-container, #curve-container {
-    border: 1px solid #bbb;
-    border-radius: 8px;
-    background: white;
-    padding: 1rem;
-    max-width: 600px;
-    margin: 0 auto 1rem auto; /* 各模組上下間隔並置中 */
-  }
+    :root[data-theme="dark"] {
+      --bg: #0f1520;
+      --card: #18212e;
+      --card-soft: #1e2938;
+      --line: #2a3647;
+      --text: #e6ecf3;
+      --muted: #93a1b3;
+      --primary: #6aa3f0;
+      --primary-soft: rgba(106, 163, 240, .16);
+      --stim: #6aa3f0;
+      --cm: #b48cf0;
+      --sp: #f2a640;
+      --ap: #f27171;
+      --mix: #3ccf9b;
+      --grid: #222d3c;
+      --axis: #4a586b;
+      --shadow: 0 6px 24px rgba(0, 0, 0, .35);
+    }
 
-  #ratelevelCanvas {
-    width: 100%;
-    height: 240px;
-    background: #fafafa;
-    border-radius: 6px;
-    border: 1px solid #bbb;
-    display: block;
-  }
+    * { box-sizing: border-box; }
 
-  #tuningCurveCanvas {
-    width: 100%;
-    height: 240px;
-    display: block;
-  }
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
 
-  #ratelevel-info,
-  #info {
-    font-size: 0.9rem;
-    color: #555;
-    margin-top: 0.5rem;
-    white-space: pre-wrap;
-  }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 20px;
+      background: color-mix(in srgb, var(--card) 88%, transparent);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
 
-  canvas {
-    display: block;
-  }
+    .topbar a, .icon-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: .92rem;
+      background: var(--card-soft);
+      border: 1px solid var(--line);
+      padding: 7px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: color .2s, border-color .2s;
+    }
 
-  #cf-marker {
-    font-weight: bold;
-    fill: #222;
-    font-size: 12px;
-    text-anchor: middle;
-  }
+    .topbar a:hover, .icon-btn:hover { color: var(--primary); border-color: var(--primary); }
 
-  /* 新增響應區彈窗樣式 */
-  #responseAreaModal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    width: 600px; /* 放大視窗 */
-    height: 240px;
-    transform: translate(-50%, -50%);
-    background: transparent !important;
-    border: none !important;
-    border-radius: 10px;
-    box-shadow: none !important;
-    z-index: 1000;
-    display: none;
-    padding: 10px;
-    box-sizing: border-box;
-  }
-  #responseAreaModal canvas {
-    display: block;
-    margin: 0 auto;
-    background: #fafafa;
-    border: 1px solid #bbb;
-    border-radius: 6px;
-  }
-  #responseAreaModal p {
-    text-align: center;
-    margin-top: 6px;
-    font-weight: bold;
-    font-size: 1rem;
-    color: #333;
-  }
-  #responseCloseBtn {
-    position: absolute;
-    top: 4px;
-    right: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 1.4rem;
-    color: #666;
-    user-select: none;
-  }
-  #responseCloseBtn:hover {
-    color: #000;
-  }
-</style>
+    .topbar .crumbs { display: flex; gap: 8px; flex-wrap: wrap; }
+    .topbar .crumbs a.active { color: var(--primary); border-color: var(--primary); background: var(--primary-soft); }
+
+    .container {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 16px 60px;
+    }
+
+    .hero { text-align: center; margin-bottom: 24px; }
+    .hero h1 { margin: 0 0 6px; font-size: 1.9rem; }
+    .hero p { margin: 0; color: var(--muted); }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      margin: 0 0 14px;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card h2 i { color: var(--primary); }
+
+    /* Controls */
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px 24px;
+    }
+
+    .ctrl label {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+      font-size: .92rem;
+      margin-bottom: 6px;
+    }
+
+    .ctrl label output { color: var(--primary); font-variant-numeric: tabular-nums; }
+
+    input[type="range"] { width: 100%; accent-color: var(--primary); }
+
+    .num-row { display: flex; gap: 8px; align-items: center; }
+
+    .num-row input[type="number"] {
+      width: 110px;
+      padding: 7px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: var(--card-soft);
+      color: var(--text);
+      font: inherit;
+      text-align: center;
+    }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+    .chip {
+      border: 1px solid var(--line);
+      background: var(--card-soft);
+      color: var(--text);
+      padding: 4px 11px;
+      border-radius: 999px;
+      font-size: .82rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .15s;
+    }
+
+    .chip:hover { border-color: var(--primary); color: var(--primary); }
+    .chip.on { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+    .btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: none;
+      padding: 9px 18px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-family: inherit;
+      font-size: .92rem;
+      cursor: pointer;
+      background: var(--primary);
+      color: #fff;
+      transition: transform .15s, filter .15s;
+    }
+
+    .btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .btn.ghost { background: var(--card-soft); color: var(--text); border: 1px solid var(--line); }
+
+    /* Insight */
+    .insight {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    .stat {
+      background: var(--card-soft);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+
+    .stat .k { font-size: .8rem; color: var(--muted); }
+    .stat .v { font-size: 1.05rem; font-weight: 700; margin-top: 2px; }
+    .stat .d { font-size: .82rem; color: var(--muted); margin-top: 4px; }
+
+    /* Plots */
+    .plot { margin-bottom: 14px; }
+
+    .plot-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .plot-title { font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+    .canvas-wrap {
+      position: relative;
+      width: 100%;
+      background: var(--card-soft);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    canvas { display: block; width: 100%; touch-action: none; }
+
+    .grid3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 18px;
+    }
+
+    .toggles { display: flex; flex-wrap: wrap; gap: 12px; font-size: .85rem; color: var(--muted); }
+    .toggles label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+
+    details.explain {
+      margin-top: 10px;
+      background: var(--card-soft);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 14px;
+    }
+
+    details.explain summary { cursor: pointer; font-weight: 600; color: var(--primary); }
+    details.explain p { margin: 10px 0 2px; font-size: .93rem; }
+
+    /* Quiz */
+    .quiz-q { margin-bottom: 16px; }
+    .quiz-q .q { font-weight: 600; margin-bottom: 8px; }
+    .quiz-opts { display: flex; flex-wrap: wrap; gap: 8px; }
+    .quiz-opts button { font-size: .88rem; }
+    .quiz-opts button.right { background: var(--mix); color: #fff; border-color: var(--mix); }
+    .quiz-opts button.wrong { background: var(--ap); color: #fff; border-color: var(--ap); }
+    .quiz-fb { font-size: .88rem; margin-top: 6px; color: var(--muted); min-height: 1.2em; }
+
+    .legend-note { font-size: .82rem; color: var(--muted); margin-top: 6px; }
+
+    @media (max-width: 640px) {
+      .hero h1 { font-size: 1.5rem; }
+      .card { padding: 16px; }
+      .topbar .crumbs a span { display: none; }
+    }
+  
+    :root { --cf: #e04f4f; --curve: #2f9b5f; --ra: #c0392b; --tc: #2f6fd6; --bm: #2f7fcf; --nerve: #d0542a; }
+    :root[data-theme="dark"] { --cf: #f27171; --curve: #4cc483; --ra: #f27171; --tc: #6aa3f0; --bm: #6aa3f0; --nerve: #f2894f; }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) { --cf: #f27171; --curve: #4cc483; --ra: #f27171; --tc: #6aa3f0; --bm: #6aa3f0; --nerve: #f2894f; }
+    }
+
+    /* unrolled basilar membrane selector */
+    .bm-wrap { position: relative; }
+    .bm-ends { display: flex; justify-content: space-between; font-size: .8rem; color: var(--muted); margin-bottom: 6px; }
+    #cochlea-bar {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+    .segment {
+      position: relative;
+      border: 2px solid var(--line);
+      border-radius: 12px;
+      cursor: pointer;
+      user-select: none;
+      text-align: center;
+      padding: 10px 4px;
+      font-size: .85rem;
+      line-height: 1.35;
+      color: var(--text);
+      background: var(--card-soft);
+      transition: transform .15s, border-color .15s, box-shadow .15s;
+    }
+    .segment::before {
+      content: "";
+      display: block;
+      margin: 0 auto 8px;
+      height: 8px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #f0b45b, #e26d5a);
+    }
+    #seg1::before { width: 30%; }
+    #seg3::before { width: 45%; }
+    #seg5::before { width: 60%; }
+    #seg7::before { width: 78%; }
+    #seg8::before { width: 95%; }
+    .segment small { display: block; color: var(--muted); font-size: .75rem; }
+    .segment:hover { transform: translateY(-2px); border-color: var(--primary); }
+    .segment[aria-pressed="true"] {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+      box-shadow: 0 0 0 3px var(--primary-soft);
+      font-weight: 700;
+    }
+    .bm-note { font-size: .8rem; color: var(--muted); margin-top: 8px; }
+
+    .main-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+    .sub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+
+    .cut-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px 22px; margin-top: 14px; }
+    .ctrl.ra label output { color: var(--ra); }
+    .ctrl.tc label output { color: var(--tc); }
+    .ctrl.ra input[type=range] { accent-color: var(--ra); }
+    .ctrl.tc input[type=range] { accent-color: var(--tc); }
+
+    .freq-legend { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .freq-legend .chip.cf { border-color: var(--cf); color: var(--cf); font-weight: 700; }
+    .freq-legend .chip.on { background: var(--curve); border-color: var(--curve); color: #fff; }
+    .freq-legend .chip.cf.on { background: var(--cf); border-color: var(--cf); color: #fff; }
+
+    .readout { font-size: .88rem; color: var(--muted); margin-top: 8px; min-height: 1.4em; }
+    .readout b { color: var(--text); }
+
+    .hint {
+      background: var(--card-soft);
+      border: 1px dashed var(--line);
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: .9rem;
+    }
+    .hint ul { margin: 6px 0; padding-left: 1.2em; }
+
+    .seg-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 14px; }
+
+    @media (max-width: 640px) {
+      .segment { font-size: .72rem; padding: 8px 2px; }
+      .segment small { font-size: .66rem; }
+    }
+  </style>
 </head>
+
 <body>
 
-<h1>rate-level function</h1>
+  <div class="topbar">
+    <a href="/"><i class="fa-solid fa-chevron-left"></i> 返回首頁</a>
+    <div class="crumbs">
+      <a href="/wave3" title="耳蝸電位"><i class="fa-solid fa-wave-square"></i><span>耳蝸電位</span></a>
+      <a href="/two_tone" title="雙音抑制"><i class="fa-solid fa-chart-column"></i><span>雙音抑制</span></a>
+      <a href="/cochlear" class="active" title="rate-level function"><i class="fa-solid fa-chart-line"></i><span>rate-level</span></a>
+    </div>
+    <button class="icon-btn" id="themeBtn" title="切換深淺色"><i class="fa-solid fa-circle-half-stroke"></i></button>
+  </div>
 
-<!-- 五個按鈕，從左到右特徵頻率由高到低 -->
-<div id="cochlea-bar" aria-label="耳蝸基底膜頻率位置選擇">
-  <div class="segment" id="seg1" tabindex="0" role="button" aria-pressed="false"><span>耳蝸基底部<br>高頻</span></div>
-  <div class="segment" id="seg3" tabindex="0" role="button" aria-pressed="false"><span>耳蝸近基底部<br>中高頻</span></div>
-  <div class="segment" id="seg5" tabindex="0" role="button" aria-pressed="false"><span>耳蝸中段部<br>中頻</span></div>
-  <div class="segment" id="seg7" tabindex="0" role="button" aria-pressed="false"><span>耳蝸近頂端部<br>中低頻</span></div>
-  <div class="segment" id="seg8" tabindex="0" role="button" aria-pressed="false"><span>耳蝸頂端部<br>低頻</span></div>
-</div>
+  <div class="container">
+    <div class="hero">
+      <h1>rate-level function</h1>
+      <p>選擇耳蝸位置，從 rate-level function 切出 Response Area (RA) 與 Tuning Curve (TC)</p>
+    </div>
 
-<!-- 獨立模組：rate-level function -->
-<div id="ratelevel-container" aria-label="rate-level function 顯示區">
-  <canvas id="ratelevelCanvas" width="600" height="240"></canvas>
-  <p id="ratelevel-info">請點擊上方按鈕以查看該位置的rate-level function。</p>
-</div>
+    <!-- 位置選擇 -->
+    <div class="card">
+      <h2><i class="fa-solid fa-ear-listen"></i> 耳蝸基底膜位置</h2>
+      <div class="bm-wrap">
+        <div class="bm-ends"><span>← 基底部（窄、硬）</span><span>頂端部（寬、軟）→</span></div>
+        <!-- 五個按鈕，從左到右特徵頻率由高到低 -->
+        <div id="cochlea-bar" aria-label="耳蝸基底膜頻率位置選擇">
+          <div class="segment" id="seg1" tabindex="0" role="button" aria-pressed="false">耳蝸基底部<small>高頻</small></div>
+          <div class="segment" id="seg3" tabindex="0" role="button" aria-pressed="false">耳蝸近基底部<small>中高頻</small></div>
+          <div class="segment" id="seg5" tabindex="0" role="button" aria-pressed="false">耳蝸中段部<small>中頻</small></div>
+          <div class="segment" id="seg7" tabindex="0" role="button" aria-pressed="false">耳蝸近頂端部<small>中低頻</small></div>
+          <div class="segment" id="seg8" tabindex="0" role="button" aria-pressed="false">耳蝸頂端部<small>低頻</small></div>
+        </div>
+        <div class="bm-note">色條長度代表基底膜寬度：基底部窄而硬，對高頻反應；頂端部寬而軟，對低頻反應（音調拓樸 tonotopy）。可用 ← → 鍵切換位置。</div>
+      </div>
+      <div class="seg-info">
+        <div class="stat"><div class="k">區域</div><div class="v" id="infoLabel">—</div></div>
+        <div class="stat"><div class="k">頻率範圍</div><div class="v" id="infoRange">—</div></div>
+        <div class="stat"><div class="k">特徵頻率 (CF)</div><div class="v" id="infoCF" style="color:var(--cf)">—</div></div>
+      </div>
+    </div>
 
-<!-- 獨立模組：調諧曲線 -->
-<div id="curve-container" aria-label="調諧曲線顯示區">
-  <canvas id="tuningCurveCanvas" width="600" height="240"></canvas>
-  <p id="info">請點擊耳蝸不同位置以查看基底膜與聽神經調諧曲線及特徵頻率。</p>
-</div>
+    <div class="main-grid">
+      <!-- rate-level function -->
+      <div class="card" id="ratelevel-container" aria-label="rate-level function 顯示區">
+        <h2><i class="fa-solid fa-chart-line"></i> <span id="rlTitle">rate-level function</span></h2>
+        <div class="canvas-wrap"><canvas id="ratelevelCanvas" data-h="320"></canvas></div>
+        <div class="freq-legend" id="freqLegend"></div>
+        <div class="cut-controls">
+          <div class="ctrl ra">
+            <label for="dbCut"><span><i class="fa-solid fa-grip-lines-vertical"></i> 紅線：固定強度切 RA</span> <output id="dbCutOut"></output></label>
+            <input type="range" id="dbCut" min="0" max="90" step="1" value="50">
+          </div>
+          <div class="ctrl tc">
+            <label for="rateCut"><span><i class="fa-solid fa-grip-lines"></i> 藍線：固定放電率切 TC</span> <output id="rateCutOut"></output></label>
+            <input type="range" id="rateCut" min="5" max="95" step="1" value="40">
+          </div>
+        </div>
+        <div class="readout" id="ratelevel-info"></div>
+      </div>
 
-<!-- 響應區彈窗 -->
-<div id="responseAreaModal" role="dialog" aria-modal="true" aria-labelledby="responseTitle" aria-describedby="responseDesc">
-  <div id="responseCloseBtn" tabindex="0" role="button" aria-label="關閉響應區視窗">&times;</div>
-  <canvas id="responseAreaCanvas" width="600" height="240"></canvas>
-  <p id="responseDesc"></p>
-</div>
+      <div class="sub-grid">
+        <div class="card">
+          <h2><i class="fa-solid fa-chart-area" style="color:var(--ra)"></i> Response Area (RA)</h2>
+          <div class="canvas-wrap"><canvas id="responseAreaCanvas" data-h="260"></canvas></div>
+          <p class="readout" id="responseDesc">Respone Area(RA):顯示該位置的聽神經對不同頻率產生的放電率</p>
+        </div>
+        <div class="card">
+          <h2><i class="fa-solid fa-chart-line" style="color:var(--tc)"></i> Tuning Curve (TC)</h2>
+          <div class="canvas-wrap"><canvas id="tcCanvas" data-h="260"></canvas></div>
+          <p class="readout" id="tcDesc">Tuning Curve(TC):顯示該位置的聽神經對不同頻率的閾值(dB)</p>
+        </div>
+      </div>
 
-<script>
-  const cochleaSegments = {
-    seg1: {label: "耳蝸基底部", freqRange: [12000, 20000], CF: 18000},
-    seg3: {label: "耳蝸近基底部", freqRange: [4000, 7000], CF: 5500},
-    seg5: {label: "耳蝸中部", freqRange: [1000, 2000], CF: 1400},
-    seg7: {label: "耳蝸近頂端部", freqRange: [200, 600], CF: 350},
-    seg8: {label: "耳蝸頂端部", freqRange: [20, 200], CF: 100}
-  };
+      <!-- 調諧曲線 -->
+      <div class="card" id="curve-container" aria-label="調諧曲線顯示區">
+        <div class="plot-head">
+          <h2 style="margin:0"><i class="fa-solid fa-wave-square"></i> 基底膜與聽神經調諧曲線</h2>
+          <div class="toggles"><label><input type="checkbox" id="showAll"> 疊上所有位置（比較音調拓樸）</label></div>
+        </div>
+        <div class="canvas-wrap" style="margin-top:10px"><canvas id="tuningCurveCanvas" data-h="300"></canvas></div>
+        <p class="readout" id="info">請點擊耳蝸不同位置以查看基底膜與聽神經調諧曲線及特徵頻率。</p>
+        <p class="readout" id="tuneHover">把滑鼠移到曲線圖上，可讀出該頻率的閾值與響應區。</p>
+      </div>
 
-  const globalFreqMin = 20;
-  const globalFreqMax = 20000;
-  const logGlobalMin = Math.log10(globalFreqMin);
-  const logGlobalMax = Math.log10(globalFreqMax);
+      <div class="card">
+        <h2><i class="fa-solid fa-circle-info"></i> 提示</h2>
+        <div class="hint">
+          <ul>
+            <li>懸停 x 座標：顯示紅色線；懸停 y 座標：顯示藍色線（虛線為預覽）。</li>
+            <li>點擊 x 座標（或拖曳紅線）：會切出所有頻率曲線在該 x 座標對應的 y 座標，並連線畫出 Response Area (RA)。</li>
+            <li>點擊 y 座標（點左側刻度區或拖曳藍線）：會切出所有頻率曲線在該 y 座標對應的 x 座標，並連線畫出 Tuning Curve (TC)。</li>
+            <li>點下方頻率標籤可單獨突顯某一條 rate-level function；紅色粗線為特徵頻率 (CF)。</li>
+          </ul>
+          *三種曲線(rate-level function, RA, TC)請參考基礎聽力科學講義之上課內容
+        </div>
+      </div>
+    </div>
+  </div>
 
-  function generateTuningCurve(freqRange, CF) {
-    const fStart = globalFreqMin;
-    const fEnd = freqRange[1];
-    const nPoints = 150;
-    const logStart = Math.log10(fStart);
-    const logEnd = Math.log10(fEnd);
-    const logCF = Math.log10(CF);
+  <script>
+    (function () {
+      const root = document.documentElement;
+      try {
+        const saved = localStorage.getItem('cochleaTheme');
+        if (saved) root.setAttribute('data-theme', saved);
+      } catch (e) { }
+      function css(n) { return getComputedStyle(root).getPropertyValue(n).trim(); }
+      document.getElementById('themeBtn').addEventListener('click', function () {
+        const dark = css('--bg') === '#0f1520';
+        const next = dark ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        try { localStorage.setItem('cochleaTheme', next); } catch (e) { }
+        drawAll();
+      });
+      const FONT = '"Noto Sans TC", sans-serif';
 
-    const points = [];
-    for (let i = 0; i <= nPoints; i++) {
-      const logF = logStart + (logEnd - logStart) * (i / nPoints);
-      const freq = Math.pow(10, logF);
+      // ================= Data (unchanged from the original page) =================
+      const cochleaSegments = {
+        seg1: { label: "耳蝸基底部", freqRange: [12000, 20000], CF: 18000 },
+        seg3: { label: "耳蝸近基底部", freqRange: [4000, 7000], CF: 5500 },
+        seg5: { label: "耳蝸中部", freqRange: [1000, 2000], CF: 1400 },
+        seg7: { label: "耳蝸近頂端部", freqRange: [200, 600], CF: 350 },
+        seg8: { label: "耳蝸頂端部", freqRange: [20, 200], CF: 100 }
+      };
+      const segOrder = ['seg1', 'seg3', 'seg5', 'seg7', 'seg8'];
 
-      // 先計算原始比例閾值 (0~1)
-      let rawThreshold;
-      if (logF < logCF) {
-        const normPos = (logF - logStart) / (logCF - logStart);
-        rawThreshold = 0.7 - 0.6 * normPos;
-        if (rawThreshold < 0.1) rawThreshold = 0.1;
-      } else {
-        const sigma = 0.15;
-        const distance = Math.abs(logF - logCF);
-        rawThreshold = distance <= sigma * 3 ?
-          0.1 + (distance / (sigma * 3)) * (1 - 0.1) : 1;
-      }
+      const globalFreqMin = 20;
+      const globalFreqMax = 20000;
+      const logGlobalMin = Math.log10(globalFreqMin);
+      const logGlobalMax = Math.log10(globalFreqMax);
 
-      // 轉換成分貝刻度 (0~90)
-      const rawDB = rawThreshold * 90;
-      let adjustedDB;
+      function generateTuningCurve(freqRange, CF) {
+        const fStart = globalFreqMin;
+        const fEnd = freqRange[1];
+        const nPoints = 150;
+        const logStart = Math.log10(fStart);
+        const logEnd = Math.log10(fEnd);
+        const logCF = Math.log10(CF);
 
-      // 用你給的邏輯調整分貝數值
-      if (CF >= 4000) { // 高特徵頻率門檻調整
-        if (logF < logCF) {
-          if (rawDB > 60) {
-            adjustedDB = 60 + (rawDB - 60) * 0.1;
+        const points = [];
+        for (let i = 0; i <= nPoints; i++) {
+          const logF = logStart + (logEnd - logStart) * (i / nPoints);
+          const freq = Math.pow(10, logF);
+
+          // 先計算原始比例閾值 (0~1)
+          let rawThreshold;
+          if (logF < logCF) {
+            const normPos = (logF - logStart) / (logCF - logStart);
+            rawThreshold = 0.7 - 0.6 * normPos;
+            if (rawThreshold < 0.1) rawThreshold = 0.1;
           } else {
-            const slopeFactor = 2.5;
-            const diffFrom60 = 60 - rawDB;
-            adjustedDB = 60 + diffFrom60 * slopeFactor;
-            if (adjustedDB > 60) adjustedDB = 60;
+            const sigma = 0.15;
+            const distance = Math.abs(logF - logCF);
+            rawThreshold = distance <= sigma * 3 ?
+              0.1 + (distance / (sigma * 3)) * (1 - 0.1) : 1;
           }
-        } else {
-          adjustedDB = rawDB;
-        }
-      } else {
-        // 低特徵頻率完整V字型，不調整
-        adjustedDB = rawDB;
-      }
 
-      // 調整後再轉回比例
-      let baseMemThreshold = adjustedDB / 90;
-      if (baseMemThreshold > 1) baseMemThreshold = 1;
-
-      // 聽神經閾值比基底膜閾值高0.05
-      let nerveThreshold = baseMemThreshold + 0.05;
-      if (nerveThreshold > 1) nerveThreshold = 1;
-
-      points.push({
-        freq: freq.toFixed(0),
-        baseMemThreshold,
-        nerveThreshold
-      });
-    }
-    return points;
-  }
-
-  const dbMin = 0, dbMax = 90, dbStep = 10;
-  const dbLevels = [];
-  for(let db=dbMin; db<=dbMax; db+=dbStep) dbLevels.push(db);
-
-  const rateLevelFunctions = {
-    seg1: {
-      freqs: [12000, 15000, 17000, 18000, 19000, 20000],
-      rates: {
-        12000: [5, 15, 30, 50, 60, 75, 85, 90, 95, 96],
-        15000: [3, 10, 25, 40, 55, 70, 80, 87, 90, 91],
-        17000: [2, 8, 20, 35, 50, 65, 75, 85, 90, 90],
-        18000: [10, 25, 45, 70, 85, 95, 98, 99, 100, 100],
-        19000: [1, 6, 18, 32, 45, 60, 72, 80, 82, 85],
-        20000: [0, 4, 15, 28, 40, 58, 70, 78, 80, 82]
-      }
-    },
-    seg3: {
-      freqs: [4000, 5000, 5500, 6000, 6500, 6800, 7000],
-      rates: {
-        4000: [5, 10, 20, 35, 50, 65, 75, 82, 85, 87],
-        5000: [7, 15, 30, 50, 65, 78, 85, 90, 92, 93],
-        5500: [9, 20, 40, 60, 75, 85, 90, 92, 94, 95],
-        6000: [3, 10, 22, 40, 60, 70, 80, 85, 88, 90],
-        6500: [2, 8, 18, 35, 55, 68, 75, 80, 83, 85],
-        6800: [1, 5, 15, 30, 50, 62, 70, 75, 78, 80],
-        7000: [0, 3, 12, 25, 45, 58, 65, 72, 75, 77]
-      }
-    },
-    seg5: {
-      freqs: [1000, 1300, 1400, 1600, 1800, 2000],
-      rates: {
-        1000: [4, 9, 18, 30, 45, 60, 68, 75, 80, 82],
-        1300: [5, 12, 20, 35, 50, 65, 73, 80, 85, 87],
-        1400: [9, 20, 35, 50, 65, 80, 90, 95, 98, 99],
-        1600: [3, 8, 15, 30, 48, 60, 70, 75, 78, 80],
-        1800: [1, 6, 12, 25, 45, 55, 65, 70, 75, 77],
-        2000: [0, 4, 10, 20, 35, 50, 60, 68, 72, 75]
-      }
-    },
-    seg7: {
-      freqs: [200, 300, 350, 450, 550, 600],
-      rates: {
-        200: [2, 5, 10, 20, 30, 45, 50, 55, 60, 62],
-        300: [1, 3, 8, 18, 28, 40, 45, 50, 55, 57],
-        350: [5, 10, 25, 40, 55, 70, 80, 85, 90, 92],
-        450: [1, 5, 10, 20, 30, 45, 50, 55, 60, 62],
-        550: [0, 3, 7, 15, 25, 38, 45, 52, 58, 60],
-        600: [0, 2, 5, 12, 20, 35, 40, 45, 50, 52]
-      }
-    },
-    seg8: {
-      freqs: [20, 50, 80, 100, 120, 150, 200],
-      rates: {
-        20: [1, 3, 10, 15, 25, 35, 40, 45, 50, 52],
-        50: [0, 2, 8, 12, 20, 30, 35, 38, 40, 42],
-        80: [2, 5, 15, 20, 30, 42, 48, 52, 55, 56],
-        100: [3, 6, 18, 30, 45, 60, 70, 75, 78, 80],
-        120: [1, 3, 10, 15, 25, 35, 40, 45, 50, 52],
-        150: [0, 2, 7, 12, 22, 30, 36, 40, 45, 48],
-        200: [0, 1, 5, 10, 18, 25, 32, 38, 42, 45]
-      }
-    }
-  };
-
-  const responseAreas = {
-    0.1: "高響應區 (閾值附近)",
-    0.3: "中等響應區",
-    0.5: "低響應區",
-    0.7: "非常低響應區",
-    1.0: "無響應"
-  };
-
-  const tuningCanvas = document.getElementById('tuningCurveCanvas');
-  const tuningCtx = tuningCanvas.getContext('2d');
-  const rateCanvas = document.getElementById('ratelevelCanvas');
-  const rateCtx = rateCanvas.getContext('2d');
-  const info = document.getElementById('info');
-  const rateInfo = document.getElementById('ratelevel-info');
-
-  let currentCurveData = null;
-  let currentSegment = null;
-
-  let hoverX = null;
-  let hoverY = null;
-
-  let selectedY = null;
-
-  const ratelevelPaddingMap = {
-    seg1: {paddingLeft: 38, paddingRight: 65},
-    seg3: {paddingLeft: 38, paddingRight: 65},
-    seg5: {paddingLeft: 38, paddingRight: 65},
-    seg7: {paddingLeft: 50, paddingRight: 40},
-    seg8: {paddingLeft: 50, paddingRight: 40}
-  };
-
-  function drawTuningCurve(curveData, segment) {
-    const w = tuningCanvas.width;
-    const h = tuningCanvas.height;
-    tuningCtx.clearRect(0, 0, w, h);
-
-    const paddingLeft = 50, paddingRight = 20, paddingTop = 40, paddingBottom = 40;
-
-    tuningCtx.strokeStyle = "#333";
-    tuningCtx.lineWidth = 1;
-    tuningCtx.font = '12px Arial';
-    tuningCtx.fillStyle = "#222";
-    tuningCtx.textAlign = 'center';
-    tuningCtx.textBaseline = "middle";
-
-    tuningCtx.beginPath();
-    tuningCtx.moveTo(paddingLeft-10, h - paddingBottom);
-    tuningCtx.lineTo(w-paddingRight, h - paddingBottom);
-    tuningCtx.stroke();
-
-    const xTicks = [20, 100, 500, 1000, 5000, 10000, 20000];
-    xTicks.forEach(f => {
-      if (f < globalFreqMin || f > globalFreqMax) return;
-      const x = paddingLeft + (Math.log10(f) - logGlobalMin) / (logGlobalMax - logGlobalMin) * (w - paddingLeft - paddingRight);
-      tuningCtx.beginPath();
-      tuningCtx.moveTo(x, h - paddingBottom);
-      tuningCtx.lineTo(x, h - paddingBottom + 6);
-      tuningCtx.stroke();
-      tuningCtx.fillText(f >= 1000 ? (f / 1000) + 'k' : f.toString(), x, h - paddingBottom + 16);
-    });
-
-    tuningCtx.textAlign = "right";
-
-    const yTicks = 6;
-    tuningCtx.textBaseline = "middle";
-    for (let i = 0; i < yTicks; i++) {
-      const y = paddingTop + i * (h - paddingTop - paddingBottom) / (yTicks - 1);
-      const value = 90 - i * (90 / (yTicks - 1));
-      tuningCtx.beginPath();
-      tuningCtx.moveTo(paddingLeft - 4, y);
-      tuningCtx.lineTo(paddingLeft, y);
-      tuningCtx.stroke();
-      tuningCtx.fillText(value.toFixed(0), paddingLeft - 8, y);
-    }
-
-    function getXY(i, threshold) {
-      const freqLog = Math.log10(curveData[i].freq);
-      const x = paddingLeft + (freqLog - logGlobalMin) / (logGlobalMax - logGlobalMin) * (w - paddingLeft - paddingRight);
-      const y = h - paddingBottom - threshold * (h - paddingTop - paddingBottom);
-      return { x, y };
-    }
-
-    tuningCtx.strokeStyle = "#007acc";
-    tuningCtx.lineWidth = 2;
-    tuningCtx.beginPath();
-    curveData.forEach((p, i) => {
-      const { x, y } = getXY(i, p.baseMemThreshold);
-      if (i === 0) tuningCtx.moveTo(x, y);
-      else tuningCtx.lineTo(x, y);
-    });
-    tuningCtx.stroke();
-
-    tuningCtx.strokeStyle = "#cc3300";
-    tuningCtx.lineWidth = 2;
-    tuningCtx.beginPath();
-    curveData.forEach((p, i) => {
-      const { x, y } = getXY(i, p.nerveThreshold);
-      if (i === 0) tuningCtx.moveTo(x, y);
-      else tuningCtx.lineTo(x, y);
-    });
-    tuningCtx.stroke();
-
-    const logCF = Math.log10(segment.CF);
-    const xCF = paddingLeft + (logCF - logGlobalMin) / (logGlobalMax - logGlobalMin) * (w - paddingLeft - paddingRight);
-    const yCF = h - paddingBottom - 0.1 * (h - paddingTop - paddingBottom);
-
-    tuningCtx.strokeStyle = "#555";
-    tuningCtx.lineWidth = 1;
-    tuningCtx.beginPath();
-    tuningCtx.moveTo(paddingLeft, h - paddingBottom);
-    tuningCtx.lineTo(paddingLeft, paddingTop);
-    tuningCtx.stroke();
-
-    tuningCtx.fillStyle = "#222";
-    tuningCtx.font = "bold 12px Arial";
-    tuningCtx.textAlign = "center";
-    tuningCtx.fillText(`特徵頻率: ${segment.CF} Hz`, xCF, yCF - 10);
-
-    tuningCtx.fillStyle = "#007acc";
-    tuningCtx.fillRect(w - 140, paddingTop, 15, 15);
-    tuningCtx.fillStyle = "#222";
-    tuningCtx.textAlign = "left";
-    tuningCtx.fillText("基底膜閾值曲線", w - 120, paddingTop + 12);
-
-    tuningCtx.fillStyle = "#cc3300";
-    tuningCtx.fillRect(w - 140, paddingTop + 25, 15, 15);
-    tuningCtx.fillStyle = "#222";
-    tuningCtx.fillText("聽神經閾值曲線", w - 120, paddingTop + 37);
-
-    info.textContent = `區域: ${segment.label} | 頻率範圍: ${curveData[0].freq} Hz - ${curveData[curveData.length - 1].freq} Hz`;
-
-    currentCurveData = curveData;
-    currentSegment = segment;
-
-    tuningCanvas._paddingLeft = paddingLeft;
-    tuningCanvas._paddingRight = paddingRight;
-    tuningCanvas._paddingTop = paddingTop;
-    tuningCanvas._paddingBottom = paddingBottom;
-  }
-
-  function rateLevelIsHoveringY(yPos, mouseY) {
-    return Math.abs(yPos - mouseY) < 10;
-  }
-
-  function drawRateLevel(rateData, segment) {
-    const w = rateCanvas.width;
-    const h = rateCanvas.height;
-    rateCtx.clearRect(0, 0, w, h);
-
-    rateCtx.fillStyle = "#fafafa";
-    rateCtx.fillRect(0, 0, w, h);
-
-    const paddingLeft = ratelevelPaddingMap[segment.id]?.paddingLeft ?? 50;
-    const paddingRight = ratelevelPaddingMap[segment.id]?.paddingRight ?? 40;
-    const paddingTop = 40, paddingBottom = 40;
-
-    rateCanvas._paddingLeft = paddingLeft;
-    rateCanvas._paddingRight = paddingRight;
-    rateCanvas._paddingTop = paddingTop;
-    rateCanvas._paddingBottom = paddingBottom;
-
-    rateCtx.fillStyle = "#222";
-    rateCtx.font = "bold 14px Arial";
-    rateCtx.textAlign = "center";
-    rateCtx.fillText(`${segment.label} 的 rate-level function`, w / 2, 20);
-
-    rateCtx.strokeStyle = "#333";
-    rateCtx.lineWidth = 1;
-    rateCtx.font = '12px Arial';
-    rateCtx.textAlign = 'center';
-    rateCtx.textBaseline = "middle";
-
-    rateCtx.beginPath();
-    rateCtx.moveTo(paddingLeft, h - paddingBottom);
-    rateCtx.lineTo(w - paddingRight, h - paddingBottom);
-    rateCtx.stroke();
-
-    const xTicksDB = [];
-    for (let db = dbMin; db <= dbMax; db += 10) xTicksDB.push(db);
-    xTicksDB.forEach(db => {
-      const x = paddingLeft + (db - dbMin) / (dbMax - dbMin) * (w - paddingLeft - paddingRight);
-      rateCtx.beginPath();
-      rateCtx.moveTo(x, h - paddingBottom);
-      rateCtx.lineTo(x, h - paddingBottom + 6);
-      rateCtx.stroke();
-      rateCtx.fillText(db + " dB", x, h - paddingBottom + 16);
-    });
-
-    rateCtx.textAlign = "right";
-    rateCtx.fillText('放電率', paddingLeft +5, paddingTop - 20);
-    
-    rateCtx.textAlign = "top";
-    rateCtx.fillText('分貝', w/2, 230);
-
-
-
-    rateCtx.beginPath();
-    rateCtx.moveTo(paddingLeft, paddingTop);
-    rateCtx.lineTo(paddingLeft, h - paddingBottom);
-    rateCtx.stroke();
-
-    const yTicks = 6;
-    for (let i = 0; i < yTicks; i++) {
-      const y = paddingTop + i * (h - paddingTop - paddingBottom) / (yTicks - 1);
-      const label = 100 - i * 20;
-      rateCtx.beginPath();
-      rateCtx.moveTo(paddingLeft - 4, y);
-      rateCtx.lineTo(paddingLeft, y);
-      rateCtx.stroke();
-      rateCtx.fillText(label.toString(), paddingLeft - 8, y + 2);
-    }
-
-    let maxRate = 100;
-    const allRates = [].concat(...Object.values(rateData.rates));
-    if (allRates.length > 0) maxRate = Math.max(...allRates);
-
-    rateData.freqs.forEach(freq => {
-      const rates = rateData.rates[freq];
-      if (!rates || rates.length !== dbLevels.length) return;
-
-      function getXY(i) {
-        const x = paddingLeft + (dbLevels[i] - dbMin) / (dbMax - dbMin) * (w - paddingLeft - paddingRight);
-        const y = h - paddingBottom - (rates[i] / maxRate) * (h - paddingTop - paddingBottom);
-        return {x, y};
-      }
-
-      let isCF = false;
-      if (freq === segment.CF) isCF = true;
-      else if (segment.label === "耳蝸近基底部" && Math.abs(freq - 5500) <= 50) isCF = true;
-      else if (segment.label === "耳蝸頂端部" && Math.abs(freq - 100) <= 10) isCF = true;
-
-      rateCtx.lineWidth = isCF ? 3 : 1.5;
-      rateCtx.strokeStyle = isCF ? '#de3b3b' : '#228822';
-      rateCtx.fillStyle = rateCtx.strokeStyle;
-
-      rateCtx.beginPath();
-      rates.forEach((r, i) => {
-        const {x, y} = getXY(i);
-        if(i===0) rateCtx.moveTo(x, y);
-        else rateCtx.lineTo(x, y);
-      });
-      rateCtx.stroke();
-
-      rateCtx.fillStyle = rateCtx.strokeStyle;
-      rates.forEach((r, i) => {
-        const {x, y} = getXY(i);
-        rateCtx.beginPath();
-        rateCtx.arc(x, y, isCF ? 5 : 3, 0, 2*Math.PI);
-        rateCtx.fill();
-      });
-
-      rateCtx.font = isCF ? "bold 12px Arial" : "10px Arial";
-      const lastPoint = getXY(rates.length - 1);
-      rateCtx.textAlign = "left";
-      rateCtx.fillText(`${freq} Hz`, lastPoint.x + 5, lastPoint.y);
-    });
-
-    if (hoverX !== null) {
-      rateCtx.save();
-      rateCtx.strokeStyle = 'rgba(150, 0, 0, 0.8)';
-      rateCtx.lineWidth = 1;
-      rateCtx.beginPath();
-      rateCtx.moveTo(hoverX, paddingTop);
-      rateCtx.lineTo(hoverX, h - paddingBottom);
-      rateCtx.stroke();
-      rateCtx.restore();
-    }
-
-    if (hoverY !== null) {
-      const yCount = yTicks;
-      if(hoverY >= 0 && hoverY < yCount) {
-        const py = paddingTop + hoverY * (h - paddingTop - paddingBottom) / (yCount - 1);
-        rateCtx.save();
-        rateCtx.strokeStyle = 'blue';
-        rateCtx.lineWidth = 1;
-        rateCtx.setLineDash([5, 3]);
-        rateCtx.beginPath();
-        rateCtx.moveTo(paddingLeft, py);
-        rateCtx.lineTo(w - paddingRight, py);
-        rateCtx.stroke();
-        rateCtx.restore();
-      }
-    }
-
-    rateInfo.innerHTML = `提示:<br>懸停x座標:顯示紅色線<br>懸停y座標:顯示藍色線<br>點擊x座標:會切出所有頻率曲線在該x座標對應的y座標，並連線畫出Response Area(RA)<br>點擊y座標:會切出所有頻率曲線在該y座標對應的x座標，並連線畫出Tuning Curve(TC)<br>*三種曲線(rate-level function, RA, TC)請參考基礎聽力科學講義之上課內容`;
-  }
-
-  const responseAreaModal = document.getElementById('responseAreaModal');
-  const responseCloseBtn = document.getElementById('responseCloseBtn');
-  const responseAreaCanvas = document.getElementById('responseAreaCanvas');
-  const responseAreaCtx = responseAreaCanvas.getContext('2d');
-  const responseDesc = document.getElementById('responseDesc');
-
-  function mapRateToResponse(rate) {
-    if(rate >= 90) return {label: responseAreas[0.1], color: '#ff6666'};
-    else if(rate >= 70) return {label: responseAreas[0.3], color: '#ff9966'};
-    else if(rate >= 50) return {label: responseAreas[0.5], color: '#ffcc66'};
-    else if(rate >= 30) return {label: responseAreas[0.7], color: '#ffff66'};
-    else return {label: responseAreas[1.0], color: '#cccccc'};
-  }
-
-  function drawResponseAreaPlotFreqRate(ratesAtClick, rateData) {
-    const w = responseAreaCanvas.width;
-    const h = responseAreaCanvas.height;
-    responseAreaCtx.clearRect(0, 0, w, h);
-
-    const paddingLeft = 50, paddingRight = 30, paddingTop = 30, paddingBottom = 50;
-
-    responseAreaCtx.fillStyle = '#fafafa';
-    responseAreaCtx.fillRect(0, 0, w, h);
-
-    responseAreaCtx.fillStyle = '#222';
-    responseAreaCtx.font = '14px Arial';
-    responseAreaCtx.textAlign = 'center';
-    responseAreaCtx.fillText('頻率 (Hz)', w / 2, h - 15);
-
-    responseAreaCtx.save();
-    responseAreaCtx.translate(15, h / 2);
-    responseAreaCtx.rotate(-Math.PI / 2);
-    responseAreaCtx.textAlign = 'center';
-    responseAreaCtx.fillText('放電率', 0, 0);
-    responseAreaCtx.restore();
-
-    responseAreaCtx.beginPath();
-    responseAreaCtx.moveTo(paddingLeft, h - paddingBottom);
-    responseAreaCtx.lineTo(w - paddingRight, h - paddingBottom);
-    responseAreaCtx.stroke();
-
-    responseAreaCtx.beginPath();
-    responseAreaCtx.moveTo(paddingLeft, paddingTop);
-    responseAreaCtx.lineTo(paddingLeft, h - paddingBottom);
-    responseAreaCtx.stroke();
-
-    const freqs = rateData.freqs;
-    freqs.forEach(freq => {
-      if(freq < globalFreqMin || freq > globalFreqMax) return;
-      const x = paddingLeft + (Math.log10(freq) - logGlobalMin) / (logGlobalMax - logGlobalMin) * (w - paddingLeft - paddingRight);
-      responseAreaCtx.beginPath();
-      responseAreaCtx.moveTo(x, h - paddingBottom);
-      responseAreaCtx.lineTo(x, h - paddingBottom + 6);
-      responseAreaCtx.stroke();
-
-      const labelStr = freq >= 1000 ? (freq / 1000) + 'k' : freq.toString();
-      responseAreaCtx.fillStyle = '#222';
-      responseAreaCtx.font = '10px Arial';
-      responseAreaCtx.textAlign = 'center';
-      responseAreaCtx.fillText(labelStr, x, h - paddingBottom + 16);
-    });
-
-    for(let i=0; i<=5; i++) {
-      const y = paddingTop + i * (h - paddingTop - paddingBottom) / 5;
-      const label = 100 - i * 20;
-      responseAreaCtx.beginPath();
-      responseAreaCtx.moveTo(paddingLeft - 4, y);
-      responseAreaCtx.lineTo(paddingLeft, y);
-      responseAreaCtx.stroke();
-      responseAreaCtx.fillStyle = '#222';
-      responseAreaCtx.font = '10px Arial';
-      responseAreaCtx.fillText(label.toString(), paddingLeft - 8, y + 3);
-    }
-
-    const maxRate = Math.max(...ratesAtClick);
-
-    responseAreaCtx.lineWidth = 2;
-    responseAreaCtx.strokeStyle = '#228822';
-    responseAreaCtx.fillStyle = '#228822';
-    responseAreaCtx.beginPath();
-    ratesAtClick.forEach((rate, idx) => {
-      const freq = freqs[idx];
-      const x = paddingLeft + (Math.log10(freq) - logGlobalMin) / (logGlobalMax - logGlobalMin) * (w - paddingLeft - paddingRight);
-      const y = h - paddingBottom - (rate / maxRate) * (h - paddingTop - paddingBottom);
-      if (idx === 0) responseAreaCtx.moveTo(x, y);
-      else responseAreaCtx.lineTo(x, y);
-    });
-    responseAreaCtx.stroke();
-
-    ratesAtClick.forEach((rate, idx) => {
-      const freq = freqs[idx];
-      const x = paddingLeft + (Math.log10(freq) - logGlobalMin) / (logGlobalMax - logGlobalMin) * (w - paddingLeft - paddingRight);
-      const y = h - paddingBottom - (rate / maxRate) * (h - paddingTop - paddingBottom);
-      responseAreaCtx.beginPath();
-      responseAreaCtx.arc(x, y, 4, 0, 2 * Math.PI);
-      responseAreaCtx.fill();
-    });
-
-    responseDesc.textContent = `Respone Area(RA):顯示該位置的聽神經對不同頻率產生的放電率`;
-  }
-
-  // 新增防重複繪製鎖
-  let tuningCurveDrawLock = false;
-
-  function drawTuningCurveAtThreshold(curveData, segment, thresholdVal, clickedY) {
-    if (tuningCurveDrawLock) return; // 正在繪製中就跳過
-    tuningCurveDrawLock = true;
-
-    const w = responseAreaCanvas.width;
-    const h = responseAreaCanvas.height;
-    responseAreaCtx.clearRect(0, 0, w, h);
-
-    const paddingLeft = 50, paddingRight = 20, paddingTop = 40, paddingBottom = 40;
-
-    // 背景及軸線
-    responseAreaCtx.fillStyle = '#fafafa';
-    responseAreaCtx.fillRect(0, 0, w, h);
-
-    responseAreaCtx.strokeStyle = "#333";
-    responseAreaCtx.lineWidth = 1;
-    responseAreaCtx.font = '12px Arial';
-    responseAreaCtx.fillStyle = "#222";
-    responseAreaCtx.textAlign = 'center';
-    responseAreaCtx.textBaseline = "middle";
-
-    // x軸線與刻度
-    responseAreaCtx.beginPath();
-    responseAreaCtx.moveTo(paddingLeft, h - paddingBottom);
-    responseAreaCtx.lineTo(w - paddingRight, h - paddingBottom);
-    responseAreaCtx.stroke();
-
-    const xTicks = [20, 100, 500, 1000, 5000, 10000, 20000];
-    xTicks.forEach(f => {
-      if (f < globalFreqMin || f > globalFreqMax) return;
-      const x = paddingLeft + (Math.log10(f) - logGlobalMin) / (logGlobalMax - logGlobalMin) * (w - paddingLeft - paddingRight);
-      responseAreaCtx.beginPath();
-      responseAreaCtx.moveTo(x, h - paddingBottom);
-      responseAreaCtx.lineTo(x, h - paddingBottom + 6);
-      responseAreaCtx.stroke();
-      responseAreaCtx.fillText(f >= 1000 ? (f / 1000) + 'k' : f.toString(), x, h - paddingBottom + 16);
-    });
-
-    responseAreaCtx.fillText('頻率 (Hz)', w / 2, h - 10);
-
-    // y軸線與刻度 (分貝 0~90)
-    responseAreaCtx.beginPath();
-    responseAreaCtx.moveTo(paddingLeft, paddingTop);
-    responseAreaCtx.lineTo(paddingLeft, h - paddingBottom);
-    responseAreaCtx.stroke();
-
-    const yTicks = 6;
-    responseAreaCtx.textAlign = 'right';
-    responseAreaCtx.textBaseline = 'middle';
-    for (let i = 0; i < yTicks; i++) {
-      const y = paddingTop + i * (h - paddingTop - paddingBottom) / (yTicks - 1);
-      const label = 90 - i * (90 / (yTicks - 1));
-      responseAreaCtx.beginPath();
-      responseAreaCtx.moveTo(paddingLeft - 4, y);
-      responseAreaCtx.lineTo(paddingLeft, y);
-      responseAreaCtx.stroke();
-      responseAreaCtx.fillStyle = '#222';
-      responseAreaCtx.font = '10px Arial';
-      responseAreaCtx.fillText(label.toFixed(0), paddingLeft - 8, y);
-    }
-
-    // 加回藍色y軸延伸線
-    if (hoverY !== null) {
-      if (hoverY >= 0 && hoverY < yTicks) {
-        const py = paddingTop + hoverY * (h - paddingTop - paddingBottom) / (yTicks - 1);
-        responseAreaCtx.save();
-        responseAreaCtx.strokeStyle = 'blue';
-        responseAreaCtx.lineWidth = 1;
-        responseAreaCtx.setLineDash([5, 3]);
-        responseAreaCtx.beginPath();
-        responseAreaCtx.moveTo(paddingLeft, py);
-        responseAreaCtx.lineTo(w - paddingRight, py);
-        responseAreaCtx.stroke();
-        responseAreaCtx.restore();
-      }
-    }
-
-    responseAreaCtx.save();
-    responseAreaCtx.translate(15, h / 2);
-    responseAreaCtx.rotate(-Math.PI / 2);
-    responseAreaCtx.textAlign = 'center';
-    responseAreaCtx.font = '14px Arial';
-    responseAreaCtx.fillText('分貝 (dB)', 0, 0);
-    responseAreaCtx.restore();
-
-    // 偏移量計算，點擊的閾值越小（放電率越大），曲線往上偏移越多
-    const maxOffset = 40;
-    const verticalOffset = thresholdVal === null ? 0 : (1 - thresholdVal) * maxOffset;
-
-    // 找閾值1(即放電率約20)的曲線所有基底y值，求最小
-    let minYBase = Infinity;
-    for(let i=0; i<curveData.length; i++) {
-      const dBvalue = 1.0 * 90; // 閾值=1
-      const yBase = paddingTop + (1 - dBvalue / 90) * (h - paddingTop - paddingBottom);
-      if(yBase < minYBase) minYBase = yBase;
-    }
-    // 讓最低yBase位置至少在paddingTop，即往上的偏移量
-    const offsetBase = paddingTop - minYBase;
-
-    function getXYShifted(i, threshold) {
-      const freqLog = Math.log10(curveData[i].freq);
-      const logCF = Math.log10(currentSegment.CF);
-      const x = paddingLeft + (freqLog - logGlobalMin) / (logGlobalMax - logGlobalMin) * (w - paddingLeft - paddingRight);
-
-      const rawDB = threshold * 90;
-
-      let adjustedDB;
-
-      if (currentSegment.CF >= 4000) { // 高特徵頻率門檻可調整 (此例設定4000Hz以上)
-        if (freqLog < logCF) {
-          if (rawDB > 60) {
-            adjustedDB = 60 + (rawDB - 60) * 0.1;
+          // 轉換成分貝刻度 (0~90)
+          const rawDB = rawThreshold * 90;
+          let adjustedDB;
+
+          if (CF >= 4000) { // 高特徵頻率門檻調整
+            if (logF < logCF) {
+              if (rawDB > 60) {
+                adjustedDB = 60 + (rawDB - 60) * 0.1;
+              } else {
+                const slopeFactor = 2.5;
+                const diffFrom60 = 60 - rawDB;
+                adjustedDB = 60 + diffFrom60 * slopeFactor;
+                if (adjustedDB > 60) adjustedDB = 60;
+              }
+            } else {
+              adjustedDB = rawDB;
+            }
           } else {
-            const slopeFactor = 2.5; // 可調整，越大斜率越陡
-            const diffFrom60 = 60 - rawDB;
-
-            // 往下的部分斜率 ×3
-            adjustedDB = 60 + diffFrom60 * slopeFactor;
-            if (adjustedDB > 60) adjustedDB = 60;
+            // 低特徵頻率完整V字型，不調整
+            adjustedDB = rawDB;
           }
-        } else {
-          adjustedDB = rawDB;
+
+          let baseMemThreshold = adjustedDB / 90;
+          if (baseMemThreshold > 1) baseMemThreshold = 1;
+
+          // 聽神經閾值比基底膜閾值高0.05
+          let nerveThreshold = baseMemThreshold + 0.05;
+          if (nerveThreshold > 1) nerveThreshold = 1;
+
+          points.push({ freq: +freq.toFixed(0), baseMemThreshold: baseMemThreshold, nerveThreshold: nerveThreshold });
         }
-      } else {
-        adjustedDB = rawDB;
+        return points;
       }
 
-      // 若想整體往上移動，可調整這裡的 -50
-      const yBase = paddingTop + (1 - adjustedDB / 90) * (h - paddingTop - paddingBottom) + (-50);
+      const dbMin = 0, dbMax = 90, dbStep = 10;
+      const dbLevels = [];
+      for (let db = dbMin; db <= dbMax; db += dbStep) dbLevels.push(db);
 
-      return { x, y: yBase + verticalOffset + offsetBase };
-    }
-
-    responseAreaCtx.strokeStyle = "#800080";
-    responseAreaCtx.lineWidth = 2;
-    responseAreaCtx.globalAlpha = 0.8;
-    responseAreaCtx.beginPath();
-    curveData.forEach((p, i) => {
-      const { x, y } = getXYShifted(i, p.baseMemThreshold);
-      if (i === 0) responseAreaCtx.moveTo(x, y);
-      else responseAreaCtx.lineTo(x, y);
-    });
-    responseAreaCtx.stroke();
-    responseAreaCtx.globalAlpha = 1;
-
-    if (hoverX !== null) {
-      let closestFreqX = null;
-      let minDiff = Infinity;
-      const paddingL = ratelevelPaddingMap[segment.id]?.paddingLeft ?? 50;
-      const paddingR = ratelevelPaddingMap[segment.id]?.paddingRight ?? 40;
-      const usableW = rateCanvas.width - paddingL - paddingR;
-      const rateData = rateLevelFunctions[segment.id];
-      rateData.freqs.forEach(freq => {
-        const x = paddingL + (Math.log10(freq) - logGlobalMin) / (logGlobalMax - logGlobalMin) * usableW;
-        const diff = Math.abs(x - hoverX);
-        if(diff < minDiff) {
-          minDiff = diff;
-          closestFreqX = x;
+      const rateLevelFunctions = {
+        seg1: {
+          freqs: [12000, 15000, 17000, 18000, 19000, 20000],
+          rates: {
+            12000: [5, 15, 30, 50, 60, 75, 85, 90, 95, 96],
+            15000: [3, 10, 25, 40, 55, 70, 80, 87, 90, 91],
+            17000: [2, 8, 20, 35, 50, 65, 75, 85, 90, 90],
+            18000: [10, 25, 45, 70, 85, 95, 98, 99, 100, 100],
+            19000: [1, 6, 18, 32, 45, 60, 72, 80, 82, 85],
+            20000: [0, 4, 15, 28, 40, 58, 70, 78, 80, 82]
+          }
+        },
+        seg3: {
+          freqs: [4000, 5000, 5500, 6000, 6500, 6800, 7000],
+          rates: {
+            4000: [5, 10, 20, 35, 50, 65, 75, 82, 85, 87],
+            5000: [7, 15, 30, 50, 65, 78, 85, 90, 92, 93],
+            5500: [9, 20, 40, 60, 75, 85, 90, 92, 94, 95],
+            6000: [3, 10, 22, 40, 60, 70, 80, 85, 88, 90],
+            6500: [2, 8, 18, 35, 55, 68, 75, 80, 83, 85],
+            6800: [1, 5, 15, 30, 50, 62, 70, 75, 78, 80],
+            7000: [0, 3, 12, 25, 45, 58, 65, 72, 75, 77]
+          }
+        },
+        seg5: {
+          freqs: [1000, 1300, 1400, 1600, 1800, 2000],
+          rates: {
+            1000: [4, 9, 18, 30, 45, 60, 68, 75, 80, 82],
+            1300: [5, 12, 20, 35, 50, 65, 73, 80, 85, 87],
+            1400: [9, 20, 35, 50, 65, 80, 90, 95, 98, 99],
+            1600: [3, 8, 15, 30, 48, 60, 70, 75, 78, 80],
+            1800: [1, 6, 12, 25, 45, 55, 65, 70, 75, 77],
+            2000: [0, 4, 10, 20, 35, 50, 60, 68, 72, 75]
+          }
+        },
+        seg7: {
+          freqs: [200, 300, 350, 450, 550, 600],
+          rates: {
+            200: [2, 5, 10, 20, 30, 45, 50, 55, 60, 62],
+            300: [1, 3, 8, 18, 28, 40, 45, 50, 55, 57],
+            350: [5, 10, 25, 40, 55, 70, 80, 85, 90, 92],
+            450: [1, 5, 10, 20, 30, 45, 50, 55, 60, 62],
+            550: [0, 3, 7, 15, 25, 38, 45, 52, 58, 60],
+            600: [0, 2, 5, 12, 20, 35, 40, 45, 50, 52]
+          }
+        },
+        seg8: {
+          freqs: [20, 50, 80, 100, 120, 150, 200],
+          rates: {
+            20: [1, 3, 10, 15, 25, 35, 40, 45, 50, 52],
+            50: [0, 2, 8, 12, 20, 30, 35, 38, 40, 42],
+            80: [2, 5, 15, 20, 30, 42, 48, 52, 55, 56],
+            100: [3, 6, 18, 30, 45, 60, 70, 75, 78, 80],
+            120: [1, 3, 10, 15, 25, 35, 40, 45, 50, 52],
+            150: [0, 2, 7, 12, 22, 30, 36, 40, 45, 48],
+            200: [0, 1, 5, 10, 18, 25, 32, 38, 42, 45]
+          }
         }
+      };
+
+      const responseAreas = {
+        0.1: "高響應區 (閾值附近)",
+        0.3: "中等響應區",
+        0.5: "低響應區",
+        0.7: "非常低響應區",
+        1.0: "無響應"
+      };
+
+      // ================= State =================
+      const state = {
+        seg: 'seg5',
+        dbCut: 50,
+        rateCut: 40,
+        hoverDB: null,
+        hoverRate: null,
+        focusFreq: null
+      };
+
+      // ================= Helpers =================
+      function prep(c) {
+        const dpr = window.devicePixelRatio || 1;
+        const w = c.clientWidth || c.parentElement.clientWidth;
+        const h = +c.dataset.h;
+        if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) {
+          c.width = Math.round(w * dpr);
+          c.height = Math.round(h * dpr);
+        }
+        c.style.height = h + 'px';
+        const ctx = c.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, w, h);
+        return { ctx: ctx, w: w, h: h };
+      }
+
+      function fmtF(f) { return f >= 1000 ? (+(f / 1000).toFixed(1)) + 'k' : String(Math.round(f)); }
+
+      function isCF(freq, seg) {
+        const s = cochleaSegments[seg];
+        if (freq === s.CF) return true;
+        if (s.label === "耳蝸近基底部" && Math.abs(freq - 5500) <= 50) return true;
+        if (s.label === "耳蝸頂端部" && Math.abs(freq - 100) <= 10) return true;
+        return false;
+      }
+
+      function rateAt(rates, db) {
+        if (db <= dbLevels[0]) return rates[0];
+        if (db >= dbLevels[dbLevels.length - 1]) return rates[rates.length - 1];
+        const i = Math.min(dbLevels.length - 2, Math.floor((db - dbMin) / dbStep));
+        const x1 = dbLevels[i], x2 = dbLevels[i + 1];
+        return rates[i] + (rates[i + 1] - rates[i]) * (db - x1) / (x2 - x1);
+      }
+
+      // smallest dB at which the curve reaches `rate`; null if never
+      function dbForRate(rates, rate) {
+        if (rates[0] >= rate) return dbLevels[0];
+        for (let i = 0; i < rates.length - 1; i++) {
+          if (rates[i] < rate && rates[i + 1] >= rate) {
+            return dbLevels[i] + (rate - rates[i]) / (rates[i + 1] - rates[i]) * dbStep;
+          }
+        }
+        return null;
+      }
+
+      function drawFrame(ctx, P, w, h, opts) {
+        const x0 = P.l, x1 = w - P.r, y0 = P.t, y1 = h - P.b;
+        ctx.font = '11px ' + FONT;
+        ctx.lineWidth = 1;
+        // y grid
+        opts.yTicks.forEach(function (v) {
+          const y = y1 - (v - opts.yMin) / (opts.yMax - opts.yMin) * (y1 - y0);
+          ctx.strokeStyle = css('--grid');
+          ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+          ctx.fillStyle = css('--muted'); ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+          ctx.fillText(v, x0 - 7, y);
+        });
+        // x grid
+        opts.xTicks.forEach(function (t) {
+          const x = opts.xPos(t);
+          ctx.strokeStyle = css('--grid');
+          ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke();
+          ctx.fillStyle = css('--muted'); ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+          ctx.fillText(opts.xFmt(t), x, y1 + 6);
+        });
+        ctx.strokeStyle = css('--axis');
+        ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0, y1); ctx.lineTo(x1, y1); ctx.stroke();
+        ctx.fillStyle = css('--muted');
+        ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+        ctx.fillText(opts.xLabel, (x0 + x1) / 2, h - 2);
+        ctx.save(); ctx.translate(12, (y0 + y1) / 2); ctx.rotate(-Math.PI / 2);
+        ctx.textBaseline = 'middle'; ctx.fillText(opts.yLabel, 0, 0); ctx.restore();
+        return { x0: x0, x1: x1, y0: y0, y1: y1 };
+      }
+
+      // ================= rate-level function =================
+      const rateCanvas = document.getElementById('ratelevelCanvas');
+      const RP = { l: 50, r: 64, t: 16, b: 38 };
+      let rlGeo = null;
+
+      function rlX(db) { return rlGeo.x0 + (db - dbMin) / (dbMax - dbMin) * (rlGeo.x1 - rlGeo.x0); }
+      function rlY(rate) { return rlGeo.y1 - rate / 100 * (rlGeo.y1 - rlGeo.y0); }
+      function rlDB(x) { return dbMin + (x - rlGeo.x0) / (rlGeo.x1 - rlGeo.x0) * (dbMax - dbMin); }
+      function rlRate(y) { return (rlGeo.y1 - y) / (rlGeo.y1 - rlGeo.y0) * 100; }
+
+      function drawRateLevel() {
+        const g = prep(rateCanvas);
+        const ctx = g.ctx;
+        rlGeo = { x0: RP.l, x1: g.w - RP.r, y0: RP.t, y1: g.h - RP.b, w: g.w, h: g.h };
+        drawFrame(ctx, RP, g.w, g.h, {
+          yTicks: [0, 20, 40, 60, 80, 100], yMin: 0, yMax: 100,
+          xTicks: dbLevels, xPos: rlX, xFmt: function (d) { return d + ' dB'; },
+          xLabel: '分貝', yLabel: '放電率'
+        });
+
+        const data = rateLevelFunctions[state.seg];
+        const order = data.freqs.slice().sort(function (a, b) { return isCF(a, state.seg) - isCF(b, state.seg); });
+        const labelSlots = [];
+        order.forEach(function (freq) {
+          const rates = data.rates[freq];
+          if (!rates || rates.length !== dbLevels.length) return;
+          const cf = isCF(freq, state.seg);
+          const dim = state.focusFreq !== null && state.focusFreq !== freq;
+          ctx.globalAlpha = dim ? 0.18 : 1;
+          ctx.strokeStyle = cf ? css('--cf') : css('--curve');
+          ctx.fillStyle = ctx.strokeStyle;
+          ctx.lineWidth = cf ? 3 : 1.6;
+          ctx.beginPath();
+          rates.forEach(function (r, i) {
+            const x = rlX(dbLevels[i]), y = rlY(r);
+            i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+          });
+          ctx.stroke();
+          rates.forEach(function (r, i) {
+            ctx.beginPath(); ctx.arc(rlX(dbLevels[i]), rlY(r), cf ? 4 : 2.6, 0, Math.PI * 2); ctx.fill();
+          });
+          // end label, avoid overlaps
+          let ly = rlY(rates[rates.length - 1]);
+          labelSlots.forEach(function (s) { if (Math.abs(s - ly) < 11) ly = s + (ly >= s ? 11 : -11); });
+          labelSlots.push(ly);
+          ctx.font = (cf ? '700 ' : '') + '11px ' + FONT;
+          ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+          ctx.fillText(fmtF(freq) + ' Hz', rlGeo.x1 + 6, ly);
+          ctx.globalAlpha = 1;
+        });
+
+        // RA cut (red, vertical)
+        ctx.save();
+        ctx.strokeStyle = css('--ra'); ctx.lineWidth = 2;
+        const xr = rlX(state.dbCut);
+        ctx.beginPath(); ctx.moveTo(xr, rlGeo.y0); ctx.lineTo(xr, rlGeo.y1); ctx.stroke();
+        ctx.fillStyle = css('--ra');
+        data.freqs.forEach(function (f) {
+          if (state.focusFreq !== null && state.focusFreq !== f) return;
+          const r = rateAt(data.rates[f], state.dbCut);
+          ctx.beginPath(); ctx.arc(xr, rlY(r), 4.5, 0, Math.PI * 2); ctx.fill();
+        });
+        // TC cut (blue, horizontal)
+        ctx.strokeStyle = css('--tc'); ctx.fillStyle = css('--tc');
+        const yt = rlY(state.rateCut);
+        ctx.beginPath(); ctx.moveTo(rlGeo.x0, yt); ctx.lineTo(rlGeo.x1, yt); ctx.stroke();
+        data.freqs.forEach(function (f) {
+          if (state.focusFreq !== null && state.focusFreq !== f) return;
+          const d = dbForRate(data.rates[f], state.rateCut);
+          if (d === null) return;
+          ctx.beginPath(); ctx.arc(rlX(d), yt, 4.5, 0, Math.PI * 2); ctx.fill();
+        });
+        // hover previews
+        ctx.setLineDash([5, 3]); ctx.lineWidth = 1;
+        if (state.hoverDB !== null) {
+          ctx.strokeStyle = 'rgba(150, 0, 0, 0.8)';
+          const xh = rlX(state.hoverDB);
+          ctx.beginPath(); ctx.moveTo(xh, rlGeo.y0); ctx.lineTo(xh, rlGeo.y1); ctx.stroke();
+        }
+        if (state.hoverRate !== null) {
+          ctx.strokeStyle = css('--tc');
+          const yh = rlY(state.hoverRate);
+          ctx.beginPath(); ctx.moveTo(rlGeo.x0, yh); ctx.lineTo(rlGeo.x1, yh); ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      // ================= RA & TC =================
+      const raCanvas = document.getElementById('responseAreaCanvas');
+      const tcCanvas = document.getElementById('tcCanvas');
+
+      function segAxis(g, P) {
+        const freqs = rateLevelFunctions[state.seg].freqs;
+        const lo = Math.log10(freqs[0] / 1.12), hi = Math.log10(freqs[freqs.length - 1] * 1.12);
+        return function (f) { return P.l + (Math.log10(f) - lo) / (hi - lo) * (g.w - P.l - P.r); };
+      }
+
+      function drawRA() {
+        const g = prep(raCanvas), ctx = g.ctx;
+        const P = { l: 50, r: 16, t: 16, b: 40 };
+        const data = rateLevelFunctions[state.seg];
+        const xPos = segAxis(g, P);
+        const F = drawFrame(ctx, P, g.w, g.h, {
+          yTicks: [0, 20, 40, 60, 80, 100], yMin: 0, yMax: 100,
+          xTicks: data.freqs, xPos: xPos, xFmt: fmtF, xLabel: '頻率 (Hz)', yLabel: '放電率'
+        });
+        const yPos = function (r) { return F.y1 - r / 100 * (F.y1 - F.y0); };
+        const pts = data.freqs.map(function (f) { return { f: f, r: rateAt(data.rates[f], state.dbCut) }; });
+        // filled area
+        ctx.fillStyle = css('--ra'); ctx.globalAlpha = .12;
+        ctx.beginPath(); ctx.moveTo(xPos(pts[0].f), F.y1);
+        pts.forEach(function (p) { ctx.lineTo(xPos(p.f), yPos(p.r)); });
+        ctx.lineTo(xPos(pts[pts.length - 1].f), F.y1); ctx.closePath(); ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = css('--ra'); ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        pts.forEach(function (p, i) { i === 0 ? ctx.moveTo(xPos(p.f), yPos(p.r)) : ctx.lineTo(xPos(p.f), yPos(p.r)); });
+        ctx.stroke();
+        let best = pts[0];
+        pts.forEach(function (p) {
+          if (p.r > best.r) best = p;
+          ctx.fillStyle = isCF(p.f, state.seg) ? css('--cf') : css('--ra');
+          ctx.beginPath(); ctx.arc(xPos(p.f), yPos(p.r), isCF(p.f, state.seg) ? 5.5 : 4, 0, Math.PI * 2); ctx.fill();
+        });
+        ctx.fillStyle = css('--text'); ctx.font = '600 11px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+        ctx.fillText(Math.round(best.r), xPos(best.f), yPos(best.r) - 8);
+        document.getElementById('responseDesc').innerHTML =
+          'Respone Area(RA):顯示該位置的聽神經對不同頻率產生的放電率。目前固定在 <b>' + state.dbCut + ' dB</b>，放電率最高的是 <b>' + fmtF(best.f) + ' Hz</b>（' + Math.round(best.r) + '）。';
+      }
+
+      function drawTC() {
+        const g = prep(tcCanvas), ctx = g.ctx;
+        const P = { l: 50, r: 16, t: 16, b: 40 };
+        const data = rateLevelFunctions[state.seg];
+        const xPos = segAxis(g, P);
+        const F = drawFrame(ctx, P, g.w, g.h, {
+          yTicks: [0, 15, 30, 45, 60, 75, 90], yMin: 0, yMax: 90,
+          xTicks: data.freqs, xPos: xPos, xFmt: fmtF, xLabel: '頻率 (Hz)', yLabel: '分貝 (dB)'
+        });
+        const yPos = function (d) { return F.y1 - d / 90 * (F.y1 - F.y0); };
+        const pts = data.freqs.map(function (f) { return { f: f, d: dbForRate(data.rates[f], state.rateCut) }; });
+        ctx.strokeStyle = css('--tc'); ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        let started = false;
+        pts.forEach(function (p) {
+          if (p.d === null) { started = false; return; }
+          if (!started) { ctx.moveTo(xPos(p.f), yPos(p.d)); started = true; } else ctx.lineTo(xPos(p.f), yPos(p.d));
+        });
+        ctx.stroke();
+        let best = null;
+        const missing = [];
+        pts.forEach(function (p) {
+          const cf = isCF(p.f, state.seg);
+          if (p.d === null) {
+            missing.push(fmtF(p.f));
+            ctx.strokeStyle = css('--muted'); ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.arc(xPos(p.f), F.y0 + 6, 4, 0, Math.PI * 2); ctx.stroke();
+            return;
+          }
+          if (!best || p.d < best.d) best = p;
+          ctx.fillStyle = cf ? css('--cf') : css('--tc');
+          ctx.beginPath(); ctx.arc(xPos(p.f), yPos(p.d), cf ? 5.5 : 4, 0, Math.PI * 2); ctx.fill();
+        });
+        let txt = 'Tuning Curve(TC):顯示該位置的聽神經對不同頻率的閾值(dB)。目前以放電率 <b>' + state.rateCut + '</b> 為標準';
+        if (best) {
+          ctx.fillStyle = css('--text'); ctx.font = '600 11px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+          ctx.fillText(best.d.toFixed(0) + ' dB', xPos(best.f), yPos(best.d) + 8);
+          txt += '，最低閾值在 <b>' + fmtF(best.f) + ' Hz</b>（約 ' + best.d.toFixed(0) + ' dB，即特徵頻率附近）';
+        }
+        if (missing.length) txt += '；' + missing.join('、') + ' Hz 在 90 dB 內達不到此放電率（空心圈）';
+        document.getElementById('tcDesc').innerHTML = txt + '。';
+      }
+
+      // ================= theoretical tuning curve =================
+      const tuningCanvas = document.getElementById('tuningCurveCanvas');
+      const TP = { l: 50, r: 16, t: 20, b: 40 };
+      let tGeo = null;
+      let currentCurveData = null;
+      function tX(f) { return tGeo.x0 + (Math.log10(f) - logGlobalMin) / (logGlobalMax - logGlobalMin) * (tGeo.x1 - tGeo.x0); }
+      function tY(th) { return tGeo.y1 - th * (tGeo.y1 - tGeo.y0); }
+      let tuneHoverX = null;
+
+      function drawTuningCurve() {
+        const g = prep(tuningCanvas), ctx = g.ctx;
+        tGeo = { x0: TP.l, x1: g.w - TP.r, y0: TP.t, y1: g.h - TP.b };
+        drawFrame(ctx, TP, g.w, g.h, {
+          yTicks: [0, 18, 36, 54, 72, 90], yMin: 0, yMax: 90,
+          xTicks: [20, 100, 500, 1000, 5000, 10000, 20000], xPos: tX, xFmt: fmtF,
+          xLabel: '頻率 (Hz)', yLabel: '閾值 (dB)'
+        });
+        const segment = cochleaSegments[state.seg];
+        const curveData = generateTuningCurve(segment.freqRange, segment.CF);
+        currentCurveData = curveData;
+
+        if (document.getElementById('showAll').checked) {
+          segOrder.forEach(function (id) {
+            if (id === state.seg) return;
+            const s = cochleaSegments[id];
+            const d = generateTuningCurve(s.freqRange, s.CF);
+            ctx.strokeStyle = css('--muted'); ctx.globalAlpha = .45; ctx.lineWidth = 1.3;
+            ctx.beginPath();
+            d.forEach(function (p, i) { i === 0 ? ctx.moveTo(tX(p.freq), tY(p.nerveThreshold)) : ctx.lineTo(tX(p.freq), tY(p.nerveThreshold)); });
+            ctx.stroke();
+            ctx.globalAlpha = .8; ctx.fillStyle = css('--muted'); ctx.font = '10px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+            ctx.fillText(fmtF(s.CF), tX(s.CF), tY(0.15) + 2);
+            ctx.globalAlpha = 1;
+          });
+        }
+
+        ctx.lineWidth = 2.4;
+        ctx.strokeStyle = css('--bm');
+        ctx.beginPath();
+        curveData.forEach(function (p, i) { i === 0 ? ctx.moveTo(tX(p.freq), tY(p.baseMemThreshold)) : ctx.lineTo(tX(p.freq), tY(p.baseMemThreshold)); });
+        ctx.stroke();
+        ctx.strokeStyle = css('--nerve');
+        ctx.beginPath();
+        curveData.forEach(function (p, i) { i === 0 ? ctx.moveTo(tX(p.freq), tY(p.nerveThreshold)) : ctx.lineTo(tX(p.freq), tY(p.nerveThreshold)); });
+        ctx.stroke();
+
+        // CF marker
+        const xCF = tX(segment.CF);
+        ctx.setLineDash([4, 3]); ctx.strokeStyle = css('--cf'); ctx.lineWidth = 1;
+        const yLab = tY(0.42);
+        ctx.beginPath(); ctx.moveTo(xCF, yLab); ctx.lineTo(xCF, tGeo.y1); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = css('--text'); ctx.font = '700 12px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+        ctx.fillText('特徵頻率: ' + segment.CF + ' Hz', Math.min(Math.max(xCF, tGeo.x0 + 60), tGeo.x1 - 60), yLab - 4);
+
+        // legend
+        ctx.font = '12px ' + FONT; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        const lx = tGeo.x0 + 10;
+        ctx.fillStyle = css('--bm'); ctx.fillRect(lx, tGeo.y0 + 2, 14, 4);
+        ctx.fillStyle = css('--text'); ctx.fillText('基底膜閾值曲線', lx + 20, tGeo.y0 + 4);
+        ctx.fillStyle = css('--nerve'); ctx.fillRect(lx, tGeo.y0 + 20, 14, 4);
+        ctx.fillStyle = css('--text'); ctx.fillText('聽神經閾值曲線', lx + 20, tGeo.y0 + 22);
+
+        // hover
+        if (tuneHoverX !== null) {
+          const f = Math.pow(10, logGlobalMin + (tuneHoverX - tGeo.x0) / (tGeo.x1 - tGeo.x0) * (logGlobalMax - logGlobalMin));
+          if (f <= curveData[curveData.length - 1].freq) {
+            let ci = 0, md = Infinity;
+            curveData.forEach(function (p, i) { const d = Math.abs(Math.log10(p.freq) - Math.log10(f)); if (d < md) { md = d; ci = i; } });
+            const p = curveData[ci];
+            const x = tX(p.freq);
+            ctx.strokeStyle = css('--text'); ctx.globalAlpha = .35; ctx.setLineDash([4, 3]);
+            ctx.beginPath(); ctx.moveTo(x, tGeo.y0); ctx.lineTo(x, tGeo.y1); ctx.stroke();
+            ctx.setLineDash([]); ctx.globalAlpha = 1;
+            ctx.fillStyle = css('--bm'); ctx.beginPath(); ctx.arc(x, tY(p.baseMemThreshold), 4, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = css('--nerve'); ctx.beginPath(); ctx.arc(x, tY(p.nerveThreshold), 4, 0, Math.PI * 2); ctx.fill();
+
+            const keys = Object.keys(responseAreas).map(parseFloat).sort(function (a, b) { return a - b; });
+            let nearestKey = keys[0];
+            keys.forEach(function (k) { if (Math.abs(p.baseMemThreshold - k) < Math.abs(p.baseMemThreshold - nearestKey)) nearestKey = k; });
+            document.getElementById('tuneHover').innerHTML =
+              '頻率約 <b>' + p.freq + ' Hz</b>：基底膜閾值約 <b>' + (p.baseMemThreshold * 90).toFixed(0) + ' dB</b>，聽神經閾值約 <b>' +
+              (p.nerveThreshold * 90).toFixed(0) + ' dB</b>，對應的響應區：<b>' + (responseAreas[nearestKey] || '未知響應區') + '</b>';
+          } else {
+            document.getElementById('tuneHover').innerHTML = '此頻率高於這個位置的計算範圍（> ' + curveData[curveData.length - 1].freq + ' Hz），聽神經不反應。';
+          }
+        }
+
+        document.getElementById('info').textContent =
+          '區域: ' + segment.label + ' | 頻率範圍: ' + curveData[0].freq + ' Hz - ' + curveData[curveData.length - 1].freq + ' Hz';
+      }
+
+      // ================= Controls =================
+      const dbCut = document.getElementById('dbCut');
+      const rateCut = document.getElementById('rateCut');
+      dbCut.addEventListener('input', function () { state.dbCut = +dbCut.value; drawAll(); });
+      rateCut.addEventListener('input', function () { state.rateCut = +rateCut.value; drawAll(); });
+      document.getElementById('showAll').addEventListener('change', drawAll);
+
+      function buildLegend() {
+        const box = document.getElementById('freqLegend');
+        box.innerHTML = '';
+        const all = document.createElement('button');
+        all.className = 'chip' + (state.focusFreq === null ? ' on' : '');
+        all.textContent = '全部';
+        all.addEventListener('click', function () { state.focusFreq = null; buildLegend(); drawAll(); });
+        box.appendChild(all);
+        rateLevelFunctions[state.seg].freqs.forEach(function (f) {
+          const b = document.createElement('button');
+          b.className = 'chip' + (isCF(f, state.seg) ? ' cf' : '') + (state.focusFreq === f ? ' on' : '');
+          b.textContent = fmtF(f) + ' Hz' + (isCF(f, state.seg) ? '（CF）' : '');
+          b.addEventListener('click', function () { state.focusFreq = state.focusFreq === f ? null : f; buildLegend(); drawAll(); });
+          box.appendChild(b);
+        });
+      }
+
+      function selectSeg(id) {
+        state.seg = id;
+        state.focusFreq = null;
+        segOrder.forEach(function (k) { document.getElementById(k).setAttribute('aria-pressed', k === id ? 'true' : 'false'); });
+        const s = cochleaSegments[id];
+        document.getElementById('infoLabel').textContent = s.label;
+        document.getElementById('infoRange').textContent = s.freqRange[0] + ' – ' + s.freqRange[1] + ' Hz';
+        document.getElementById('infoCF').textContent = s.CF + ' Hz';
+        document.getElementById('rlTitle').textContent = s.label + ' 的 rate-level function';
+        buildLegend();
+        drawAll();
+      }
+
+      segOrder.forEach(function (id, idx) {
+        const elem = document.getElementById(id);
+        elem.addEventListener('click', function () { selectSeg(id); });
+        elem.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectSeg(id); }
+          if (e.key === 'ArrowRight' && idx < segOrder.length - 1) { e.preventDefault(); document.getElementById(segOrder[idx + 1]).focus(); selectSeg(segOrder[idx + 1]); }
+          if (e.key === 'ArrowLeft' && idx > 0) { e.preventDefault(); document.getElementById(segOrder[idx - 1]).focus(); selectSeg(segOrder[idx - 1]); }
+        });
       });
-      if(closestFreqX !== null) {
-        responseAreaCtx.save();
-        responseAreaCtx.strokeStyle = 'rgba(150, 0, 0, 0.8)';
-        responseAreaCtx.lineWidth = 1;
-        responseAreaCtx.beginPath();
-        responseAreaCtx.moveTo(closestFreqX, paddingTop);
-        responseAreaCtx.lineTo(closestFreqX, h - paddingBottom);
-        responseAreaCtx.stroke();
-        responseAreaCtx.restore();
+
+      // rate-level canvas interactions
+      let drag = null; // 'ra' | 'tc'
+      function localXY(e) {
+        const rect = rateCanvas.getBoundingClientRect();
+        return { x: e.clientX - rect.left, y: e.clientY - rect.top };
       }
-    }
+      function inPlot(p) { return p.x >= rlGeo.x0 && p.x <= rlGeo.x1 && p.y >= rlGeo.y0 && p.y <= rlGeo.y1; }
+      function setDB(x) { state.dbCut = Math.round(Math.max(dbMin, Math.min(dbMax, rlDB(x)))); dbCut.value = state.dbCut; }
+      function setRate(y) { state.rateCut = Math.round(Math.max(5, Math.min(95, rlRate(y)))); rateCut.value = state.rateCut; }
 
-    // 計算點擊的 y 座標對應 dB 值，並顯示
-    const drawableHeight = h - paddingTop - paddingBottom;
-    const yNormalized = (h - paddingBottom - clickedY) / drawableHeight; // 0~1 范圍（底部為0，上方為1）
-    const y_dB = yNormalized * 90;
-
-    responseDesc.textContent = `Tuning Curve(TC):顯示該位置的聽神經對不同頻率的閾值(dB)`;
-
-    tuningCurveDrawLock = false;
-  }
-
-  let hoverXPos = null;
-
-  Object.keys(cochleaSegments).forEach(id => {
-    const elem = document.getElementById(id);
-    elem.addEventListener('click', () => {
-      Object.keys(cochleaSegments).forEach(k => document.getElementById(k).setAttribute('aria-pressed', 'false'));
-      elem.setAttribute('aria-pressed', 'true');
-
-      const segData = cochleaSegments[id];
-      segData.id = id;
-      currentSegment = segData;
-      const data = generateTuningCurve(segData.freqRange, segData.CF);
-      drawTuningCurve(data, segData);
-
-      const rateLevel = rateLevelFunctions[id];
-      if (rateLevel) {
-        drawRateLevel(rateLevel, segData);
-      }
-    });
-    elem.addEventListener('keydown', e => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        elem.click();
-      }
-    });
-  });
-
-  rateCanvas.addEventListener('mousemove', (event) => {
-    const rect = rateCanvas.getBoundingClientRect();
-    const mouseX = event.clientX - rect.left;
-    const mouseY = event.clientY - rect.top;
-
-    if (!currentSegment) return;
-
-    const w = rateCanvas.width;
-    const h = rateCanvas.height;
-
-    const paddingLeft = ratelevelPaddingMap[currentSegment.id]?.paddingLeft ?? 50;
-    const paddingRight = ratelevelPaddingMap[currentSegment.id]?.paddingRight ?? 40;
-    const paddingTop = 40;
-    const paddingBottom = 40;
-
-    hoverX = null;
-    hoverY = null;
-
-    if (mouseX >= paddingLeft && mouseX <= w - paddingRight && mouseY >= paddingTop && mouseY <= h - paddingBottom) {
-      hoverX = mouseX;
-      hoverXPos = mouseX;
-    }
-
-    for(let i = 0; i < 6; i++) {
-      const yPos = paddingTop + i * (h - paddingTop - paddingBottom) / 5;
-      if(rateLevelIsHoveringY(yPos, mouseY)) {
-        hoverY = i;
-        break;
-      }
-    }
-
-    drawRateLevel(rateLevelFunctions[currentSegment.id], currentSegment);
-
-    if(selectedY !== null && currentCurveData && currentSegment) {
-      drawTuningCurveAtThreshold(currentCurveData, currentSegment, selectedY);
-    }
-  });
-
-  rateCanvas.addEventListener('mouseleave', () => {
-    if (hoverX !== null || hoverY !== null) {
-      hoverX = null;
-      hoverY = null;
-      drawRateLevel(rateLevelFunctions[currentSegment.id], currentSegment);
-      if(selectedY !== null && currentCurveData && currentSegment) {
-        drawTuningCurveAtThreshold(currentCurveData, currentSegment, selectedY);
-      }
-    }
-  });
-
-  responseCloseBtn.addEventListener('click', () => {
-    responseAreaModal.style.display = 'none';
-    selectedY = null;
-  });
-  responseCloseBtn.addEventListener('keydown', e => {
-    if(e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      responseAreaModal.style.display = 'none';
-      selectedY = null;
-    }
-  });
-
-  rateCanvas.addEventListener('click', (event) => {
-    if (!currentSegment) return;
-
-    const rect = rateCanvas.getBoundingClientRect();
-    const clickX = event.clientX - rect.left;
-    const clickY = event.clientY - rect.top;
-
-    const w = rateCanvas.width;
-    const h = rateCanvas.height;
-
-    const paddingLeft = ratelevelPaddingMap[currentSegment.id]?.paddingLeft ?? 50;
-    const paddingRight = ratelevelPaddingMap[currentSegment.id]?.paddingRight ?? 40;
-    const paddingTop = 40;
-    const paddingBottom = 40;
-
-    let clickedYIndex = null;
-    for(let i = 0; i < 6; i++) {
-      const yPos = paddingTop + i * (h - paddingTop - paddingBottom) / 5;
-      if (Math.abs(clickY - yPos) < 10 && clickX >= paddingLeft - 20 && clickX <= paddingLeft + 10) {
-        clickedYIndex = i;
-        break;
-      }
-    }
-
-    if(clickedYIndex !== null) {
-      const clickedThreshold = 1.0 - clickedYIndex * 0.2;
-      selectedY = clickedThreshold;
-
-      if(currentCurveData && currentSegment) {
-        drawTuningCurveAtThreshold(currentCurveData, currentSegment, selectedY, clickY);
-
-        responseAreaModal.style.display = 'block';
-      }
-      return;
-    }
-
-    if(clickX < paddingLeft || clickX > w - paddingRight || clickY < paddingTop || clickY > h - paddingBottom) return;
-
-    const clickDB = dbMin + (clickX - paddingLeft) / (w - paddingLeft - paddingRight) * (dbMax - dbMin);
-
-    const rateLevel = rateLevelFunctions[currentSegment.id];
-    if(!rateLevel) return;
-
-    const ratesAtClick = [];
-    rateLevel.freqs.forEach(freq => {
-      const rates = rateLevel.rates[freq];
-      let idx = 0;
-      for(let i=0; i<dbLevels.length-1; i++) {
-        if(dbLevels[i] <= clickDB && clickDB <= dbLevels[i+1]) {
-          idx = i;
-          break;
+      rateCanvas.addEventListener('pointerdown', function (e) {
+        if (!rlGeo) return;
+        const p = localXY(e);
+        const nearRA = Math.abs(p.x - rlX(state.dbCut)) < 8 && p.y >= rlGeo.y0 && p.y <= rlGeo.y1;
+        const nearTC = Math.abs(p.y - rlY(state.rateCut)) < 8 && p.x >= rlGeo.x0 - 40 && p.x <= rlGeo.x1;
+        const onYAxis = p.x < rlGeo.x0 + 6 && p.x >= 0 && p.y >= rlGeo.y0 && p.y <= rlGeo.y1;
+        if (nearTC && !nearRA) drag = 'tc';
+        else if (nearRA) drag = 'ra';
+        else if (onYAxis) { drag = 'tc'; setRate(p.y); }
+        else if (inPlot(p)) { drag = 'ra'; setDB(p.x); }
+        else return;
+        rateCanvas.setPointerCapture(e.pointerId);
+        drawAll();
+      });
+      rateCanvas.addEventListener('pointermove', function (e) {
+        if (!rlGeo) return;
+        const p = localXY(e);
+        if (drag === 'ra') { setDB(p.x); drawAll(); return; }
+        if (drag === 'tc') { setRate(p.y); drawAll(); return; }
+        state.hoverDB = inPlot(p) ? rlDB(p.x) : null;
+        state.hoverRate = (p.y >= rlGeo.y0 && p.y <= rlGeo.y1 && p.x <= rlGeo.x1) ? rlRate(p.y) : null;
+        const nearRA = Math.abs(p.x - rlX(state.dbCut)) < 8;
+        const nearTC = Math.abs(p.y - rlY(state.rateCut)) < 8;
+        rateCanvas.style.cursor = nearRA ? 'ew-resize' : nearTC || p.x < rlGeo.x0 ? 'ns-resize' : 'crosshair';
+        const info = document.getElementById('ratelevel-info');
+        if (state.hoverDB !== null) {
+          info.innerHTML = '游標位置：約 <b>' + state.hoverDB.toFixed(0) + ' dB</b>、放電率 <b>' + Math.max(0, state.hoverRate).toFixed(0) + '</b>。點一下設定紅線（RA）；點左側刻度區設定藍線（TC）。';
         }
+        drawRateLevel();
+      });
+      rateCanvas.addEventListener('pointerup', function () { drag = null; });
+      rateCanvas.addEventListener('pointerleave', function () {
+        state.hoverDB = null; state.hoverRate = null;
+        resetInfo();
+        drawRateLevel();
+      });
+      function resetInfo() {
+        document.getElementById('ratelevel-info').innerHTML = '紅線（' + state.dbCut + ' dB）與各曲線的交點 → 右下 RA；藍線（放電率 ' + state.rateCut + '）與各曲線的交點 → TC。可直接拖曳兩條線。';
       }
-      const x1 = dbLevels[idx], x2 = dbLevels[idx+1];
-      const y1 = rates[idx], y2 = rates[idx+1];
-      const interpRate = y1 + (y2 - y1)*(clickDB - x1)/(x2 - x1);
-      ratesAtClick.push(interpRate);
-    });
 
-    drawResponseAreaPlotFreqRate(ratesAtClick, rateLevel);
+      tuningCanvas.addEventListener('pointermove', function (e) {
+        const rect = tuningCanvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        tuneHoverX = (tGeo && x >= tGeo.x0 && x <= tGeo.x1) ? x : null;
+        drawTuningCurve();
+      });
+      tuningCanvas.addEventListener('pointerleave', function () { tuneHoverX = null; drawTuningCurve(); });
 
-    responseAreaModal.style.display = 'block';
-  });
-
-  tuningCanvas.addEventListener('click', event => {
-    if (!currentCurveData || !currentSegment) return;
-
-    const rect = tuningCanvas.getBoundingClientRect();
-    const clickX = event.clientX - rect.left;
-
-    const w = tuningCanvas.width;
-    const paddingLeft = tuningCanvas._paddingLeft;
-    const paddingRight = tuningCanvas._paddingRight;
-    const usableWidth = w - paddingLeft - paddingRight;
-
-    const freqLog = (clickX - paddingLeft) / usableWidth * (logGlobalMax - logGlobalMin) + logGlobalMin;
-    const freqClicked = Math.pow(10, freqLog);
-
-    let closestIndex = 0;
-    let minDiff = Infinity;
-    currentCurveData.forEach((p, i) => {
-      const diff = Math.abs(p.freq - freqClicked);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closestIndex = i;
+      // ================= Draw =================
+      function drawAll() {
+        document.getElementById('dbCutOut').textContent = state.dbCut + ' dB';
+        document.getElementById('rateCutOut').textContent = '放電率 ' + state.rateCut;
+        drawRateLevel();
+        drawRA();
+        drawTC();
+        drawTuningCurve();
+        if (state.hoverDB === null) resetInfo();
       }
-    });
 
-    const thresholdVal = currentCurveData[closestIndex].baseMemThreshold;
-
-    const keys = Object.keys(responseAreas).map(parseFloat).sort((a,b) => a-b);
-    let nearestKey = keys[0];
-    let minKeyDiff = Math.abs(thresholdVal - nearestKey);
-    for(let k of keys) {
-      const diffKey = Math.abs(thresholdVal - k);
-      if (diffKey < minKeyDiff) {
-        minKeyDiff = diffKey;
-        nearestKey = k;
+      let rt = null;
+      window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(drawAll, 80); });
+      if (window.matchMedia) {
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        if (mq.addEventListener) mq.addEventListener('change', drawAll);
       }
-    }
-    const respArea = responseAreas[nearestKey] || "未知響應區";
-       console.log(
-      `您點擊的頻率約為 ${freqClicked.toFixed(0)} Hz\n` +
-      `此頻率下基底膜閾值約為 ${thresholdVal.toFixed(2)}\n` +
-      `對應的響應區：${respArea}`
-    );
-  });
-</script>
+      selectSeg('seg5');
+    })();
+  </script>
 </body>
-</html>
 
+</html>

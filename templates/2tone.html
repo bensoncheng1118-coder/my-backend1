@@ -1,250 +1,954 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PST Histogram Demo</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Google Fonts for modern typography -->
+  <title>雙音抑制與對向抑制</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
-      --primary-color: #4a90e2;
-      --secondary-color: #ff6b6b;
-      --bg-color: #f4f7f6;
-      --card-bg: #ffffff;
-      --text-color: #333333;
-      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      --radius: 12px;
+      --bg: #f3f6fb;
+      --card: #ffffff;
+      --card-soft: #f7f9fc;
+      --line: #e3e8f0;
+      --text: #1f2a37;
+      --muted: #6b7a8c;
+      --primary: #3b7ddd;
+      --primary-soft: rgba(59, 125, 221, .12);
+      --stim: #3b7ddd;
+      --cm: #8e5bd0;
+      --sp: #e08a1e;
+      --ap: #e04f4f;
+      --mix: #1fa67a;
+      --grid: #edf1f6;
+      --axis: #b8c2cf;
+      --shadow: 0 6px 24px rgba(31, 42, 55, .07);
+      --radius: 16px;
     }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0f1520;
+        --card: #18212e;
+        --card-soft: #1e2938;
+        --line: #2a3647;
+        --text: #e6ecf3;
+        --muted: #93a1b3;
+        --primary: #6aa3f0;
+        --primary-soft: rgba(106, 163, 240, .16);
+        --stim: #6aa3f0;
+        --cm: #b48cf0;
+        --sp: #f2a640;
+        --ap: #f27171;
+        --mix: #3ccf9b;
+        --grid: #222d3c;
+        --axis: #4a586b;
+        --shadow: 0 6px 24px rgba(0, 0, 0, .35);
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #0f1520;
+      --card: #18212e;
+      --card-soft: #1e2938;
+      --line: #2a3647;
+      --text: #e6ecf3;
+      --muted: #93a1b3;
+      --primary: #6aa3f0;
+      --primary-soft: rgba(106, 163, 240, .16);
+      --stim: #6aa3f0;
+      --cm: #b48cf0;
+      --sp: #f2a640;
+      --ap: #f27171;
+      --mix: #3ccf9b;
+      --grid: #222d3c;
+      --axis: #4a586b;
+      --shadow: 0 6px 24px rgba(0, 0, 0, .35);
+    }
+
+    * { box-sizing: border-box; }
 
     body {
       font-family: 'Noto Sans TC', sans-serif;
       margin: 0;
-      padding: 0;
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
+      line-height: 1.6;
     }
 
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 20px;
+      background: color-mix(in srgb, var(--card) 88%, transparent);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .topbar a, .icon-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: .92rem;
+      background: var(--card-soft);
+      border: 1px solid var(--line);
+      padding: 7px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: color .2s, border-color .2s;
+    }
+
+    .topbar a:hover, .icon-btn:hover { color: var(--primary); border-color: var(--primary); }
+
+    .topbar .crumbs { display: flex; gap: 8px; flex-wrap: wrap; }
+    .topbar .crumbs a.active { color: var(--primary); border-color: var(--primary); background: var(--primary-soft); }
+
     .container {
-      background-color: var(--card-bg);
-      padding: 40px;
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 16px 60px;
+    }
+
+    .hero { text-align: center; margin-bottom: 24px; }
+    .hero h1 { margin: 0 0 6px; font-size: 1.9rem; }
+    .hero p { margin: 0; color: var(--muted); }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      width: 90%;
-      max-width: 800px;
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      margin: 0 0 14px;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card h2 i { color: var(--primary); }
+
+    /* Controls */
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px 24px;
+    }
+
+    .ctrl label {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+      font-size: .92rem;
+      margin-bottom: 6px;
+    }
+
+    .ctrl label output { color: var(--primary); font-variant-numeric: tabular-nums; }
+
+    input[type="range"] { width: 100%; accent-color: var(--primary); }
+
+    .num-row { display: flex; gap: 8px; align-items: center; }
+
+    .num-row input[type="number"] {
+      width: 110px;
+      padding: 7px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: var(--card-soft);
+      color: var(--text);
+      font: inherit;
       text-align: center;
     }
 
-    h1 {
-      margin-bottom: 30px;
-      font-weight: 700;
-      color: #2c3e50;
-      font-size: 1.8rem;
-    }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 
-    .controls {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      margin-bottom: 30px;
-    }
-
-    @media (min-width: 600px) {
-      .controls {
-        flex-direction: row;
-        justify-content: center;
-      }
-    }
-
-    button {
-      padding: 12px 24px;
-      font-size: 1rem;
-      border: none;
-      border-radius: 50px;
+    .chip {
+      border: 1px solid var(--line);
+      background: var(--card-soft);
+      color: var(--text);
+      padding: 4px 11px;
+      border-radius: 999px;
+      font-size: .82rem;
       cursor: pointer;
-      font-weight: 500;
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      font-family: inherit;
+      transition: all .15s;
     }
 
-    #btnToneA {
-      background-color: var(--primary-color);
-      color: white;
+    .chip:hover { border-color: var(--primary); color: var(--primary); }
+    .chip.on { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+    .btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: none;
+      padding: 9px 18px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-family: inherit;
+      font-size: .92rem;
+      cursor: pointer;
+      background: var(--primary);
+      color: #fff;
+      transition: transform .15s, filter .15s;
     }
 
-    #btnToneA:hover {
-      background-color: #357abd;
-      transform: translateY(-2px);
+    .btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .btn.ghost { background: var(--card-soft); color: var(--text); border: 1px solid var(--line); }
+
+    /* Insight */
+    .insight {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
     }
 
-    #btnToneAB {
-      background-color: var(--secondary-color);
-      color: white;
+    .stat {
+      background: var(--card-soft);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
     }
 
-    #btnToneAB:hover {
-      background-color: #fa5252;
-      transform: translateY(-2px);
+    .stat .k { font-size: .8rem; color: var(--muted); }
+    .stat .v { font-size: 1.05rem; font-weight: 700; margin-top: 2px; }
+    .stat .d { font-size: .82rem; color: var(--muted); margin-top: 4px; }
+
+    /* Plots */
+    .plot { margin-bottom: 14px; }
+
+    .plot-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
     }
 
-    #chart-container {
+    .plot-title { font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+    .canvas-wrap {
       position: relative;
-      height: 400px;
       width: 100%;
+      background: var(--card-soft);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
     }
 
-    .info-text {
-      margin-top: 10px;
-      font-size: 0.9rem;
-      color: #777;
+    canvas { display: block; width: 100%; touch-action: none; }
+
+    .grid3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 18px;
     }
+
+    .toggles { display: flex; flex-wrap: wrap; gap: 12px; font-size: .85rem; color: var(--muted); }
+    .toggles label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+
+    details.explain {
+      margin-top: 10px;
+      background: var(--card-soft);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 14px;
+    }
+
+    details.explain summary { cursor: pointer; font-weight: 600; color: var(--primary); }
+    details.explain p { margin: 10px 0 2px; font-size: .93rem; }
+
+    /* Quiz */
+    .quiz-q { margin-bottom: 16px; }
+    .quiz-q .q { font-weight: 600; margin-bottom: 8px; }
+    .quiz-opts { display: flex; flex-wrap: wrap; gap: 8px; }
+    .quiz-opts button { font-size: .88rem; }
+    .quiz-opts button.right { background: var(--mix); color: #fff; border-color: var(--mix); }
+    .quiz-opts button.wrong { background: var(--ap); color: #fff; border-color: var(--ap); }
+    .quiz-fb { font-size: .88rem; margin-top: 6px; color: var(--muted); min-height: 1.2em; }
+
+    .legend-note { font-size: .82rem; color: var(--muted); margin-top: 6px; }
+
+    @media (max-width: 640px) {
+      .hero h1 { font-size: 1.5rem; }
+      .card { padding: 16px; }
+      .topbar .crumbs a span { display: none; }
+    }
+  
+    :root { --toneA: #3b7ddd; --toneB: #e04f4f; --supp: rgba(224, 79, 79, .16); --exc: rgba(59, 125, 221, .14); }
+    :root[data-theme="dark"] { --toneA: #6aa3f0; --toneB: #f27171; --supp: rgba(242, 113, 113, .2); --exc: rgba(106, 163, 240, .18); }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) { --toneA: #6aa3f0; --toneB: #f27171; --supp: rgba(242, 113, 113, .2); --exc: rgba(106, 163, 240, .18); }
+    }
+
+    .tabs { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
+    .tab {
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--text);
+      padding: 10px 20px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-family: inherit;
+      font-size: .95rem;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+    }
+    .tab.on { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .panel { display: none; }
+    .panel.on { display: block; }
+
+    .two-col { display: grid; grid-template-columns: 1.1fr 1fr; gap: 20px; }
+    @media (max-width: 860px) { .two-col { grid-template-columns: 1fr; } }
+
+    .mode-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+
+    .tip {
+      position: absolute;
+      pointer-events: none;
+      background: rgba(20, 28, 40, .92);
+      color: #fff;
+      font-size: .8rem;
+      padding: 6px 9px;
+      border-radius: 8px;
+      white-space: nowrap;
+      display: none;
+      z-index: 5;
+    }
+
+    .flow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0 4px; }
+    .flow span.node {
+      background: var(--card-soft);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 6px 10px;
+      font-size: .86rem;
+      font-weight: 600;
+    }
+    .flow i { color: var(--muted); font-size: .8rem; }
+
+    .kv { font-variant-numeric: tabular-nums; }
   </style>
 </head>
+
 <body>
 
+  <div class="topbar">
+    <a href="/"><i class="fa-solid fa-chevron-left"></i> 返回首頁</a>
+    <div class="crumbs">
+      <a href="/wave3" title="耳蝸電位"><i class="fa-solid fa-wave-square"></i><span>耳蝸電位</span></a>
+      <a href="/two_tone" class="active" title="雙音抑制"><i class="fa-solid fa-chart-column"></i><span>雙音抑制</span></a>
+      <a href="/cochlear" title="rate-level function"><i class="fa-solid fa-chart-line"></i><span>rate-level</span></a>
+    </div>
+    <button class="icon-btn" id="themeBtn" title="切換深淺色"><i class="fa-solid fa-circle-half-stroke"></i></button>
+  </div>
+
   <div class="container">
-    <h1>雙音抑制 (Two-Tone Suppression)</h1>
-    
-    <div class="controls">
-      <button id="btnToneA">
-        音調 A <br>
-        <span style="font-size: 0.8em; opacity: 0.9;">(單音刺激)</span>
-      </button>
-      <button id="btnToneAB">
-        音調 A + 音調 B <br>
-        <span style="font-size: 0.8em; opacity: 0.9;">(雙音/對向抑制)</span>
-      </button>
+    <div class="hero">
+      <h1>雙音抑制 (Two-Tone Suppression) &amp; 對向抑制</h1>
+      <p>用 PST histogram 觀察：加入第二個聲音後，聽神經對音調 A 的放電如何被壓低</p>
     </div>
 
-    <div id="chart-container">
-      <canvas id="pstChart"></canvas>
+    <div class="tabs">
+      <button class="tab on" data-panel="pTwo"><i class="fa-solid fa-music"></i> 雙音抑制（同側）</button>
+      <button class="tab" data-panel="pContra"><i class="fa-solid fa-headphones"></i> 對向抑制（對側）</button>
     </div>
-    <div class="info-text">
-        點擊上方按鈕切換顯示不同的刺激情況
+
+    <!-- ===== Two-tone ===== -->
+    <div class="panel on" id="pTwo">
+      <div class="two-col">
+        <div class="card">
+          <h2><i class="fa-solid fa-crosshairs"></i> 放置音調 B</h2>
+          <p style="margin:0 0 10px;color:var(--muted);font-size:.9rem">
+            藍色 V 形是這條聽神經的興奮區（調諧曲線），音調 A 固定在特徵頻率上。點擊或拖曳圖上任一處來放置音調 B，看看它落在哪一區。
+          </p>
+          <div class="canvas-wrap"><canvas id="areaCanvas" data-h="300"></canvas><div class="tip" id="areaTip"></div></div>
+          <div class="controls" style="margin-top:14px">
+            <div class="ctrl">
+              <label for="bFreq">音調 B 頻率 <output id="bFreqOut" class="kv"></output></label>
+              <input type="range" id="bFreq" min="0" max="1000" step="1">
+            </div>
+            <div class="ctrl">
+              <label for="bLevel">音調 B 強度 <output id="bLevelOut" class="kv"></output></label>
+              <input type="range" id="bLevel" min="0" max="100" step="1">
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn ghost" id="resetB"><i class="fa-solid fa-rotate-left"></i> 回到預設位置</button>
+            <button class="btn ghost" id="playA"><i class="fa-solid fa-volume-high"></i> 聽音調 A</button>
+            <button class="btn ghost" id="playAB"><i class="fa-solid fa-volume-high"></i> 聽 A + B</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2><i class="fa-solid fa-chart-column"></i> PST Histogram</h2>
+          <div class="mode-row" id="modeTwo">
+            <button class="chip on" data-mode="A">音調 A（單音刺激）</button>
+            <button class="chip" data-mode="AB">音調 A + 音調 B（雙音）</button>
+            <button class="chip" data-mode="both">並列比較</button>
+          </div>
+          <div class="canvas-wrap"><canvas id="pstTwo" data-h="300"></canvas><div class="tip" id="pstTwoTip"></div></div>
+          <div class="insight" style="margin-top:14px">
+            <div class="stat"><div class="k">音調 B 位置</div><div class="v" id="zoneOut">—</div><div class="d" id="zoneDesc"></div></div>
+            <div class="stat"><div class="k">放電總數 A → A+B</div><div class="v kv" id="countOut">—</div><div class="d" id="suppOut"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2><i class="fa-solid fa-book-open"></i> 原理說明</h2>
+        <p style="margin-top:0">
+          只給<strong>音調 A</strong>（落在聽神經特徵頻率、興奮區內）時，PST histogram 呈現典型的初始高峰再逐漸適應下降。
+          若同一耳再加入<strong>音調 B</strong>，而 B 落在興奮區兩側的<strong>抑制區</strong>，聽神經對 A 的放電次數會明顯下降，這就是<strong>雙音抑制</strong>。
+        </p>
+        <ul style="margin:0;padding-left:1.2em">
+          <li>音調 B 本身單獨出現時不會讓這條神經放電（它在興奮區外），卻能壓低 A 引起的反應。</li>
+          <li>抑制來自耳蝸本身（外毛細胞與基底膜的非線性），不是神經突觸的抑制，所以抑制幾乎是立即出現、立即消失。</li>
+          <li>音調 B 強度越高、越深入抑制區，抑制越明顯；若 B 落進興奮區，B 自己就會讓神經放電，不算抑制。</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ===== Contralateral ===== -->
+    <div class="panel" id="pContra">
+      <div class="two-col">
+        <div class="card">
+          <h2><i class="fa-solid fa-sliders"></i> 對側刺激</h2>
+          <p style="margin:0 0 12px;color:var(--muted);font-size:.9rem">
+            音調 A 仍然給在記錄的這一耳；另一耳（對側）則給寬頻噪音。調整對側噪音強度，看看這一耳的聽神經放電怎麼變。
+          </p>
+          <div class="ctrl">
+            <label for="cLevel">對側噪音強度 <output id="cLevelOut" class="kv"></output></label>
+            <input type="range" id="cLevel" min="0" max="80" step="1" value="80">
+          </div>
+          <h2 style="margin-top:20px;font-size:1rem"><i class="fa-solid fa-route"></i> 傳導路徑</h2>
+          <div class="flow">
+            <span class="node">對側耳給聲音</span><i class="fa-solid fa-arrow-right"></i>
+            <span class="node">耳蝸核</span><i class="fa-solid fa-arrow-right"></i>
+            <span class="node">上橄欖複合體內側（MOC 神經元）</span><i class="fa-solid fa-arrow-right"></i>
+            <span class="node">橄欖耳蝸束（傳出神經）</span><i class="fa-solid fa-arrow-right"></i>
+            <span class="node">此側外毛細胞</span><i class="fa-solid fa-arrow-right"></i>
+            <span class="node">耳蝸放大降低 → 放電減少</span>
+          </div>
+          <div class="btn-row">
+            <button class="btn ghost" id="playContra"><i class="fa-solid fa-headphones"></i> 聽：左耳 A + 右耳噪音（請戴耳機）</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2><i class="fa-solid fa-chart-column"></i> PST Histogram</h2>
+          <div class="mode-row" id="modeContra">
+            <button class="chip" data-mode="A">只有音調 A</button>
+            <button class="chip" data-mode="AB">音調 A + 對側噪音</button>
+            <button class="chip on" data-mode="both">並列比較</button>
+          </div>
+          <div class="canvas-wrap"><canvas id="pstContra" data-h="300"></canvas><div class="tip" id="pstContraTip"></div></div>
+          <div class="insight" style="margin-top:14px">
+            <div class="stat"><div class="k">傳出系統</div><div class="v" id="mocOut">—</div><div class="d" id="mocDesc"></div></div>
+            <div class="stat"><div class="k">放電總數 A → A+對側</div><div class="v kv" id="cCountOut">—</div><div class="d" id="cSuppOut"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2><i class="fa-solid fa-book-open"></i> 原理說明</h2>
+        <p style="margin-top:0">
+          <strong>對向抑制</strong>是指在對側耳給聲音時，記錄耳的聽神經放電下降。它和雙音抑制一樣會讓 PST histogram 變矮，但機制不同：
+        </p>
+        <ul style="margin:0;padding-left:1.2em">
+          <li>雙音抑制發生在同一耳的耳蝸內，是機械性的，幾乎瞬間出現。</li>
+          <li>對向抑制要經過腦幹的內側橄欖耳蝸（MOC）傳出系統，作用在外毛細胞、降低耳蝸放大，所以需要對側聲音夠大才會啟動，並有一點延遲。</li>
+          <li>臨床上常用「對側噪音讓耳聲傳射（OAE）變小」來檢查這條傳出路徑。</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Quiz -->
+    <div class="card">
+      <h2><i class="fa-solid fa-circle-check"></i> 小測驗</h2>
+      <div id="quiz"></div>
     </div>
   </div>
 
   <script>
-    const ctx = document.getElementById('pstChart').getContext('2d');
-    
-    // 模擬 PST histogram 時間區間
-    const bins = Array.from({length: 10}, (_, i) => (i * 10) + 5); 
+    (function () {
+      const root = document.documentElement;
+      try {
+        const saved = localStorage.getItem('cochleaTheme');
+        if (saved) root.setAttribute('data-theme', saved);
+      } catch (e) { }
+      function css(n) { return getComputedStyle(root).getPropertyValue(n).trim(); }
+      document.getElementById('themeBtn').addEventListener('click', function () {
+        const dark = css('--bg') === '#0f1520';
+        const next = dark ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        try { localStorage.setItem('cochleaTheme', next); } catch (e) { }
+        drawAll();
+      });
 
-    // 模擬Tone A的放電率資料
-    const toneA_data = [100, 75, 60, 45, 30, 20, 15, 10, 5, 3];
+      // ---------- Data (from the original page) ----------
+      // 模擬 PST histogram 時間區間
+      const bins = Array.from({ length: 10 }, function (_, i) { return (i * 10) + 5; });
+      // 模擬 Tone A 的放電率資料
+      const toneA_data = [100, 75, 60, 45, 30, 20, 15, 10, 5, 3];
+      // 預設：Tone A + Tone B 時雙音抑制後保留約 40% 放電
 
-    // 模擬Tone A + Tone B時雙音抑制後的放電率
-    const toneAB_data = toneA_data.map(v => Math.round(v * 0.4)); 
+      // ---------- Tabs ----------
+      document.querySelectorAll('.tab').forEach(function (t) {
+        t.addEventListener('click', function () {
+          document.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('on'); });
+          document.querySelectorAll('.panel').forEach(function (x) { x.classList.remove('on'); });
+          t.classList.add('on');
+          document.getElementById(t.dataset.panel).classList.add('on');
+          drawAll();
+        });
+      });
 
-    let pstChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: bins.map(b => b + ' ms'),
-        datasets: [{
-          label: '音調A (Tone A)',
-          data: toneA_data,
-          backgroundColor: 'rgba(74, 144, 226, 0.8)', // Primary Color
-          hoverBackgroundColor: 'rgba(74, 144, 226, 1)',
-          borderWidth: 0,
-          barPercentage: 0.9,
-          categoryPercentage: 0.9,
-          borderRadius: 4,
-        }, {
-          label: '音調A + 音調B (Suppression)',
-          data: toneAB_data,
-          backgroundColor: 'rgba(255, 107, 107, 0.8)', // Secondary Color
-          hoverBackgroundColor: 'rgba(255, 107, 107, 1)',
-          borderWidth: 0,
-          barPercentage: 0.9,
-          categoryPercentage: 0.9,
-          borderRadius: 4,
-          hidden: true // Initial hidden
-        }]
-      },
-      options: {
-        maintainAspectRatio: false,
-        scales: {
-          x: {
-            title: {
-              display: true,
-              text: '時間 (Time in ms)',
-              font: {
-                size: 14,
-                family: "'Noto Sans TC', sans-serif"
-              }
-            },
-            grid: {
-              display: false
-            }
-          },
-          y: {
-            beginAtZero: true,
-            max: 100,
-            title: {
-              display: true,
-              text: '放電次數 (Spike Count)',
-              font: {
-                 size: 14,
-                 family: "'Noto Sans TC', sans-serif"
-              }
-            },
-            grid: {
-              color: '#f0f0f0'
-            }
+      // ---------- Canvas helper ----------
+      function prep(c) {
+        const dpr = window.devicePixelRatio || 1;
+        const w = c.clientWidth || c.parentElement.clientWidth;
+        const h = +c.dataset.h;
+        if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) {
+          c.width = Math.round(w * dpr);
+          c.height = Math.round(h * dpr);
+        }
+        c.style.height = h + 'px';
+        const ctx = c.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, w, h);
+        return { ctx: ctx, w: w, h: h };
+      }
+      const FONT = '"Noto Sans TC", sans-serif';
+
+      // ---------- Two-tone model ----------
+      const CF = 2000;              // Hz, 音調 A 的頻率 = 特徵頻率
+      const A_LEVEL = 30;           // dB SPL
+      const FMIN = 250, FMAX = 16000;
+      const LMIN = 0, LMAX = 100;
+      const B_DEFAULT = { f: Math.round(CF * Math.pow(2, 0.6)), L: 70 };
+      const B = { f: B_DEFAULT.f, L: B_DEFAULT.L };
+
+      function oct(f) { return Math.log2(f / CF); }
+
+      // excitatory threshold (tuning curve): sharp tip, steep high side, shallower low side
+      function thrE(f) {
+        const d = oct(f);
+        return d >= 0 ? 10 + 150 * d : 10 + 60 * (-d);
+      }
+      // suppression thresholds on both flanks
+      function thrS(f) {
+        const d = oct(f);
+        let t = Infinity;
+        if (d >= 0.25 && d <= 1.4) t = Math.min(t, 40 + 110 * Math.abs(d - 0.6));
+        if (d >= -2.4 && d <= -0.7) t = Math.min(t, 55 + 45 * Math.abs(d + 1.3));
+        return t;
+      }
+
+      // fraction of A's response kept when B is present
+      function twoToneKeep(f, L) {
+        if (L >= thrE(f)) return { keep: 1, zone: 'exc' };
+        const ts = thrS(f);
+        if (L >= ts) {
+          const depth = Math.min(1, (L - ts) / 30);
+          return { keep: 1 - 0.6 * depth, zone: 'supp' };
+        }
+        return { keep: 1, zone: 'none' };
+      }
+
+      // ---------- Area canvas ----------
+      const areaCanvas = document.getElementById('areaCanvas');
+      const AP = { l: 46, r: 14, t: 14, b: 36 };
+      let areaGeo = null;
+
+      function fx(f, g) { return AP.l + (Math.log10(f) - Math.log10(FMIN)) / (Math.log10(FMAX) - Math.log10(FMIN)) * (g.w - AP.l - AP.r); }
+      function ly(L, g) { return g.h - AP.b - (L - LMIN) / (LMAX - LMIN) * (g.h - AP.t - AP.b); }
+      function xf(x, g) { return Math.pow(10, Math.log10(FMIN) + (x - AP.l) / (g.w - AP.l - AP.r) * (Math.log10(FMAX) - Math.log10(FMIN))); }
+      function yl(y, g) { return LMIN + (g.h - AP.b - y) / (g.h - AP.t - AP.b) * (LMAX - LMIN); }
+
+      function drawArea() {
+        const g = prep(areaCanvas);
+        areaGeo = g;
+        const ctx = g.ctx;
+        const yTop = ly(LMAX, g), yBot = ly(LMIN, g);
+
+        // grid
+        ctx.strokeStyle = css('--grid');
+        ctx.lineWidth = 1;
+        ctx.font = '11px ' + FONT;
+        ctx.fillStyle = css('--muted');
+        [250, 500, 1000, 2000, 4000, 8000, 16000].forEach(function (f) {
+          const x = fx(f, g);
+          ctx.beginPath(); ctx.moveTo(x, yTop); ctx.lineTo(x, yBot); ctx.stroke();
+          ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+          ctx.fillText(f >= 1000 ? (f / 1000) + 'k' : f, x, yBot + 5);
+        });
+        for (let L = 0; L <= 100; L += 20) {
+          const y = ly(L, g);
+          ctx.beginPath(); ctx.moveTo(AP.l, y); ctx.lineTo(g.w - AP.r, y); ctx.stroke();
+          ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+          ctx.fillText(L, AP.l - 6, y);
+        }
+        ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+        ctx.fillText('頻率 (Hz)', (AP.l + g.w - AP.r) / 2, g.h - 1);
+        ctx.save(); ctx.translate(12, (yTop + yBot) / 2); ctx.rotate(-Math.PI / 2);
+        ctx.textBaseline = 'middle'; ctx.fillText('強度 (dB SPL)', 0, 0); ctx.restore();
+
+        // fill zones column by column
+        const x0 = AP.l, x1 = g.w - AP.r;
+        for (let x = x0; x < x1; x += 1) {
+          const f = xf(x + 0.5, g);
+          const te = Math.max(LMIN, Math.min(LMAX, thrE(f)));
+          // excitatory
+          ctx.fillStyle = css('--exc');
+          ctx.fillRect(x, ly(LMAX, g), 1, ly(te, g) - ly(LMAX, g));
+          // suppression (below excitatory boundary)
+          const ts = thrS(f);
+          if (ts < te && ts < LMAX) {
+            ctx.fillStyle = css('--supp');
+            ctx.fillRect(x, ly(te, g), 1, ly(ts, g) - ly(te, g));
           }
-        },
-        plugins: {
-          legend: {
-            labels: {
-              font: {
-                family: "'Noto Sans TC', sans-serif",
-                size: 14
-              },
-              usePointStyle: true,
-              padding: 20
-            }
-          },
-          tooltip: {
-            backgroundColor: 'rgba(0,0,0,0.8)',
-            titleFont: { family: "'Noto Sans TC', sans-serif" },
-            bodyFont: { family: "'Noto Sans TC', sans-serif" },
-            padding: 10,
-            cornerRadius: 8,
-            displayColors: true
+        }
+
+        // tuning curve line
+        ctx.strokeStyle = css('--toneA');
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        let started = false;
+        for (let x = x0; x <= x1; x += 2) {
+          const L = thrE(xf(x, g));
+          if (L > LMAX) { started = false; continue; }
+          const y = ly(L, g);
+          if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // labels
+        ctx.font = '600 11px ' + FONT;
+        ctx.fillStyle = css('--toneB');
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('抑制區', fx(CF * Math.pow(2, 0.62), g), ly(62, g));
+        ctx.fillText('抑制區', fx(CF * Math.pow(2, -1.35), g), ly(80, g));
+        ctx.fillStyle = css('--toneA');
+        ctx.fillText('興奮區', fx(CF, g), ly(78, g));
+
+        // tone A marker
+        const ax = fx(CF, g), ay = ly(A_LEVEL, g);
+        ctx.fillStyle = css('--toneA');
+        ctx.beginPath(); ctx.arc(ax, ay, 7, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.font = '700 10px ' + FONT;
+        ctx.fillText('A', ax, ay + .5);
+        ctx.fillStyle = css('--muted'); ctx.font = '11px ' + FONT;
+        ctx.textAlign = 'left';
+        ctx.textAlign = 'right'; ctx.fillText('CF ' + CF + ' Hz', ax - 8, ly(6, g));
+
+        // tone B marker
+        const bx = fx(B.f, g), by = ly(B.L, g);
+        ctx.strokeStyle = css('--toneB');
+        ctx.setLineDash([4, 3]);
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(bx, yBot); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = css('--toneB');
+        ctx.beginPath(); ctx.arc(bx, by, 8, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.font = '700 10px ' + FONT; ctx.textAlign = 'center';
+        ctx.fillText('B', bx, by + .5);
+      }
+
+      // ---------- PST drawing ----------
+      function drawPST(canvas, mode, keep, labelA, labelB) {
+        const g = prep(canvas);
+        const ctx = g.ctx;
+        const P = { l: 46, r: 12, t: 30, b: 40 };
+        const x0 = P.l, x1 = g.w - P.r, y0 = P.t, y1 = g.h - P.b;
+        const yMax = 100;
+        ctx.strokeStyle = css('--grid');
+        ctx.font = '11px ' + FONT;
+        ctx.fillStyle = css('--muted');
+        for (let v = 0; v <= yMax; v += 20) {
+          const y = y1 - v / yMax * (y1 - y0);
+          ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+          ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+          ctx.fillText(v, x0 - 6, y);
+        }
+        ctx.save(); ctx.translate(12, (y0 + y1) / 2); ctx.rotate(-Math.PI / 2);
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('放電次數 (Spike Count)', 0, 0); ctx.restore();
+        ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+        ctx.fillText('時間 (Time in ms)', (x0 + x1) / 2, g.h - 1);
+
+        const n = bins.length;
+        const slot = (x1 - x0) / n;
+        const dataA = toneA_data;
+        const dataB = toneA_data.map(function (v) { return Math.round(v * keep); });
+        const showA = mode === 'A' || mode === 'both';
+        const showB = mode === 'AB' || mode === 'both';
+        const bars = [];
+        for (let i = 0; i < n; i++) {
+          const cx = x0 + slot * i;
+          ctx.fillStyle = css('--muted'); ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+          ctx.fillText(bins[i], cx + slot / 2, y1 + 5);
+          const series = [];
+          if (showA) series.push({ v: dataA[i], c: css('--toneA'), name: labelA });
+          if (showB) series.push({ v: dataB[i], c: css('--toneB'), name: labelB });
+          const bw = slot * 0.8 / series.length;
+          series.forEach(function (s, k) {
+            const bx = cx + slot * 0.1 + k * bw;
+            const hh = s.v / yMax * (y1 - y0);
+            ctx.fillStyle = s.c;
+            ctx.globalAlpha = .85;
+            roundRect(ctx, bx + 1, y1 - hh, bw - 2, hh, 4);
+            ctx.globalAlpha = 1;
+            bars.push({ x: bx, y: y1 - hh, w: bw, h: hh, text: s.name + '：' + bins[i] + ' ms，' + s.v + ' 次' });
+          });
+        }
+        ctx.strokeStyle = css('--axis');
+        ctx.beginPath(); ctx.moveTo(x0, y1); ctx.lineTo(x1, y1); ctx.stroke();
+
+        // legend
+        let lx = x0;
+        ctx.font = '600 12px ' + FONT; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+        [[showA, css('--toneA'), labelA], [showB, css('--toneB'), labelB]].forEach(function (L) {
+          if (!L[0]) return;
+          ctx.fillStyle = L[1];
+          ctx.beginPath(); ctx.arc(lx + 5, 13, 5, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = css('--text');
+          ctx.fillText(L[2], lx + 14, 13);
+          lx += ctx.measureText(L[2]).width + 34;
+        });
+        canvas._bars = bars;
+        const sumA = dataA.reduce(function (a, b) { return a + b; }, 0);
+        const sumB = dataB.reduce(function (a, b) { return a + b; }, 0);
+        return { sumA: sumA, sumB: sumB };
+      }
+
+      function roundRect(ctx, x, y, w, h, r) {
+        if (h <= 0) return;
+        r = Math.min(r, h, w / 2);
+        ctx.beginPath();
+        ctx.moveTo(x, y + h);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      function attachTip(canvas, tipEl) {
+        canvas.addEventListener('pointermove', function (e) {
+          const rect = canvas.getBoundingClientRect();
+          const x = e.clientX - rect.left, y = e.clientY - rect.top;
+          const hit = (canvas._bars || []).find(function (b) { return x >= b.x && x <= b.x + b.w && y >= b.y - 6 && y <= b.y + b.h; });
+          if (hit) {
+            tipEl.textContent = hit.text;
+            tipEl.style.display = 'block';
+            tipEl.style.left = Math.min(x + 12, rect.width - tipEl.offsetWidth - 4) + 'px';
+            tipEl.style.top = (y - 34) + 'px';
+          } else tipEl.style.display = 'none';
+        });
+        canvas.addEventListener('pointerleave', function () { tipEl.style.display = 'none'; });
+      }
+
+      // ---------- UI: two-tone ----------
+      const bFreq = document.getElementById('bFreq');
+      const bLevel = document.getElementById('bLevel');
+      const LF0 = Math.log10(FMIN), LF1 = Math.log10(FMAX);
+      function syncBInputs() {
+        bFreq.value = Math.round((Math.log10(B.f) - LF0) / (LF1 - LF0) * 1000);
+        bLevel.value = B.L;
+      }
+      bFreq.addEventListener('input', function () { B.f = Math.round(Math.pow(10, LF0 + bFreq.value / 1000 * (LF1 - LF0))); drawAll(); });
+      bLevel.addEventListener('input', function () { B.L = +bLevel.value; drawAll(); });
+      document.getElementById('resetB').addEventListener('click', function () { B.f = B_DEFAULT.f; B.L = B_DEFAULT.L; syncBInputs(); drawAll(); });
+
+      let dragging = false;
+      function placeB(e) {
+        if (!areaGeo) return;
+        const rect = areaCanvas.getBoundingClientRect();
+        const x = e.clientX - rect.left, y = e.clientY - rect.top;
+        const f = Math.max(FMIN, Math.min(FMAX, xf(x, areaGeo)));
+        const L = Math.max(LMIN, Math.min(LMAX, yl(y, areaGeo)));
+        B.f = Math.round(f); B.L = Math.round(L);
+        syncBInputs(); drawAll();
+      }
+      areaCanvas.addEventListener('pointerdown', function (e) { dragging = true; areaCanvas.setPointerCapture(e.pointerId); placeB(e); });
+      areaCanvas.addEventListener('pointermove', function (e) {
+        if (dragging) placeB(e);
+        const tip = document.getElementById('areaTip');
+        const rect = areaCanvas.getBoundingClientRect();
+        const x = e.clientX - rect.left, y = e.clientY - rect.top;
+        if (!areaGeo || x < AP.l || x > rect.width - AP.r || y < AP.t || y > rect.height - AP.b) { tip.style.display = 'none'; return; }
+        const f = xf(x, areaGeo), L = yl(y, areaGeo);
+        const z = twoToneKeep(f, L).zone;
+        tip.textContent = Math.round(f) + ' Hz, ' + Math.round(L) + ' dB → ' + (z === 'exc' ? '興奮區' : z === 'supp' ? '抑制區' : '無作用');
+        tip.style.display = 'block';
+        tip.style.left = Math.min(x + 12, rect.width - tip.offsetWidth - 4) + 'px';
+        tip.style.top = (y - 34) + 'px';
+      });
+      areaCanvas.addEventListener('pointerup', function () { dragging = false; });
+      areaCanvas.addEventListener('pointerleave', function () { document.getElementById('areaTip').style.display = 'none'; });
+
+      let modeTwo = 'A', modeContra = 'both';
+      function bindModes(boxId, setter) {
+        document.querySelectorAll('#' + boxId + ' .chip').forEach(function (c) {
+          c.addEventListener('click', function () {
+            document.querySelectorAll('#' + boxId + ' .chip').forEach(function (x) { x.classList.remove('on'); });
+            c.classList.add('on');
+            setter(c.dataset.mode);
+            drawAll();
+          });
+        });
+      }
+      bindModes('modeTwo', function (m) { modeTwo = m; });
+      bindModes('modeContra', function (m) { modeContra = m; });
+
+      // ---------- UI: contralateral ----------
+      const cLevel = document.getElementById('cLevel');
+      cLevel.addEventListener('input', drawAll);
+      function contraKeep(L) {
+        const act = Math.max(0, Math.min(1, (L - 40) / 40));
+        return 1 - 0.6 * act;
+      }
+
+      // ---------- Draw all ----------
+      function drawAll() {
+        document.getElementById('bFreqOut').textContent = B.f + ' Hz';
+        document.getElementById('bLevelOut').textContent = B.L + ' dB SPL';
+        const r = twoToneKeep(B.f, B.L);
+        if (document.getElementById('pTwo').classList.contains('on')) {
+          drawArea();
+          const s = drawPST(document.getElementById('pstTwo'), modeTwo, r.keep, '音調A (Tone A)', '音調A + 音調B');
+          const zoneOut = document.getElementById('zoneOut');
+          const zoneDesc = document.getElementById('zoneDesc');
+          if (r.zone === 'supp') {
+            zoneOut.textContent = '抑制區'; zoneOut.style.color = css('--toneB');
+            zoneDesc.textContent = 'B 落在興奮區外側的抑制區，會壓低 A 引起的放電。';
+          } else if (r.zone === 'exc') {
+            zoneOut.textContent = '興奮區'; zoneOut.style.color = css('--toneA');
+            zoneDesc.textContent = 'B 自己就能讓這條神經放電，這不是抑制。';
+          } else {
+            zoneOut.textContent = '無作用'; zoneOut.style.color = css('--muted');
+            zoneDesc.textContent = 'B 太小聲或離 CF 太遠，對 A 的反應沒有影響。';
           }
-        },
-        animation: {
-            duration: 800,
-            easing: 'easeOutQuart'
+          document.getElementById('countOut').textContent = s.sumA + ' → ' + s.sumB;
+          const pct = Math.round((1 - s.sumB / s.sumA) * 100);
+          document.getElementById('suppOut').textContent = pct > 0 ? '放電減少約 ' + pct + '%' : '放電沒有減少';
+        } else {
+          const L = +cLevel.value;
+          document.getElementById('cLevelOut').textContent = L + ' dB SPL';
+          const keep = contraKeep(L);
+          const s = drawPST(document.getElementById('pstContra'), modeContra, keep, '只有音調A', '音調A + 對側噪音');
+          const moc = document.getElementById('mocOut');
+          if (L < 40) { moc.textContent = '未啟動'; moc.style.color = css('--muted'); document.getElementById('mocDesc').textContent = '對側聲音太小，MOC 反射還沒被引發。'; }
+          else { moc.textContent = 'MOC 啟動中'; moc.style.color = css('--toneB'); document.getElementById('mocDesc').textContent = '傳出神經作用在外毛細胞，耳蝸放大降低。'; }
+          document.getElementById('cCountOut').textContent = s.sumA + ' → ' + s.sumB;
+          const pct = Math.round((1 - s.sumB / s.sumA) * 100);
+          document.getElementById('cSuppOut').textContent = pct > 0 ? '放電減少約 ' + pct + '%' : '放電沒有減少';
         }
       }
-    });
 
-    function showToneA() {
-      pstChart.data.datasets[0].hidden = false;
-      pstChart.data.datasets[1].hidden = true;
-      pstChart.update();
-    }
+      attachTip(document.getElementById('pstTwo'), document.getElementById('pstTwoTip'));
+      attachTip(document.getElementById('pstContra'), document.getElementById('pstContraTip'));
 
-    function showToneAB() {
-      pstChart.data.datasets[0].hidden = true;
-      pstChart.data.datasets[1].hidden = false;
-      pstChart.update();
-    }
+      // ---------- Audio ----------
+      let ac = null;
+      function audio() { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); return ac; }
+      function tone(ctx, f, gainVal, pan, t0, dur) {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.frequency.value = f;
+        g.gain.setValueAtTime(0, t0);
+        g.gain.linearRampToValueAtTime(gainVal, t0 + 0.03);
+        g.gain.setValueAtTime(gainVal, t0 + dur - 0.06);
+        g.gain.linearRampToValueAtTime(0, t0 + dur);
+        let node = o.connect(g);
+        if (pan != null && ctx.createStereoPanner) { const p = ctx.createStereoPanner(); p.pan.value = pan; node = node.connect(p); }
+        node.connect(ctx.destination);
+        o.start(t0); o.stop(t0 + dur + 0.02);
+      }
+      function dbGain(L) { return Math.min(0.2, 0.008 * Math.pow(10, (L - 30) / 40)); }
+      document.getElementById('playA').addEventListener('click', function () {
+        try { const c = audio(); tone(c, CF, dbGain(A_LEVEL), null, c.currentTime, 1); } catch (e) { }
+      });
+      document.getElementById('playAB').addEventListener('click', function () {
+        try { const c = audio(); const t = c.currentTime; tone(c, CF, dbGain(A_LEVEL), null, t, 1); tone(c, B.f, dbGain(B.L), null, t, 1); } catch (e) { }
+      });
+      document.getElementById('playContra').addEventListener('click', function () {
+        try {
+          const c = audio(); const t = c.currentTime;
+          tone(c, CF, dbGain(A_LEVEL), -1, t, 1.5);
+          const len = Math.round(c.sampleRate * 1.5);
+          const buf = c.createBuffer(1, len, c.sampleRate);
+          const d = buf.getChannelData(0);
+          for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+          const src = c.createBufferSource(); src.buffer = buf;
+          const g = c.createGain(); g.gain.value = Math.min(0.12, 0.003 * Math.pow(10, (+cLevel.value - 30) / 40));
+          let node = src.connect(g);
+          if (c.createStereoPanner) { const p = c.createStereoPanner(); p.pan.value = 1; node = node.connect(p); }
+          node.connect(c.destination);
+          src.start(t);
+        } catch (e) { }
+      });
 
-    document.getElementById('btnToneA').addEventListener('click', showToneA);
-    document.getElementById('btnToneAB').addEventListener('click', showToneAB);
-    
-    // Initial State
-    showToneA();
+      // ---------- Quiz ----------
+      const quiz = [
+        { q: '1. 音調 B 要放在哪裡，才會產生雙音抑制？', opts: ['興奮區內', '興奮區兩側的抑制區', '任何地方都可以'], a: 1, why: 'B 必須落在興奮區外側的抑制區；若在興奮區內，B 自己就會讓神經放電。' },
+        { q: '2. 雙音抑制主要是哪一層的機制？', opts: ['耳蝸（外毛細胞／基底膜非線性）', '大腦皮質', '中耳肌肉反射'], a: 0, why: '雙音抑制是耳蝸本身的機械非線性，所以幾乎是立即出現。' },
+        { q: '3. 對向抑制需要經過哪條路徑？', opts: ['鐙骨肌反射弧', '內側橄欖耳蝸（MOC）傳出系統', '外側丘系'], a: 1, why: '對側聲音經耳蝸核、上橄欖複合體內側的 MOC 神經元，再由橄欖耳蝸束作用在外毛細胞。' }
+      ];
+      const quizBox = document.getElementById('quiz');
+      quiz.forEach(function (item) {
+        const wrap = document.createElement('div'); wrap.className = 'quiz-q';
+        const q = document.createElement('div'); q.className = 'q'; q.textContent = item.q;
+        const opts = document.createElement('div'); opts.className = 'quiz-opts';
+        const fb = document.createElement('div'); fb.className = 'quiz-fb';
+        item.opts.forEach(function (o, i) {
+          const b = document.createElement('button'); b.className = 'chip'; b.textContent = o;
+          b.addEventListener('click', function () {
+            opts.querySelectorAll('button').forEach(function (x) { x.classList.remove('right', 'wrong'); });
+            b.classList.add(i === item.a ? 'right' : 'wrong');
+            fb.textContent = (i === item.a ? '答對了！' : '再想想：') + item.why;
+          });
+          opts.appendChild(b);
+        });
+        wrap.appendChild(q); wrap.appendChild(opts); wrap.appendChild(fb);
+        quizBox.appendChild(wrap);
+      });
 
+      let rt = null;
+      window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(drawAll, 80); });
+      if (window.matchMedia) {
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        if (mq.addEventListener) mq.addEventListener('change', drawAll);
+      }
+      syncBInputs();
+      drawAll();
+    })();
   </script>
 </body>
+
 </html>

@@ -1,609 +1,1073 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interacoustics AC40 High-Fidelity Simulator</title>
-    <style>
-        :root {
-            --ac-bg: #f2f2f5;
-            --ac-bezel: #2a2a2e;
-            --ac-btn-black: #1a1a1c;
-            --ac-btn-red: #cc3333;
-            --ac-btn-blue: #0066cc;
-            --ac-btn-green: #16a085;
-            --ac-btn-orange: #d35400;
-            --ac-btn-yellow: #f1c40f;
-            --led-on: #00ff00;
-            --led-off: #444;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>純音聽力檢查模擬器</title>
+<style>
+  :root {
+    --page: #e8eaee; --ink: #1d2330; --muted: #5b6475; --card: #ffffff; --line: #cfd4dc; --accent: #2f6fde;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --page: #15171c; --ink: #e8eaf0; --muted: #9aa3b5; --card: #20242c; --line: #343a46; --accent: #7aa7ff; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--ink);
+    font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif; }
+  button { font-family: inherit; }
 
-        body {
-            margin: 0;
-            background: #d1d1d6;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            padding: 20px;
-        }
+  /* ---------- page chrome ---------- */
+  .topbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 12px 16px;
+    background: var(--card); border-bottom: 1px solid var(--line); }
+  .topbar h1 { font-size: 19px; margin: 0; flex: 1 1 auto; }
+  .topbar a.back { color: var(--accent); text-decoration: none; font-size: 14px; }
+  .tabs { display: flex; gap: 6px; background: var(--page); padding: 4px; border-radius: 10px; }
+  .tab { border: 0; background: transparent; color: var(--muted); padding: 8px 14px; border-radius: 7px; cursor: pointer; font-size: 14px; }
+  .tab[aria-selected="true"] { background: var(--card); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.15); font-weight: 600; }
+  .simbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; padding: 10px 16px; font-size: 14px;
+    border-bottom: 1px solid var(--line); }
+  .simbar select, .simbar input[type=range] { vertical-align: middle; }
+  .simbar select { padding: 4px 6px; border-radius: 6px; border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+  .resp { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+  .lamp { width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #777, #333); border: 2px solid #222; }
+  .lamp.on { background: radial-gradient(circle at 40% 35%, #fff7b0, #ffcc00 60%, #d99a00); box-shadow: 0 0 14px 4px rgba(255, 204, 0, .8); }
+  main { padding: 18px 16px 8px; }
+  .stage-wrap { width: 100%; overflow: hidden; margin: 0 auto; }
+  .stage-wrap[hidden] { display: none; }
+  .stage { transform-origin: top left; position: relative; }
+  .help { max-width: 1180px; margin: 6px auto 40px; padding: 0 16px; font-size: 14px; line-height: 1.7; }
+  .help details { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 16px; margin-bottom: 10px; }
+  .help summary { cursor: pointer; font-weight: 600; }
+  .help kbd { border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; font-size: 12px; background: var(--page); }
+  .note { color: var(--muted); font-size: 13px; }
 
-        .ac40-console {
-            width: 1250px;
-            background: var(--ac-bg);
-            border-radius: 10px;
-            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
-            border: 4px solid #999;
-            position: relative;
-        }
+  /* ---------- shared device bits ---------- */
+  .dev { font-family: Arial, Helvetica, sans-serif; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+  .dev button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .knob { position: absolute; border-radius: 50%; cursor: ns-resize; touch-action: none;
+    background: radial-gradient(circle at 42% 35%, #414145, #0c0c0d 68%);
+    box-shadow: 0 10px 18px rgba(0,0,0,.45), inset 0 -4px 8px rgba(255,255,255,.06), inset 0 2px 2px rgba(255,255,255,.12); }
+  .knob .rot { position: absolute; inset: 0; border-radius: 50%; }
+  .knob .mark { position: absolute; left: 50%; top: 9%; width: 4px; height: 13%; margin-left: -2px; border-radius: 2px; background: #8b8b8f; }
 
-        .lcd-area {
-            background: var(--ac-bezel);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+  /* ---------- AC40-style ---------- */
+  .ac40 { position: relative; width: 1180px; height: 712px; border-radius: 26px;
+    background: linear-gradient(180deg, #ececea 0%, #d9d9d6 55%, #c9c9c6 100%);
+    border: 1px solid #a3a3a0; box-shadow: 0 30px 60px rgba(0,0,0,.35), inset 0 2px 0 #fff; }
+  .ac40 .blk { position: absolute; left: 14px; right: 14px; top: 12px; height: 340px; border-radius: 20px 20px 4px 4px;
+    background: linear-gradient(180deg, #2c2c2f, #141416); }
+  .ac40 .grille { position: absolute; top: 34px; height: 150px; border-radius: 14px;
+    background: repeating-linear-gradient(90deg, #0a0a0b 0 6px, #26262a 6px 10px); box-shadow: inset 0 0 0 2px #111; }
+  .ac40 .glass { position: absolute; left: 236px; top: 14px; width: 662px; height: 326px; border-radius: 14px;
+    background: linear-gradient(160deg, #222226, #050506 55%, #1b1b1e); box-shadow: inset 0 0 0 1px #000, inset 0 1px 0 #3a3a3e; }
+  .ac40 canvas.lcd { position: absolute; left: 300px; top: 22px; width: 530px; height: 294px; border: 4px solid #c7d4e0; border-radius: 2px; background: #000; }
+  .ac40 .brand { position: absolute; left: 700px; top: 322px; color: #8c8c90; font-size: 10px; letter-spacing: 2px; }
+  .ac40 .fk { position: absolute; width: 26px; height: 20px; margin-left: -13px; top: 354px; border: 0; border-radius: 3px;
+    background: linear-gradient(#3a3a3d, #101012); box-shadow: 0 2px 0 #000, 0 3px 4px rgba(0,0,0,.4); }
+  .ac40 .fk:active, .ac40 .fk.on { transform: translateY(1px); background: linear-gradient(#2a2a2d, #000); }
+  .ac40 .fk.on { box-shadow: 0 0 0 2px #ffd84a; }
+  .ac40 .fkl { position: absolute; top: 337px; transform: translateX(-50%); color: #e8e8e8; font-size: 10.5px; white-space: nowrap; }
+  .ac40 .fks { position: absolute; top: 377px; transform: translateX(-50%); color: #444; font-size: 9.5px; font-style: italic; white-space: nowrap; }
+  .ac40 .k { position: absolute; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; }
+  .ac40 .kl { display: flex; gap: 4px; justify-content: center; align-items: flex-start; height: 22px; font-size: 9.5px; color: #2b2b2b; white-space: nowrap; }
+  .ac40 .kl span { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .ac40 .kl i { display: block; width: 12px; height: 4px; border-radius: 1px; background: #6e6e6e; box-shadow: inset 0 1px 1px rgba(0,0,0,.7); }
+  .ac40 .kl i.on { background: #ffd94d; box-shadow: 0 0 6px 2px rgba(255, 200, 40, .85); }
+  .ac40 .kb { width: 44px; height: 34px; border: 0; border-radius: 5px; background: linear-gradient(#3b3b3e, #121214);
+    box-shadow: 0 3px 0 #000, 0 5px 7px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.15); }
+  .ac40 .kb:active { transform: translateY(2px); box-shadow: 0 1px 0 #000, inset 0 1px 0 rgba(255,255,255,.1); }
+  .ac40 .c-red { background: linear-gradient(#a6343b, #6c1a20); }
+  .ac40 .c-blue { background: linear-gradient(#3854ab, #1d2f72); }
+  .ac40 .c-teal { background: linear-gradient(#6593ab, #2f5a73); }
+  .ac40 .c-mask { background: linear-gradient(#2f78b4, #154d7e); }
+  .ac40 .c-yellow { background: linear-gradient(#f6d77e, #d8a52b); }
+  .ac40 .c-orange { background: linear-gradient(#f39236, #c45d0b); }
+  .ac40 .txt { position: absolute; transform: translateX(-50%); font-size: 10px; color: #2b2b2b; white-space: nowrap; text-align: center; line-height: 1.2; }
+  .ac40 .tsw { position: absolute; width: 50px; height: 50px; margin: -25px 0 0 -25px; border-radius: 50%; border: 0; touch-action: none;
+    background: radial-gradient(circle at 42% 35%, #d4d4d7, #9c9ca0); box-shadow: 0 4px 6px rgba(0,0,0,.35), inset 0 1px 0 #fff; }
+  .ac40 .tsw.pressed { background: radial-gradient(circle at 42% 35%, #b4b4b8, #85858a); transform: translateY(1px); box-shadow: 0 1px 2px rgba(0,0,0,.4); }
+  .ac40 .tf-knob { position: absolute; left: 56px; top: 368px; width: 48px; height: 48px; border-radius: 50%; cursor: ns-resize; touch-action: none;
+    background: radial-gradient(circle at 42% 35%, #3a3a3d, #0b0b0c 70%); box-shadow: 0 5px 8px rgba(0,0,0,.45); }
+  .ac40 .tf-knob .rot { position: absolute; inset: 0; }
+  .ac40 .tf-knob .rot::after { content: ""; position: absolute; left: 50%; top: -9px; margin-left: -9px; border: 9px solid transparent; border-bottom: 14px solid #0b0b0c; border-top: 0; }
+  .ac40 .tf-btn { position: absolute; left: 62px; top: 428px; width: 36px; height: 24px; border: 2px solid #2b2b2b; border-radius: 3px; background: linear-gradient(#f2f2f0, #cfcfcc); }
+  .ac40 .tf-btn.pressed { background: linear-gradient(#c8c8c5, #e6e6e3); }
 
-        .lcd-frame {
-            width: 800px;
-            height: 400px;
-            background: #000;
-            border: 6px solid #111;
-            border-radius: 4px;
-            position: relative;
-            color: #ccc;
-        }
+  /* ---------- AudioStar-Pro-style ---------- */
+  .gsi { position: relative; width: 1500px; height: 1372px; border-radius: 34px; background: linear-gradient(180deg, #f3f1ec, #e9e6df);
+    border: 1px solid #c9c4b9; box-shadow: 0 30px 60px rgba(0,0,0,.3); }
+  .gsi .bezel { position: absolute; left: 318px; top: 14px; width: 864px; height: 286px; border-radius: 16px; background: linear-gradient(#34373d, #1f2126);
+    box-shadow: inset 0 0 0 2px #15171a; }
+  .gsi canvas.lcd { position: absolute; left: 340px; top: 26px; width: 820px; height: 262px; border-radius: 4px; background: #e9eef5; }
+  .gsi .model { position: absolute; left: 60px; top: 60px; color: #8a8478; font-size: 13px; letter-spacing: 2px; line-height: 1.6; }
+  .gsi .face { position: absolute; left: 20px; top: 306px; width: 1462px; height: 1045px; }
+  .gsi .face svg { position: absolute; left: 0; top: 0; }
+  .gsi .rb { position: absolute; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%; border: 3px solid #3f434a;
+    background: radial-gradient(circle at 45% 40%, #34373d, #0b0c0f 70%); box-shadow: 0 3px 6px rgba(0,0,0,.4); }
+  .gsi .rb:active { transform: scale(.96); }
+  .gsi .rb.on { border-color: #e4f3ff; background: radial-gradient(circle at 45% 40%, #23417e, #0a1638 72%);
+    box-shadow: 0 0 0 3px #7cc0ff, 0 0 18px 7px rgba(70, 155, 255, .75); }
+  .gsi .rb.sm { width: 42px; height: 42px; margin: -21px 0 0 -21px; }
+  .gsi .rb.xs { width: 38px; height: 38px; margin: -19px 0 0 -19px; }
+  .gsi .pill { position: absolute; width: 90px; height: 32px; margin: -16px 0 0 -45px; border-radius: 17px; border: 4px solid #4d5158;
+    background: linear-gradient(#f7f8fa, #d7dae0); box-shadow: 0 2px 4px rgba(0,0,0,.25); }
+  .gsi .pill:active { transform: translateY(1px); }
+  .gsi .pill.on { border-color: #e8f5ff; box-shadow: 0 0 0 3px #79bfff, 0 0 16px 6px rgba(70, 155, 255, .7); }
+  .gsi .pill.big { width: 96px; height: 42px; margin: -21px 0 0 -48px; border-radius: 22px; }
+  .gsi .gl { position: absolute; font-size: 13px; color: #1e2533; line-height: 1.08; white-space: nowrap; transform: translateY(-50%); }
+  .gsi .gl.r { transform: translate(-100%, -50%); text-align: right; }
+  .gsi .gl.c { transform: translate(-50%, -50%); text-align: center; }
+  .gsi .gh { font-weight: 700; font-size: 14px; }
+  .gsi .gh.big { font-size: 17px; }
+  .gsi .gled { position: absolute; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #6a6a6a, #232323); }
+  .gsi .gled.on { background: radial-gradient(circle at 40% 35%, #e6ffb8, #59c81f); box-shadow: 0 0 9px 2px rgba(110, 230, 60, .8); }
+  .gsi .bar { position: absolute; width: 36px; height: 196px; margin: -98px 0 0 -18px; border-radius: 20px; border: 0; touch-action: none;
+    background: linear-gradient(90deg, #0d0e10, #34373c 45%, #0d0e10); box-shadow: 0 6px 10px rgba(0,0,0,.4); }
+  .gsi .bar.pressed { filter: brightness(1.6); }
+  .gsi .tfbar { position: absolute; width: 150px; height: 46px; margin: -23px 0 0 -75px; border-radius: 22px; border: 4px solid #3d4046; touch-action: none;
+    background: linear-gradient(#232529, #0b0c0e); box-shadow: 0 3px 5px rgba(0,0,0,.4); }
+  .gsi .tfbar.pressed { box-shadow: 0 0 0 3px #79bfff, 0 0 14px 5px rgba(70,155,255,.7); }
+  .gsi .rocker { position: absolute; width: 244px; height: 46px; margin: -23px 0 0 -122px; display: flex; border-radius: 22px; overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,.4); }
+  .gsi .rocker button { flex: 1; border: 0; background: linear-gradient(#2a2c31, #0b0c0e); }
+  .gsi .rocker button + button { border-left: 2px solid #4a4d53; }
+  .gsi .rocker button:active { filter: brightness(1.6); }
+  .gsi .dpad path, .gsi .dpad circle.c { cursor: pointer; }
+  .gsi .dpad path:active, .gsi .dpad circle.c:active { filter: brightness(1.8); }
+  .gsi .ring { position: absolute; border-radius: 50%; pointer-events: none; }
 
-        .bezel-btns {
-            display: flex;
-            gap: 15px;
-            margin-top: 10px;
-        }
-
-        .btn-func {
-            width: 40px;
-            height: 14px;
-            background: #333;
-            border: 1px solid #444;
-            cursor: pointer;
-        }
-
-        .main-panel {
-            padding: 30px;
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 30px;
-        }
-
-        .panel-col {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .btn-group-header {
-            font-size: 10px;
-            font-weight: 900;
-            color: #555;
-            margin-bottom: 5px;
-            border-bottom: 2px solid #ccc;
-            padding-bottom: 3px;
-        }
-
-        .btn-matrix {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px 15px;
-        }
-
-        .button-unit {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 60px;
-        }
-
-        .label {
-            font-size: 8px;
-            font-weight: bold;
-            text-align: center;
-            color: #444;
-            margin-bottom: 2px;
-        }
-
-        .btn-sq {
-            width: 50px;
-            height: 35px;
-            background: var(--ac-btn-black);
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-            box-shadow: 0 5px #000;
-            position: relative;
-        }
-
-        .btn-sq:active {
-            transform: translateY(2px);
-            box-shadow: 0 3px #000;
-        }
-
-        .btn-sq.active {
-            filter: brightness(1.5);
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
-        }
-
-        .led {
-            width: 14px;
-            height: 4px;
-            background: var(--led-off);
-            margin-top: 2px;
-            border-radius: 1px;
-        }
-
-        .btn-sq.active+.led {
-            background: var(--led-on);
-            box-shadow: 0 0 8px var(--led-on);
-        }
-
-        .color-red {
-            background: var(--ac-btn-red) !important;
-        }
-
-        .color-blue {
-            background: var(--ac-btn-blue) !important;
-        }
-
-        .color-green {
-            background: var(--ac-btn-green) !important;
-        }
-
-        .color-orange {
-            background: var(--ac-btn-orange) !important;
-        }
-
-        .color-yellow {
-            background: var(--ac-btn-yellow) !important;
-        }
-
-        .control-hub {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-top: 10px;
-        }
-
-        .dial-knob {
-            width: 140px;
-            height: 140px;
-            background: #1a1a1a;
-            border-radius: 50%;
-            border: 8px solid #999;
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
-            cursor: ns-resize;
-            position: relative;
-            transition: transform 0.1s;
-        }
-
-        .dial-knob::after {
-            content: '';
-            position: absolute;
-            top: 15px;
-            left: 50%;
-            width: 5px;
-            height: 20px;
-            background: white;
-            transform: translateX(-50%);
-        }
-
-        .enter-btn {
-            width: 55px;
-            height: 55px;
-            background: #ccc;
-            border-radius: 50%;
-            border: 3px solid #999;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 7px;
-            font-weight: 800;
-            text-align: center;
-        }
-
-        canvas {
-            width: 100%;
-            height: 100%;
-            background: #000;
-            cursor: crosshair;
-        }
-
-        .shelf-label {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #fff;
-            padding: 5px 20px;
-            border: 1px solid #ccc;
-            font-weight: 900;
-            color: #333;
-        }
-    </style>
+  #printSheet { display: none; }
+  @media print {
+    body > *:not(#printSheet) { display: none !important; }
+    #printSheet { display: block; }
+    #printSheet img { width: 100%; }
+  }
+</style>
 </head>
-
 <body>
+<header class="topbar">
+  <a class="back" href="/">← 回首頁</a>
+  <h1>純音聽力檢查模擬器</h1>
+  <div class="tabs" role="tablist" aria-label="選擇儀器">
+    <button class="tab" role="tab" data-dev="ac40">AC40 型（雙通道）</button>
+    <button class="tab" role="tab" data-dev="gsi">AudioStar Pro 型</button>
+  </div>
+</header>
+<section class="simbar">
+  <label>模擬受試者
+    <select id="patientSel">
+      <option value="normal">正常聽力</option>
+      <option value="presby">雙耳老年性感音性聽損（高頻下降）</option>
+      <option value="leftCond" selected>左耳傳導性聽損（需遮蔽）</option>
+      <option value="rightMixed">右耳混合性聽損</option>
+      <option value="notch">雙耳噪音性聽損（4 kHz 凹陷）</option>
+      <option value="rightDead">右耳全聾（影子曲線）</option>
+      <option value="random">隨機受試者</option>
+    </select>
+  </label>
+  <label><input type="checkbox" id="showAns"> 顯示正確閾值</label>
+  <label>輸出音量 <input type="range" id="vol" min="0" max="1" step="0.01" value="0.5"></label>
+  <span class="resp" title="受試者聽到刺激音時會按下反應鈕"><span class="lamp" id="respLamp"></span>受試者反應</span>
+</section>
+<main>
+  <div class="stage-wrap" id="wrap-ac40"><div class="stage dev" id="ac40"></div></div>
+  <div class="stage-wrap" id="wrap-gsi" hidden><div class="stage dev" id="gsi"></div></div>
+</main>
+<section class="help">
+  <details open id="help-ac40">
+    <summary>AC40 型操作說明</summary>
+    <ul>
+      <li><b>給音：</b>按住灰色圓鈕「Tone Switch」（左為 CH1、右為 CH2），或按住鍵盤 <kbd>空白鍵</kbd>。Man＝按下才出聲；Rev＝持續出聲、按下中斷（CH2 預設 Rev，作為持續遮蔽噪音）。</li>
+      <li><b>音量（dB HL）：</b>拖曳大旋鈕上下、滑鼠滾輪，或點旋鈕左半（−）／右半（＋）；鍵盤 <kbd>↑</kbd><kbd>↓</kbd>。步階由「1dB 2dB 5dB」切換；Ext Range 開啟延伸輸出上限。Sync 讓 CH2 跟著 CH1 一起變動。</li>
+      <li><b>頻率：</b>「Incorrect / Down」、「Correct / Up」鍵或 <kbd>←</kbd><kbd>→</kbd>。</li>
+      <li><b>刺激音：</b>Tone/Warble（純音／震音）、Wavefile、Mic、CD、NB/N（窄頻／白噪音）。Single/Multi 為單一脈衝／連續脈衝音。</li>
+      <li><b>輸出：</b>紅鍵＝右耳（再按切換耳機／插入式），藍鍵＝左耳，R Bone L＝骨導（再按切換左右），FF＝自由音場。CH2 另有 Insert Mask（插入式遮蔽到對側耳）與 Off。Sim＝CH2 與 CH1 同時給音，Alt＝交替給音。</li>
+      <li><b>聽力圖：</b>Store（<kbd>Enter</kbd>）以目前 CH1 的耳別、轉換器與音量記錄閾值；No Resp（<kbd>N</kbd>）記錄無反應。CH2 有窄頻噪音送到對側耳時自動以遮蔽符號記錄。Delete Point 刪除該點；Shift＋Delete Point 刪除整條曲線；Save Session 存檔、Shift＋Save Session 開新檢查、Shift＋Print 開啟已存檔案；Print 列印聽力圖。</li>
+      <li><b>螢幕下方軟鍵：</b>HF phone（高頻耳機）、Meas. type（Threshold／MCL／UCL）、Condition（Unaided／Aided）、Magnify（放大單耳聽力圖）、Mask Info（遮蔽建議）、NF／HF／HF2（頻率範圍）。Setup 可開關語音香蕉區與「儲存後自動跳下一頻率」；Tests 切換純音／語音測驗。</li>
+    </ul>
+  </details>
+  <details id="help-gsi" hidden open>
+    <summary>AudioStar Pro 型操作說明</summary>
+    <ul>
+      <li><b>給音：</b>按住大旋鈕旁的弧形 CHANNEL 1／CHANNEL 2 給音桿，或鍵盤 <kbd>空白鍵</kbd>（CH1）。INTERRUPT 亮起時為「常開」：持續出聲、按下給音桿中斷（常用於 CH2 遮蔽噪音）。INTERLOCK＝CH2 隨 CH1 同步給音；TRACKING＝CH2 音量跟著 CH1 變動。</li>
+      <li><b>音量：</b>拖曳左右大旋鈕上下、滾輪，或點旋鈕左半／右半；方向鍵 ▲▼（或 <kbd>↑</kbd><kbd>↓</kbd>）調整 CH1。</li>
+      <li><b>頻率：</b>下方 FREQUENCY ◀ ▶ 搖桿、方向鍵 ◀ ▶，或 <kbd>←</kbd><kbd>→</kbd>。</li>
+      <li><b>刺激音／轉換器／路由：</b>各通道 STIMULUS（再按 TONE 依序切換 穩定音→脈衝音→震音）、NOISE（NB／SPEECH／WHITE）、TRANSDUCER（PHONE、BONE、SPKR、INSERT、HIGH FREQ PHONE）、ROUTING（LEFT、RIGHT、LEFT RIGHT）。</li>
+      <li><b>聽力圖：</b>STORE（<kbd>Enter</kbd>，或方向鍵中央鈕）記錄該通道閾值；在最大輸出值儲存會記為無反應。STATUS/AUDIOGRAM 切換聽力圖與數值表；DATA ERASE 清除；PRINT 列印；DATA TRANSFER 下載 JSON。</li>
+      <li><b>TEST TYPE：</b>TONE、HIGH Hz（延伸高頻）、SPEECH（語音測驗，用 CORRECT／INCORRECT／CLEAR 計分）。EXAMINER／PATIENT 可輸入姓名；CONFIGURE 切換音量步階；LEFT／RIGHT VRA 點亮視覺增強玩具。</li>
+    </ul>
+  </details>
+  <details>
+    <summary>聽力圖符號與模擬說明</summary>
+    <p>右耳紅色、左耳藍色。氣導：右 ○／左 ✕；遮蔽氣導：右 △／左 □；骨導：右 &lt;／左 &gt;；遮蔽骨導：右 [／左 ]；音場：S（助聽 A）；MCL：M；UCL：U；無反應加向下箭頭。</p>
+    <p class="note">本模擬器的音量為示意用途，未經校正，不能用於真正的聽力檢查。請先把「輸出音量」調低再戴耳機。左右耳以立體聲聲道呈現；模擬受試者會依氣導／骨導閾值、耳間衰減（耳機 40 dB、插入式 55 dB、骨導 0 dB）與遮蔽噪音決定是否反應，所以能練習遮蔽與影子曲線。面板為通用外觀仿製，未使用原廠商標。</p>
+  </details>
+</section>
+<div id="printSheet"><img id="printImg" alt="聽力圖"></div>
 
-    <div class="ac40-console">
-        <div class="lcd-area">
-            <div class="lcd-frame">
-                <canvas id="audiogramCanvas"></canvas>
-            </div>
-            <div class="bezel-btns">
-                <div class="btn-func" title="Shift"></div>
-                <div class="btn-func" title="Setup"></div>
-                <div class="btn-func"></div>
-                <div class="btn-func"></div>
-                <div class="btn-func"></div>
-                <div class="btn-func"></div>
-                <div class="btn-func"></div>
-                <div class="btn-func" title="Tests"></div>
-                <div class="btn-func" title="Delete Point" onclick="delPt()"></div>
-                <div class="btn-func" title="Clear All" onclick="clearAll()"
-                    style="background: #500; border: 1px solid #700;"></div>
-                <div class="btn-func" title="Save Session"></div>
-                <div class="btn-func" title="Print"></div>
-            </div>
-        </div>
+<script>
+(function () {
+'use strict';
+// ================= utilities =================
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const other = e => (e === 'R' ? 'L' : 'R');
+const FREQ_STD = [125, 250, 500, 750, 1000, 1500, 2000, 3000, 4000, 6000, 8000];
+const FREQ_HF = FREQ_STD.concat([9000, 10000, 11200, 12500, 14000, 16000]);
+const FREQ_HF2 = FREQ_HF.concat([18000, 20000]);
+const fmtHz = f => f + ' Hz';
+const fmtK = f => { const k = f / 1000; return k < 1 ? String(k) : (Number.isInteger(k) ? String(k) : k.toFixed(1)); };
+const IA = { phone: 40, hf: 40, insert: 55, bone: 0 };
+const TRANS_NAME = { phone: 'Phone', insert: 'Insert', hf: 'HF Phone', bone: 'Bone', ff: 'Speaker' };
+function lsGet(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
+function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+function nearestIdx(list, f) { let b = 0; list.forEach((x, i) => { if (Math.abs(Math.log(x / f)) < Math.abs(Math.log(list[b] / f))) b = i; }); return b; }
 
-        <div class="main-panel">
-            <div class="panel-col">
-                <div class="btn-group-header">CHANNEL 1 INPUT</div>
-                <div class="btn-matrix">
-                    <div class="button-unit">
-                        <div class="label">Tone Warble</div><button class="btn-sq active" id="c1-tone"
-                            onclick="selStim(1, 'tone')"></button>
-                        <div class="led"></div>
-                    </div>
-                    <div class="button-unit">
-                        <div class="label">Wavefile</div><button class="btn-sq" id="c1-wave"
-                            onclick="selStim(1, 'wave')"></button>
-                        <div class="led"></div>
-                    </div>
-                    <div class="button-unit">
-                        <div class="label">1 Mic 2</div><button class="btn-sq"></button>
-                        <div class="led"></div>
-                    </div>
-                    <div class="button-unit">
-                        <div class="label">1 CD 2</div><button class="btn-sq"></button>
-                        <div class="led"></div>
-                    </div>
-                    <div class="button-unit">
-                        <div class="label">NB N</div><button class="btn-sq" id="c1-nb"
-                            onclick="selStim(1, 'nb')"></button>
-                        <div class="led"></div>
-                    </div>
-                </div>
+// ================= audio engine =================
+const AE = {
+  ctx: null, master: null, vol: 0.5, voices: {}, buf: null,
+  ensure() {
+    if (!this.ctx) {
+      const C = window.AudioContext || window.webkitAudioContext; if (!C) return null;
+      this.ctx = new C(); this.master = this.ctx.createGain(); this.master.gain.value = this.vol; this.master.connect(this.ctx.destination);
+      const n = this.ctx.sampleRate * 2; this.buf = this.ctx.createBuffer(1, n, this.ctx.sampleRate);
+      const d = this.buf.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    }
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    return this.ctx;
+  },
+  setVol(v) { this.vol = v; if (this.master) this.master.gain.setTargetAtTime(v, this.ctx.currentTime, 0.02); },
+  lvl(db) { return Math.min(1, Math.pow(10, (db - 95) / 20)); },
+  set(key, d) {
+    const v = this.voices[key];
+    if (!d) { if (v) { this.stop(v); delete this.voices[key]; } return; }
+    if (!this.ensure()) return;
+    if (v && v.sig === d.sig) { if (v.lvl) v.lvl.gain.setTargetAtTime(this.lvl(d.level), this.ctx.currentTime, 0.015); return; }
+    if (v) this.stop(v);
+    this.voices[key] = this.start(d);
+  },
+  stopAll() { Object.keys(this.voices).forEach(k => this.set(k, null)); },
+  start(d) {
+    const c = this.ctx, nodes = [];
+    let out;
+    if (d.stim === 'tone') {
+      const o = c.createOscillator(); o.frequency.value = d.freq; nodes.push(o); out = o;
+      if (d.mod === 'warble') { const l = c.createOscillator(), g = c.createGain(); l.frequency.value = 5; g.gain.value = d.freq * 0.05; l.connect(g); g.connect(o.frequency); nodes.push(l); }
+    } else if (['nb', 'wn', 'sn', 'wave'].includes(d.stim)) {
+      const b = c.createBufferSource(); b.buffer = this.buf; b.loop = true; nodes.push(b); out = b;
+      const g = c.createGain();
+      if (d.stim === 'nb') { const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = Math.min(d.freq, c.sampleRate / 2 - 100); f.Q.value = 4.3; g.gain.value = 2.5; out.connect(f); f.connect(g); }
+      else if (d.stim === 'wn') { g.gain.value = 0.5; out.connect(g); }
+      else { const hp = c.createBiquadFilter(), lp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 150; lp.type = 'lowpass'; lp.frequency.value = 1100; g.gain.value = 1.4; out.connect(hp); hp.connect(lp); lp.connect(g); }
+      out = g;
+      if (d.stim === 'wave') { const am = c.createGain(), l = c.createOscillator(), lg = c.createGain(); am.gain.value = 0.5; l.frequency.value = 4; lg.gain.value = 0.5; l.connect(lg); lg.connect(am.gain); out.connect(am); out = am; nodes.push(l); }
+    } else {
+      return { sig: d.sig, stop() {} }; // mic / CD / ext input: no audio source in the simulator
+    }
+    const env = c.createGain(), lvl = c.createGain(); env.gain.value = 0; lvl.gain.value = this.lvl(d.level);
+    out.connect(env); env.connect(lvl);
+    if (c.createStereoPanner) { const p = c.createStereoPanner(); p.pan.value = d.pan; lvl.connect(p); p.connect(this.master); }
+    else lvl.connect(this.master);
+    nodes.forEach(n => n.start());
+    const t = c.currentTime; let iv = null;
+    if (d.mod === 'pulse') {
+      let on = false; const tick = () => { on = !on; env.gain.setTargetAtTime(on ? 1 : 0, c.currentTime, 0.008); };
+      tick(); iv = setInterval(tick, 225);
+    } else env.gain.setTargetAtTime(1, t, 0.008);
+    return { sig: d.sig, lvl, stop: () => { if (iv) clearInterval(iv); env.gain.cancelScheduledValues(c.currentTime); env.gain.setTargetAtTime(0, c.currentTime, 0.008); setTimeout(() => nodes.forEach(n => { try { n.stop(); } catch (e) {} }), 80); } };
+  },
+  stop(v) { v.stop(); }
+};
 
-                <div class="btn-group-header" style="margin-top: 10px;">CHANNEL 1 OUTPUT</div>
-                <div class="btn-matrix">
-                    <div class="button-unit">
-                        <div class="label">Right Insert</div><button class="btn-sq color-red active" id="c1-rout"
-                            onclick="selOut(1, 'Right', 'Phone')"></button>
-                        <div class="led"></div>
-                    </div>
-                    <div class="button-unit">
-                        <div class="label">Left Insert</div><button class="btn-sq color-blue" id="c1-lout"
-                            onclick="selOut(1, 'Left', 'Phone')"></button>
-                        <div class="led"></div>
-                    </div>
-                    <div class="button-unit">
-                        <div class="label">R Bone L</div><button class="btn-sq color-green"
-                            onclick="selOut(1, null, 'Bone')"></button>
-                        <div class="led"></div>
-                    </div>
-                    <div class="button-unit">
-                        <div class="label">1 FF 2</div><button class="btn-sq"></button>
-                        <div class="led"></div>
-                    </div>
-                </div>
+// ================= virtual patient =================
+const PRESETS = {
+  normal:   { R: { ac: [10, 5, 5, 10, 5, 10, 5, 10, 10, 15, 10], bc: [5, 5, 5, 5, 5, 5, 5, 5, 5, 10, 10] }, L: { ac: [5, 10, 10, 5, 10, 5, 10, 5, 15, 10, 15], bc: [5, 5, 5, 5, 5, 5, 5, 5, 10, 10, 10] } },
+  presby:   { R: { ac: [15, 15, 20, 25, 30, 40, 45, 55, 60, 65, 70], bc: [15, 15, 15, 20, 30, 35, 40, 55, 60, 65, 70] }, L: { ac: [20, 15, 25, 25, 35, 40, 50, 55, 65, 70, 75], bc: [15, 15, 20, 25, 30, 40, 45, 55, 60, 70, 75] } },
+  leftCond: { R: { ac: [10, 10, 5, 5, 5, 10, 10, 5, 10, 10, 15], bc: [5, 5, 5, 5, 5, 5, 5, 5, 5, 10, 10] }, L: { ac: [50, 50, 45, 45, 45, 40, 40, 40, 45, 45, 50], bc: [10, 10, 10, 10, 10, 15, 15, 10, 10, 10, 15] } },
+  rightMixed: { R: { ac: [55, 55, 60, 60, 60, 65, 65, 70, 75, 80, 80], bc: [25, 25, 30, 30, 35, 40, 45, 50, 55, 60, 60] }, L: { ac: [10, 10, 10, 5, 5, 10, 10, 15, 15, 20, 15], bc: [5, 5, 5, 5, 5, 5, 10, 10, 10, 15, 15] } },
+  notch:    { R: { ac: [10, 10, 10, 10, 15, 20, 30, 45, 55, 40, 25], bc: [10, 10, 10, 10, 10, 20, 30, 45, 55, 40, 25] }, L: { ac: [10, 10, 15, 10, 15, 25, 35, 50, 60, 45, 30], bc: [10, 10, 10, 10, 15, 25, 35, 50, 55, 45, 30] } },
+  rightDead: { R: { ac: Array(11).fill(130), bc: Array(11).fill(130) }, L: { ac: [10, 5, 5, 10, 5, 10, 10, 10, 15, 15, 10], bc: [5, 5, 5, 5, 5, 5, 5, 10, 10, 10, 10] } }
+};
+const Patient = {
+  key: 'leftCond', th: null, showAnswer: false,
+  load(key) {
+    this.key = key;
+    let p = PRESETS[key];
+    if (key === 'random') {
+      const ks = Object.keys(PRESETS); const base = PRESETS[ks[Math.floor(Math.random() * ks.length)]];
+      const flip = Math.random() < 0.5; const j = () => (Math.floor(Math.random() * 3) - 1) * 5;
+      const mk = s => { const ac = s.ac.map(v => (v >= 130 ? 130 : clamp(v + j(), -10, 120))); const bc = s.bc.map((v, i) => (v >= 130 ? 130 : clamp(Math.min(ac[i], v + j()), -10, 120))); return { ac, bc }; };
+      p = flip ? { R: mk(base.L), L: mk(base.R) } : { R: mk(base.R), L: mk(base.L) };
+    }
+    this.th = p;
+  },
+  get(e, kind, f) {
+    const s = this.th[e];
+    const i = FREQ_STD.indexOf(f);
+    if (i >= 0) return s[kind][i];
+    const v8 = s.ac[10]; if (v8 >= 130) return 130;
+    return Math.min(130, v8 + Math.round(Math.log2(f / 8000) * 30 / 5) * 5);
+  },
+  // act: list of {cls:'tone'|'noise'|'other', trans, ears, level, freq}
+  hears(act) {
+    const tones = act.filter(d => d.cls === 'tone'); if (!tones.length) return false;
+    const f = tones[0].freq, n = { R: -99, L: -99 };
+    const cond = e => Math.max(0, this.get(e, 'ac', f) - this.get(e, 'bc', f));
+    const deliver = (d, acc) => {
+      if (d.trans === 'ff') { acc('R', d.level - cond('R')); acc('L', d.level - cond('L')); return; }
+      d.ears.forEach(e => { const o = other(e);
+        if (d.trans === 'bone') { acc(e, d.level); acc(o, d.level - IA.bone); }
+        else { acc(e, d.level - cond(e)); acc(o, d.level - IA[d.trans]); } });
+    };
+    act.filter(d => d.cls === 'noise').forEach(d => deliver(d, (e, l) => { n[e] = Math.max(n[e], l); }));
+    let best = -99;
+    tones.forEach(d => deliver(d, (e, l) => { const thr = Math.max(this.get(e, 'bc', f), n[e]); best = Math.max(best, l - thr); }));
+    const p = best >= 5 ? 0.97 : best >= 0 ? 0.75 : best >= -5 ? 0.08 : 0;
+    return Math.random() < p;
+  }
+};
+const Trial = {
+  sig: null, timer: null, off: null, on: false, onChange: null,
+  update(descs) {
+    const act = descs.filter(Boolean);
+    if (!act.some(d => d.cls === 'tone')) {
+      if (this.sig !== null) { this.sig = null; const t = this.timer; clearTimeout(this.off); this.off = setTimeout(() => { clearTimeout(t); this.set(false); }, this.on ? 250 : 700); }
+      return;
+    }
+    const sig = act.map(d => d.sig + '@' + d.level).join('|');
+    if (sig === this.sig) return;
+    this.sig = sig; clearTimeout(this.timer); clearTimeout(this.off);
+    if (Patient.hears(act)) { if (!this.on) this.timer = setTimeout(() => this.set(true), 250 + Math.random() * 350); }
+    else this.set(false);
+  },
+  set(v) { if (this.on === v) return; this.on = v; document.getElementById('respLamp').classList.toggle('on', v); if (this.onChange) this.onChange(); },
+  reset() { clearTimeout(this.timer); clearTimeout(this.off); this.sig = null; this.set(false); }
+};
 
-                <div class="control-hub">
-                    <div class="button-unit">
-                        <div class="dial-knob" id="dial-1"></div>
-                        <div class="label" style="font-size:10px; margin-top:5px;">HL CH 1</div>
-                    </div>
-                    <div class="enter-btn" onmousedown="oscStart(1)" onmouseup="oscStop()">TONE SWITCH<br>ENTER</div>
-                </div>
-            </div>
+// ================= results / audiogram drawing =================
+function putPoint(list, p) {
+  for (let i = list.length - 1; i >= 0; i--) { const q = list[i]; if (q.ear === p.ear && q.f === p.f && q.kind === p.kind) list.splice(i, 1); }
+  list.push(p);
+}
+const EAR_COL = { R: '#d0202a', L: '#1f4fd1', FF: '#222' };
+function drawSymbol(c, kind, ear, x, y, masked, nr, aided, col) {
+  c.save(); c.strokeStyle = col; c.fillStyle = col; c.lineWidth = 1.6; const r = 5;
+  c.beginPath();
+  if (kind === 'ac') {
+    if (ear === 'R') { if (masked) { c.moveTo(x, y - r - 1); c.lineTo(x + r + 1, y + r); c.lineTo(x - r - 1, y + r); c.closePath(); } else c.arc(x, y, r, 0, Math.PI * 2); }
+    else { if (masked) c.rect(x - r, y - r, r * 2, r * 2); else { c.moveTo(x - r, y - r); c.lineTo(x + r, y + r); c.moveTo(x + r, y - r); c.lineTo(x - r, y + r); } }
+  } else if (kind === 'bc') {
+    const dx = ear === 'R' ? -9 : 9;
+    if (masked) { const s = ear === 'R' ? 1 : -1; c.moveTo(x + dx + 3 * s, y - r); c.lineTo(x + dx, y - r); c.lineTo(x + dx, y + r); c.lineTo(x + dx + 3 * s, y + r); }
+    else { const s = ear === 'R' ? 1 : -1; c.moveTo(x + dx + 4 * s, y - r); c.lineTo(x + dx - 2 * s, y); c.lineTo(x + dx + 4 * s, y + r); }
+  } else {
+    c.font = 'bold 12px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText(kind === 'ff' ? (aided ? 'A' : 'S') : kind === 'mcl' ? 'M' : 'U', x, y);
+  }
+  c.stroke();
+  if (nr) { const s = ear === 'L' ? 1 : -1; c.beginPath(); c.moveTo(x + s * 4, y + 6); c.lineTo(x + s * 11, y + 14); c.stroke();
+    c.beginPath(); c.moveTo(x + s * 11, y + 14); c.lineTo(x + s * 11 - s * 5, y + 13); c.lineTo(x + s * 10, y + 9); c.closePath(); c.fill(); }
+  c.restore();
+}
+// opt: {ear, freqs, pts, theme:'ac40'|'gsi'|'print', tint, banana, cursor:{f,level}, title}
+function drawAudiogram(c, x, y, w, h, opt) {
+  const th = opt.theme, small = w < 300, tight = small || h < 200;
+  const pl = small ? 22 : 30, pr = 8, pt = small ? 13 : 16, pb = 4;
+  const gx = x + pl, gy = y + pt, gw = w - pl - pr, gh = h - pt - pb;
+  const fmax = opt.freqs[opt.freqs.length - 1], oct = Math.log2(fmax / 125);
+  const fx = f => gx + Math.log2(f / 125) / oct * gw, ly = db => gy + (db + 10) / 130 * gh;
+  // background
+  let bg = '#fff', grid = '#b9c2cc', lab = '#333';
+  if (th === 'ac40') { bg = opt.tint === 'R' ? '#f4cfe2' : opt.tint === 'L' ? '#cfe0f6' : '#eef4fb'; grid = opt.tint ? 'rgba(80,60,100,.35)' : '#a8bad0'; lab = '#2a3a55'; }
+  c.fillStyle = th === 'ac40' ? '#e8f0fa' : '#fff'; c.fillRect(x, y, w, h);
+  c.fillStyle = bg; c.fillRect(gx, gy, gw, gh);
+  if (opt.banana) {
+    const top = [[250, 20], [500, 15], [1000, 18], [2000, 20], [4000, 22], [6000, 28]], bot = [[6000, 52], [4000, 58], [2000, 60], [1000, 58], [500, 52], [250, 42]];
+    c.beginPath(); top.concat(bot).forEach(([f, d], i) => { const X = fx(f), Y = ly(d); if (f > fmax) return; i ? c.lineTo(X, Y) : c.moveTo(X, Y); }); c.closePath();
+    c.fillStyle = opt.tint === 'L' ? 'rgba(60,110,200,.45)' : opt.tint === 'R' ? 'rgba(200,50,120,.45)' : 'rgba(150,150,170,.25)'; c.fill();
+  }
+  c.lineWidth = 1; c.font = (small ? 8 : 9.5) + 'px Arial'; c.textBaseline = 'middle';
+  for (let db = -10; db <= 120; db += 10) {
+    const Y = Math.round(ly(db)) + 0.5; c.strokeStyle = db === 0 ? '#555' : grid; c.lineWidth = db === 0 ? 1.4 : 1;
+    c.beginPath(); c.moveTo(gx, Y); c.lineTo(gx + gw, Y); c.stroke();
+    if (!tight || db % 20 === 0) { c.fillStyle = lab; c.textAlign = 'right'; c.fillText(db, gx - 3, Y); }
+  }
+  c.textAlign = 'center';
+  opt.freqs.forEach(f => {
+    const X = Math.round(fx(f)) + 0.5, octave = Number.isInteger(Math.log2(f / 125));
+    c.strokeStyle = grid; c.setLineDash(octave ? [] : [2, 3]); c.beginPath(); c.moveTo(X, gy); c.lineTo(X, gy + gh); c.stroke(); c.setLineDash([]);
+    if (octave || (!small && f >= 9000 && f % 2000 === 0)) { c.fillStyle = lab; c.fillText(th === 'ac40' ? fmtK(f) : (f >= 1000 ? fmtK(f) + 'k' : f), X, y + pt / 2); }
+  });
+  c.strokeStyle = '#333'; c.lineWidth = 1; c.strokeRect(gx + 0.5, gy + 0.5, gw, gh);
+  if (opt.title) { c.fillStyle = th === 'ac40' ? '#132b55' : '#222'; c.font = 'bold 10px Arial'; c.textAlign = 'left'; c.fillText(opt.title, gx + 4, gy + 8); }
+  const ear = opt.ear, col = EAR_COL[ear];
+  // correct answer overlay
+  if (opt.answer) {
+    ['ac', 'bc'].forEach(k => {
+      c.save(); c.strokeStyle = k === 'ac' ? 'rgba(0,140,60,.75)' : 'rgba(0,140,60,.45)'; c.setLineDash(k === 'ac' ? [4, 3] : [1, 3]); c.lineWidth = 2; c.beginPath(); let st = false;
+      opt.freqs.forEach(f => { if (k === 'bc' && (f < 250 || f > 4000)) return; const v = Patient.get(ear, k, f); if (v > 120) { st = false; return; } const X = fx(f), Y = ly(v); st ? c.lineTo(X, Y) : c.moveTo(X, Y); st = true; });
+      c.stroke(); c.restore();
+    });
+  }
+  // stored points
+  const pts = opt.pts.filter(p => (p.ear === ear || p.ear === 'FF') && p.f <= fmax);
+  ['ac'].forEach(kind => {
+    const line = pts.filter(p => p.kind === kind && !p.nr && p.ear === ear).sort((a, b) => a.f - b.f);
+    if (line.length > 1) { c.strokeStyle = col; c.lineWidth = 1.4; c.beginPath(); line.forEach((p, i) => { const X = fx(p.f), Y = ly(p.level); i ? c.lineTo(X, Y) : c.moveTo(X, Y); }); c.stroke(); }
+  });
+  pts.forEach(p => drawSymbol(c, p.kind, p.ear === 'FF' ? ear : p.ear, fx(p.f), ly(p.level), p.masked, p.nr, p.aided, p.ear === 'FF' ? '#222' : col));
+  if (opt.cursor) {
+    const X = fx(opt.cursor.f), Y = ly(clamp(opt.cursor.level, -10, 120));
+    if (th === 'ac40') { c.fillStyle = '#16307a'; c.fillRect(X - 4, Y - 4, 8, 8); }
+    else { c.strokeStyle = 'rgba(0,0,0,.55)'; c.setLineDash([3, 3]); c.beginPath(); c.moveTo(X, gy); c.lineTo(X, gy + gh); c.moveTo(gx, Y); c.lineTo(gx + gw, Y); c.stroke(); c.setLineDash([]);
+      c.strokeStyle = '#000'; c.strokeRect(X - 5, Y - 5, 10, 10); }
+  }
+}
+function drawSpeech(c, x, y, w, h, sp, ear, level, theme) {
+  const dark = theme === 'ac40';
+  c.fillStyle = dark ? '#e8f0fa' : '#fff'; c.fillRect(x, y, w, h);
+  c.fillStyle = '#132b55'; c.font = 'bold 13px Arial'; c.textAlign = 'left'; c.textBaseline = 'top';
+  const tot = sp.correct + sp.incorrect, pct = tot ? Math.round(sp.correct / tot * 100) : 0;
+  c.fillText('Speech  —  ' + (ear === 'R' ? 'Right' : ear === 'L' ? 'Left' : 'Sound field') + '   ' + level + ' dB HL', x + 10, y + 8);
+  c.font = '12px Arial';
+  c.fillText('Correct: ' + sp.correct + '    Incorrect: ' + sp.incorrect + '    Words: ' + tot + '    Score: ' + pct + ' %', x + 10, y + 30);
+  c.fillStyle = '#444'; c.fillText('Stored results', x + 10, y + 54);
+  sp.list.slice(-6).forEach((r, i) => { c.fillStyle = EAR_COL[r.ear] || '#222'; c.fillText((r.ear === 'R' ? 'Right' : r.ear === 'L' ? 'Left' : 'FF') + '   ' + r.level + ' dB HL   ' + r.pct + ' %  (' + r.n + ' words)', x + 20, y + 72 + i * 17); });
+  c.textBaseline = 'alphabetic';
+}
+function printAudiogram(title, pts) {
+  const cv = document.createElement('canvas'); cv.width = 2200; cv.height = 1150; const c = cv.getContext('2d'); c.scale(2, 2);
+  c.fillStyle = '#fff'; c.fillRect(0, 0, 1100, 575);
+  c.fillStyle = '#111'; c.font = 'bold 20px Arial'; c.fillText(title, 30, 34);
+  c.font = '13px Arial'; c.fillText(new Date().toLocaleString(), 30, 56);
+  drawAudiogram(c, 20, 70, 520, 480, { ear: 'R', freqs: FREQ_STD, pts, theme: 'print', title: 'Right' });
+  drawAudiogram(c, 560, 70, 520, 480, { ear: 'L', freqs: FREQ_STD, pts, theme: 'print', title: 'Left' });
+  const img = document.getElementById('printImg'); img.onload = () => { window.print(); }; img.src = cv.toDataURL('image/png');
+}
 
-            <div class="panel-col" style="align-items: center;">
-                <div class="btn-matrix" style="grid-template-columns: repeat(3, 1fr);">
-                    <div class="button-unit">
-                        <div class="label">1dB 2dB 5dB</div><button class="btn-sq" onclick="cycleStep()"></button>
-                        <div class="led"></div>
-                    </div>
-                    <div class="button-unit">
-                        <div class="label">Ext Range</div><button class="btn-sq color-orange" id="ext-range"
-                            onclick="toggleExt()"></button>
-                        <div class="led"></div>
-                    </div>
-                    <div class="button-unit">
-                        <div class="label">Sync</div><button class="btn-sq" id="sync-btn"
-                            onclick="toggleSync()"></button>
-                        <div class="led"></div>
-                    </div>
-                </div>
+// ================= input helpers =================
+function attachKnob(el, onStep) {
+  let y0 = null, x0 = 0, acc = 0, moved = 0;
+  el.addEventListener('pointerdown', e => { AE.ensure(); y0 = e.clientY; x0 = e.clientX; acc = 0; moved = 0; el.setPointerCapture(e.pointerId); e.preventDefault(); });
+  el.addEventListener('pointermove', e => { if (y0 === null) return; const dy = y0 - e.clientY; moved = Math.max(moved, Math.abs(dy), Math.abs(e.clientX - x0));
+    const steps = Math.trunc((dy - acc) / 12); if (steps) { acc += steps * 12; for (let i = 0; i < Math.abs(steps); i++) onStep(Math.sign(steps)); } });
+  const end = e => { if (y0 === null) return; if (moved < 4) { const r = el.getBoundingClientRect(); onStep(e.clientX > r.left + r.width / 2 ? 1 : -1); } y0 = null; };
+  el.addEventListener('pointerup', end); el.addEventListener('pointercancel', () => { y0 = null; });
+  el.addEventListener('wheel', e => { e.preventDefault(); onStep(e.deltaY < 0 ? 1 : -1); }, { passive: false });
+}
+function attachHold(el, down, up) {
+  let held = false;
+  el.addEventListener('pointerdown', e => { AE.ensure(); held = true; el.setPointerCapture(e.pointerId); el.classList.add('pressed'); down(); e.preventDefault(); });
+  const rel = () => { if (!held) return; held = false; el.classList.remove('pressed'); up(); };
+  el.addEventListener('pointerup', rel); el.addEventListener('pointercancel', rel); el.addEventListener('lostpointercapture', rel);
+}
+function setupCanvas(cv, w, h) { const c = cv.getContext('2d'); c.setTransform(2, 0, 0, 2, 0, 0); return c; }
 
-                <div class="btn-matrix" style="margin-top: 20px;">
-                    <div class="button-unit">
-                        <div class="label">Man Rev</div><button class="btn-sq"></button>
-                        <div class="led"></div>
-                    </div>
-                    <div class="button-unit">
-                        <div class="label">Single Multi</div><button class="btn-sq"></button>
-                        <div class="led"></div>
-                    </div>
-                    <div class="button-unit">
-                        <div class="label">Man Rev</div><button class="btn-sq"></button>
-                        <div class="led"></div>
-                    </div>
-                    <div class="button-unit">
-                        <div class="label">Sim</div><button class="btn-sq"></button>
-                        <div class="led"></div>
-                    </div>
-                    <div class="button-unit">
-                        <div class="label">Alt</div><button class="btn-sq"></button>
-                        <div class="led"></div>
-                    </div>
-                </div>
+// =====================================================================
+// AC40-style audiometer
+// =====================================================================
+const AC = {
+  el: null, cv: null, c: null, results: [], speech: { correct: 0, incorrect: 0, list: [] }, msg: '', msgT: null, altIv: null,
+  s: {
+    freqIdx: 4, range: 'NF', step: 5, ext: false, sync: false, shift: false, simAlt: 0, single: 0, singleOn: false, altPhase: 0,
+    held: [false, false], mode: 'tone', meas: 0, cond: 0, magnify: false, overlay: null, banana: true, autoNext: false,
+    talkFwd: false, talkBack: false, monitor: 0, tf: 50,
+    ch: [
+      { stim: 'tone', warble: false, mic: 1, cd: 1, noise: 'nb', out: 'R', insR: false, insL: false, hf: false, boneSide: 'R', ff: 1, level: 30, rev: false },
+      { stim: 'noise', warble: false, mic: 1, cd: 1, noise: 'nb', out: 'off', insR: false, insL: false, hf: false, boneSide: 'L', ff: 2, level: 50, rev: true }
+    ]
+  },
+  freqs() { return this.s.range === 'HF2' ? FREQ_HF2 : this.s.range === 'HF' ? FREQ_HF : FREQ_STD; },
+  freq() { return this.freqs()[this.s.freqIdx]; },
+  ear(i) { const c = this.s.ch[i]; if (c.out === 'R' || c.out === 'L') return c.out; if (c.out === 'bone') return c.boneSide; if (c.out === 'ff') return 'FF'; if (c.out === 'mask') return other(this.ear(0) === 'FF' ? 'L' : this.ear(0)); return null; },
+  trans(i) { const c = this.s.ch[i]; if (c.out === 'R') return c.insR ? 'insert' : (c.hf ? 'hf' : 'phone'); if (c.out === 'L') return c.insL ? 'insert' : (c.hf ? 'hf' : 'phone'); if (c.out === 'bone') return 'bone'; if (c.out === 'ff') return 'ff'; if (c.out === 'mask') return 'insert'; return null; },
+  maxL(i) { const t = this.trans(i) || 'phone', e = this.s.ext; const tbl = { phone: [100, 120], insert: [100, 110], hf: [90, 100], bone: [60, 80], ff: [80, 90] }; return tbl[t][e ? 1 : 0] + (this.s.ch[i].stim === 'noise' && t !== 'bone' ? 10 : 0); },
+  engineStim(i) { const c = this.s.ch[i]; if (c.stim === 'tone') return 'tone'; if (c.stim === 'noise') return c.noise; if (c.stim === 'wave' || c.stim === 'cd') return 'wave'; return 'mic'; },
+  stimName(i) { const c = this.s.ch[i]; return { tone: c.warble ? 'Warble' : 'Tone', wave: 'Wavefile', mic: 'Mic ' + c.mic, cd: 'CD ' + c.cd, noise: c.noise === 'nb' ? 'NB' : 'WN' }[c.stim]; },
+  present() {
+    const s = this.s; let on1 = s.ch[0].rev ? !s.held[0] : s.held[0];
+    if (s.single === 1 && !s.ch[0].rev) on1 = s.singleOn;
+    let on2 = false;
+    if (s.simAlt === 2 && s.held[0]) { on1 = s.altPhase === 0; on2 = s.altPhase === 1; }
+    else if (s.simAlt === 1) on2 = on1 || (s.ch[1].rev ? !s.held[1] : s.held[1]);
+    else on2 = s.ch[1].rev ? !s.held[1] : s.held[1];
+    if (s.ch[1].out === 'off') on2 = false;
+    return [on1, on2];
+  },
+  desc(i, on) {
+    if (!on) return null; const s = this.s, c = s.ch[i], ear = this.ear(i), trans = this.trans(i); if (!trans) return null;
+    const stim = this.engineStim(i), mod = stim === 'tone' ? (c.warble ? 'warble' : (i === 0 && s.single === 2 ? 'pulse' : '')) : '';
+    const pan = ear === 'R' ? 1 : ear === 'L' ? -1 : 0, f = this.freq();
+    return { sig: [stim, mod, f, pan, trans].join(':'), stim, mod, freq: f, pan, level: c.level, trans, ears: ear === 'FF' ? ['FF'] : [ear],
+      cls: stim === 'tone' ? 'tone' : (stim === 'nb' || stim === 'wn') ? 'noise' : 'other' };
+  },
+  sync() { const [a, b] = this.present(); const d = [this.desc(0, a), this.desc(1, b)]; this._on = [!!d[0], !!d[1]]; AE.set('ac0', d[0]); AE.set('ac1', d[1]); Trial.update(d); this.render(); },
+  toast(m) { this.msg = m; clearTimeout(this.msgT); this.msgT = setTimeout(() => { this.msg = ''; this.render(); }, 1800); },
+  isMasked() { const c2 = this.s.ch[1]; const e0 = this.ear(0), e2 = this.ear(1); return c2.out !== 'off' && c2.stim === 'noise' && e2 && e2 !== 'FF' && e0 !== 'FF' && e2 !== e0; },
+  adjLevel(i, dir) {
+    const s = this.s, d = dir * s.step, c = s.ch[i];
+    if (i === 1 && c.out === 'off') return;
+    const old = c.level; c.level = clamp(c.level + d, -10, this.maxL(i));
+    if (i === 0 && s.sync && c.level !== old) s.ch[1].level = clamp(s.ch[1].level + (c.level - old), -10, this.maxL(1));
+    if (c.level === old && dir > 0) this.toast('已達最大輸出' + (s.ext ? '' : '（可按 Ext Range）'));
+    this.sync();
+  },
+  adjFreq(d) { const s = this.s; if (s.mode === 'speech') { if (d > 0) this.speech.correct++; else this.speech.incorrect++; this.render(); return; }
+    s.freqIdx = clamp(s.freqIdx + d, 0, this.freqs().length - 1); this.sync(); },
+  store(nr) {
+    const s = this.s, c = s.ch[0];
+    if (s.mode === 'speech') { const sp = this.speech, n = sp.correct + sp.incorrect; if (!n) { this.toast('尚未計分'); return; }
+      sp.list.push({ ear: this.ear(0), level: c.level, pct: Math.round(sp.correct / n * 100), n }); sp.correct = 0; sp.incorrect = 0; this.toast('已儲存語音結果'); this.render(); return; }
+    if (c.stim !== 'tone') { this.toast('請先選擇 Tone / Warble 才能記錄閾值'); return; }
+    const ear = this.ear(0), trans = this.trans(0); let kind = trans === 'bone' ? 'bc' : trans === 'ff' ? 'ff' : 'ac';
+    const mt = ['', 'mcl', 'ucl'][s.meas]; if (mt) kind = mt;
+    const masked = kind !== 'ff' && this.isMasked();
+    putPoint(this.results, { ear, f: this.freq(), kind, level: c.level, nr: !!nr, masked, mask: masked ? s.ch[1].level : null, aided: s.cond === 1 });
+    this.toast((nr ? 'No Response ' : 'Stored ') + (ear === 'FF' ? 'FF' : ear) + ' ' + this.freq() + ' Hz ' + c.level + ' dB');
+    if (s.autoNext && s.freqIdx < this.freqs().length - 1) { s.freqIdx++; }
+    this.sync();
+  },
+  delPoint(all) {
+    const ear = this.ear(0), trans = this.trans(0); let kind = trans === 'bone' ? 'bc' : trans === 'ff' ? 'ff' : 'ac'; const mt = ['', 'mcl', 'ucl'][this.s.meas]; if (mt) kind = mt;
+    if (this.s.mode === 'speech') { this.speech.list.pop(); this.render(); return; }
+    const f = this.freq(), n0 = this.results.length;
+    this.results = this.results.filter(p => !(p.ear === ear && p.kind === kind && (all || p.f === f)));
+    this.toast(n0 === this.results.length ? '此處沒有資料' : all ? '已刪除整條曲線' : '已刪除此點'); this.render();
+  },
+  press(a) {
+    const s = this.s, [c1, c2] = s.ch;
+    const chOf = a.startsWith('c2') ? c2 : c1;
+    switch (a.replace(/^c[12]/, 'c')) {
+      case 'ctone': if (chOf.stim === 'tone') chOf.warble = !chOf.warble; else chOf.stim = 'tone'; break;
+      case 'cwave': chOf.stim = 'wave'; break;
+      case 'cmic': if (chOf.stim === 'mic') chOf.mic = 3 - chOf.mic; else chOf.stim = 'mic'; break;
+      case 'ccd': if (chOf.stim === 'cd') chOf.cd = 3 - chOf.cd; else chOf.stim = 'cd'; break;
+      case 'cnb': if (chOf.stim === 'noise') chOf.noise = chOf.noise === 'nb' ? 'wn' : 'nb'; else chOf.stim = 'noise'; break;
+      case 'cR': if (chOf.out === 'R') chOf.insR = !chOf.insR; else chOf.out = 'R'; if (chOf.insR) chOf.hf = false; break;
+      case 'cL': if (chOf.out === 'L') chOf.insL = !chOf.insL; else chOf.out = 'L'; if (chOf.insL) chOf.hf = false; break;
+      case 'cbone': if (chOf.out === 'bone') chOf.boneSide = other(chOf.boneSide); else { chOf.boneSide = (chOf.out === 'L') ? 'L' : (chOf.out === 'R' ? 'R' : chOf.boneSide); chOf.out = 'bone'; } break;
+      case 'cff': if (chOf.out === 'ff') chOf.ff = 3 - chOf.ff; else chOf.out = 'ff'; break;
+      case 'cmask': chOf.out = 'mask'; break;
+      case 'coff': chOf.out = 'off'; break;
+      case 'cman': chOf.rev = !chOf.rev; break;
+      case 'step': s.step = s.step === 5 ? 1 : s.step === 1 ? 2 : 5; break;
+      case 'ext': s.ext = !s.ext; break;
+      case 'sync': s.sync = !s.sync; break;
+      case 'single': s.single = (s.single + 1) % 3; break;
+      case 'simalt': s.simAlt = (s.simAlt + 1) % 3; break;
+      case 'store': this.store(false); return;
+      case 'noresp': this.store(true); return;
+      case 'down': this.adjFreq(-1); return;
+      case 'up': this.adjFreq(1); return;
+      case 'talkback': s.talkBack = !s.talkBack; break;
+      case 'monitor': s.monitor = (s.monitor + 1) % 3; break;
+    }
+    [0, 1].forEach(i => { s.ch[i].level = clamp(s.ch[i].level, -10, this.maxL(i)); });
+    this.sync();
+  },
+  fkey(a) {
+    const s = this.s, sh = s.shift; if (a !== 'shift') s.shift = false;
+    if (a === 'shift') { s.shift = !s.shift; }
+    else if (a === 'setup') { s.overlay = s.overlay === 'setup' ? null : 'setup'; }
+    else if (a === 'tests') { s.mode = s.mode === 'tone' ? 'speech' : 'tone'; s.ch[0].stim = s.mode === 'speech' ? 'wave' : 'tone'; s.overlay = null; this.toast(s.mode === 'speech' ? 'Speech test：Correct / Incorrect 鍵計分，Store 儲存' : 'Tone test'); this.sync(); return; }
+    else if (a === 'del') { this.delPoint(sh); return; }
+    else if (a === 'save') {
+      if (sh) { if (confirm('開新檢查？目前未存檔的聽力圖會被清除。')) { this.results = []; this.speech = { correct: 0, incorrect: 0, list: [] }; this.toast('New session'); } }
+      else { const list = lsGet('pta-sim-sessions', []); list.unshift({ t: new Date().toLocaleString(), pts: this.results, speech: this.speech.list, patient: Patient.key }); lsSet('pta-sim-sessions', list.slice(0, 6)); this.toast('Session saved'); }
+    }
+    else if (a === 'print') { if (sh) s.overlay = 'clients'; else printAudiogram('Pure-tone audiogram (AC40-style simulator)', this.results); }
+    else if (a.startsWith('soft')) this.soft(+a.slice(4));
+    this.render();
+  },
+  tabs() {
+    const s = this.s;
+    if (s.overlay === 'setup') return ['Banana', 'Auto next', '', '', '', '', '', 'Exit'];
+    if (s.overlay === 'clients') return ['1', '2', '3', '4', '5', '6', '', 'Exit'];
+    return ['HF phone', 'Meas. type', 'Condition', 'Magnify', 'Mask Info', 'NF', 'HF', 'HF2'];
+  },
+  tabOn(i) {
+    const s = this.s;
+    if (s.overlay === 'setup') return (i === 0 && s.banana) || (i === 1 && s.autoNext);
+    if (s.overlay === 'clients') return false;
+    return [s.ch[0].hf, s.meas > 0, s.cond > 0, s.magnify, s.overlay === 'mask', s.range === 'NF', s.range === 'HF', s.range === 'HF2'][i];
+  },
+  setRange(r) { const f = this.freq(); this.s.range = r; this.s.freqIdx = nearestIdx(this.freqs(), f); },
+  soft(i) {
+    const s = this.s;
+    if (s.overlay === 'setup') { if (i === 0) s.banana = !s.banana; if (i === 1) s.autoNext = !s.autoNext; if (i === 7) s.overlay = null; return; }
+    if (s.overlay === 'clients') {
+      if (i === 7) { s.overlay = null; return; }
+      const list = lsGet('pta-sim-sessions', []); if (list[i]) { this.results = list[i].pts || []; this.speech.list = list[i].speech || []; s.overlay = null; this.toast('已載入 ' + list[i].t); } return;
+    }
+    const c1 = s.ch[0];
+    if (i === 0) { c1.hf = !c1.hf; if (c1.hf) { if (c1.out !== 'R' && c1.out !== 'L') c1.out = 'R'; c1.insR = c1.insL = false; if (s.range === 'NF') this.setRange('HF'); } }
+    if (i === 1) s.meas = (s.meas + 1) % 3;
+    if (i === 2) s.cond = (s.cond + 1) % 2;
+    if (i === 3) s.magnify = !s.magnify;
+    if (i === 4) s.overlay = s.overlay === 'mask' ? null : 'mask';
+    if (i === 5) this.setRange('NF');
+    if (i === 6) this.setRange('HF');
+    if (i === 7) this.setRange('HF2');
+    this.sync();
+  },
+  LEDS: {
+    ctone: c => [c.stim === 'tone' && !c.warble, c.stim === 'tone' && c.warble], cwave: c => [c.stim === 'wave'],
+    cmic: c => [c.stim === 'mic' && c.mic === 1, c.stim === 'mic' && c.mic === 2], ccd: c => [c.stim === 'cd' && c.cd === 1, c.stim === 'cd' && c.cd === 2],
+    cnb: c => [c.stim === 'noise' && c.noise === 'nb', c.stim === 'noise' && c.noise === 'wn'],
+    cR: c => [c.out === 'R' && !c.insR, c.out === 'R' && c.insR], cL: c => [c.out === 'L' && !c.insL, c.out === 'L' && c.insL],
+    cbone: c => [c.out === 'bone' && c.boneSide === 'R', c.out === 'bone' && c.boneSide === 'L'], cff: c => [c.out === 'ff' && c.ff === 1, c.out === 'ff' && c.ff === 2],
+    cmask: c => [c.out === 'mask'], coff: c => [c.out === 'off'], cman: c => [!c.rev, c.rev]
+  },
+  leds(a) {
+    const s = this.s;
+    if (/^c[12]/.test(a)) return this.LEDS[a.replace(/^c[12]/, 'c')](a[1] === '2' ? s.ch[1] : s.ch[0]);
+    return ({ step: [s.step === 1, s.step === 2, s.step === 5], ext: [s.ext], sync: [s.sync], single: [s.single === 1, s.single === 2], simalt: [s.simAlt === 1, s.simAlt === 2],
+      talkback: [s.talkBack], monitor: [s.monitor === 1, s.monitor === 2] })[a] || [];
+  },
+  build(root) {
+    this.el = root; root.className = 'stage dev ac40';
+    let h = '<div class="blk"></div><div class="grille" style="left:40px;width:180px"></div><div class="grille" style="left:918px;width:226px"></div>' +
+      '<div class="glass"></div><canvas class="lcd" width="1060" height="588"></canvas><div class="brand">CLINICAL AUDIOMETER</div>';
+    const fk = [{ x: 140, l: 'Shift', a: 'shift' }, { x: 278, l: 'Setup', a: 'setup' }];
+    for (let i = 0; i < 8; i++) fk.push({ x: 335 + 66 * i, l: '|', a: 'soft' + i });
+    fk.push({ x: 880, l: 'Tests', a: 'tests' }, { x: 960, l: 'Delete Point', s: 'del curve', a: 'del' }, { x: 1040, l: 'Save Session', s: 'new session', a: 'save' }, { x: 1115, l: 'Print', s: 'clients', a: 'print' });
+    fk.forEach(k => { h += `<div class="fkl" style="left:${k.x}px">${k.l}</div><button class="fk" data-fk="${k.a}" style="left:${k.x}px" title="${k.l === '|' ? '螢幕軟鍵' : k.l}"></button>` + (k.s ? `<div class="fks" style="left:${k.x}px">${k.s}</div>` : ''); });
+    const keys = [
+      [186, 396, 'Tone* Warble*', '', 'c1tone'], [240, 396, 'Wavefile*', '', 'c1wave'], [294, 396, '1* Mic 2*', '', 'c1mic'], [348, 396, '1* CD 2*', '', 'c1cd'], [402, 396, 'NB* N*', '', 'c1nb'],
+      [186, 460, 'Right* Insert*', 'c-red', 'c1R'], [240, 460, 'Left* Insert*', 'c-blue', 'c1L'], [294, 460, 'R* Bone L*', 'c-teal', 'c1bone'], [348, 460, '1* FF 2*', '', 'c1ff'],
+      [500, 396, '1dB* 2dB* 5dB*', '', 'step'], [563, 396, 'Ext Range*', 'c-orange', 'ext'], [626, 396, 'Sync*', '', 'sync'],
+      [470, 460, 'Man* Rev*', '', 'c1man'], [528, 460, 'Single* Multi*', '', 'single'], [594, 460, 'Man* Rev*', '', 'c2man'], [652, 460, 'Sim* Alt*', '', 'simalt'],
+      [527, 530, 'Store', 'c-yellow', 'store'], [592, 530, 'No Resp', '', 'noresp'], [527, 592, 'Incorrect', '', 'down'], [592, 592, 'Correct', '', 'up'],
+      [724, 396, 'Tone* Warble*', '', 'c2tone'], [778, 396, 'Wavefile*', '', 'c2wave'], [832, 396, '1* Mic 2*', '', 'c2mic'], [886, 396, '1* CD 2*', '', 'c2cd'], [940, 396, 'NB* N*', '', 'c2nb'], [1000, 396, 'Talk Back*', '', 'talkback'],
+      [724, 460, 'Right* Insert*', 'c-red', 'c2R'], [778, 460, 'Left* Insert*', 'c-blue', 'c2L'], [832, 460, 'Insert Mask*', 'c-mask', 'c2mask'], [886, 460, '1* FF 2*', '', 'c2ff'], [940, 460, 'Off*', '', 'c2off'], [1000, 460, '1* Monitor 2*', '', 'monitor']
+    ];
+    const titles = { c1tone: 'CH1 純音／震音', c1wave: 'CH1 Wavefile', c1nb: 'CH1 窄頻／白噪音', c1R: 'CH1 右耳（再按：插入式）', c1L: 'CH1 左耳（再按：插入式）', c1bone: 'CH1 骨導（再按：換邊）', c1ff: 'CH1 音場喇叭', c2nb: 'CH2 窄頻／白噪音', c2R: 'CH2 右耳', c2L: 'CH2 左耳', c2mask: 'CH2 插入式遮蔽（對側耳）', c2off: 'CH2 關閉', store: '儲存閾值', noresp: '無反應', down: '頻率下降', up: '頻率上升', c1man: 'CH1 Man/Rev', c2man: 'CH2 Man/Rev' };
+    keys.forEach(([x, y, lab, col, a]) => {
+      const spans = lab.split(' ').map(w => w.endsWith('*') ? `<span>${w.slice(0, -1)}<i></i></span>` : `<span>${w}</span>`).join('');
+      h += `<div class="k" style="left:${x}px;top:${y}px"><div class="kl">${spans}</div><button class="kb ${col}" data-k="${a}" title="${titles[a] || lab.replace(/\*/g, '')}"></button></div>`;
+    });
+    h += `<div class="txt" style="left:490px;top:626px">Down</div><div class="txt" style="left:629px;top:626px">Up</div><div class="txt" style="left:560px;top:654px">Frequency</div>`;
+    h += `<div class="knob" id="ack1" style="left:175px;top:561px;width:128px;height:128px" title="CH1 音量"><div class="rot"><div class="mark"></div></div></div>`;
+    h += `<div class="knob" id="ack2" style="left:816px;top:561px;width:128px;height:128px" title="CH2 音量"><div class="rot"><div class="mark"></div></div></div>`;
+    h += `<button class="tsw" id="acts1" style="left:369px;top:630px" title="CH1 Tone Switch（空白鍵）"></button><div class="txt" style="left:369px;top:660px">Tone Switch/<br>&#8592;Enter</div>`;
+    h += `<button class="tsw" id="acts2" style="left:752px;top:630px" title="CH2 Tone Switch"></button><div class="txt" style="left:752px;top:660px">Tone Switch/<br>&#8592;Enter</div>`;
+    h += `<div class="tf-knob" id="actf" title="Talk Forward 音量"><div class="rot"></div></div><button class="tf-btn" id="actfb" title="Talk Forward（按住）"></button><div class="txt" style="left:80px;top:458px">Talk Forward</div>`;
+    root.innerHTML = h;
+    this.cv = root.querySelector('canvas'); this.c = setupCanvas(this.cv);
+    root.querySelectorAll('[data-k]').forEach(b => b.addEventListener('click', () => { AE.ensure(); this.press(b.dataset.k); }));
+    root.querySelectorAll('[data-fk]').forEach(b => b.addEventListener('click', () => { AE.ensure(); this.fkey(b.dataset.fk); }));
+    attachKnob(root.querySelector('#ack1'), d => this.adjLevel(0, d));
+    attachKnob(root.querySelector('#ack2'), d => this.adjLevel(1, d));
+    attachKnob(root.querySelector('#actf'), d => { this.s.tf = clamp(this.s.tf + d * 5, 0, 100); this.render(); });
+    attachHold(root.querySelector('#acts1'), () => this.hold(0, true), () => this.hold(0, false));
+    attachHold(root.querySelector('#acts2'), () => this.hold(1, true), () => this.hold(1, false));
+    attachHold(root.querySelector('#actfb'), () => { this.s.talkFwd = true; this.render(); }, () => { this.s.talkFwd = false; this.render(); });
+    this.cv.addEventListener('click', e => this.lcdClick(e));
+  },
+  hold(i, v) {
+    const s = this.s; s.held[i] = v;
+    if (i === 0 && v && s.single === 1 && !s.ch[0].rev) { s.singleOn = true; setTimeout(() => { s.singleOn = false; this.sync(); }, 300); }
+    if (i === 0 && s.simAlt === 2) { clearInterval(this.altIv); s.altPhase = 0; if (v) this.altIv = setInterval(() => { s.altPhase = 1 - s.altPhase; this.sync(); }, 500); }
+    this.sync();
+  },
+  lcdClick(e) {
+    // clicking the audiogram moves the cursor (frequency + level), like a touch screen
+    const s = this.s; if (s.overlay || s.mode === 'speech') return;
+    const r = this.cv.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width * 530, y = (e.clientY - r.top) / r.height * 294;
+    if (y < 64 || y > 268) return;
+    const freqs = this.freqs(), fmax = freqs[freqs.length - 1];
+    let box; if (s.magnify) box = { x: 4, w: 522 }; else box = x < 265 ? { x: 4, w: 259 } : { x: 267, w: 259 };
+    const small = box.w < 300, pl = small ? 22 : 30, gx = box.x + pl, gw = box.w - pl - 8, gy = 52 + (small ? 13 : 16), gh = 216 - (small ? 13 : 16) - 4;
+    const fl = 125 * Math.pow(2, (x - gx) / gw * Math.log2(fmax / 125));
+    s.freqIdx = nearestIdx(freqs, fl);
+    s.ch[0].level = clamp(Math.round(((y - gy) / gh * 130 - 10) / 5) * 5, -10, this.maxL(0));
+    this.sync();
+  },
+  render() {
+    if (!this.el) return; const s = this.s;
+    this.el.querySelectorAll('[data-k]').forEach(b => { const l = this.leds(b.dataset.k); b.parentNode.querySelectorAll('i').forEach((i, n) => i.classList.toggle('on', !!l[n])); });
+    this.el.querySelector('[data-fk="shift"]').classList.toggle('on', s.shift);
+    this.el.querySelector('#ack1 .rot').style.transform = `rotate(${s.ch[0].level * 2.6}deg)`;
+    this.el.querySelector('#ack2 .rot').style.transform = `rotate(${s.ch[1].level * 2.6}deg)`;
+    this.el.querySelector('#actf .rot').style.transform = `rotate(${(s.tf - 50) * 2.4}deg)`;
+    this.draw();
+  },
+  draw() {
+    const c = this.c, s = this.s, W = 530, H = 294, [c1, c2] = s.ch, on = this._on || [false, false];
+    c.clearRect(0, 0, W, H); c.fillStyle = '#000'; c.fillRect(0, 0, W, H);
+    // ---- header
+    c.textBaseline = 'alphabetic';
+    c.fillStyle = '#9fb3c8'; c.font = '9px Arial'; c.textAlign = 'left'; c.fillText(this.stimName(0), 6, 12); c.textAlign = 'right'; c.fillText(c2.out === 'off' ? 'Off' : this.stimName(1), W - 6, 12);
+    c.fillStyle = '#fff'; c.font = 'bold 24px Arial'; c.textAlign = 'left'; c.fillText(c1.level + 'dB', 26, 34);
+    c.font = '9px Arial'; c.fillText('HL', 28, 46);
+    c.textAlign = 'right'; c.font = 'bold 24px Arial'; c.fillText((c2.out === 'off' ? '--' : c2.level) + 'dB', W - 26, 34); c.font = '9px Arial'; c.fillText(c2.stim === 'noise' ? 'EM (dB)' : 'HL (dB)', W - 28, 46);
+    c.textAlign = 'center'; c.font = '9px Arial'; c.fillStyle = '#cfd8e3';
+    c.fillText(s.mode === 'speech' ? 'Speech' : this.stimName(0) + (s.single === 2 ? ' - Multi pulse' : s.single === 1 ? ' - Single pulse' : '') + ['', ' - MCL', ' - UCL'][s.meas], W / 2, 12);
+    c.fillStyle = '#fff'; c.font = 'bold 20px Arial'; c.fillText(this.freq() + ' Hz', W / 2, 33); c.font = '9px Arial'; c.fillText('Frequency', W / 2, 46);
+    // presentation indicators
+    const tri = (x, lit) => { c.fillStyle = lit ? '#ffd400' : '#333'; c.beginPath(); c.moveTo(x, 18); c.lineTo(x + 12, 26); c.lineTo(x, 34); c.closePath(); c.fill(); };
+    tri(8, on[0]); tri(W - 20, on[1]);
+    // response
+    c.fillStyle = Trial.on ? '#ffd400' : '#2a2a2a'; c.beginPath(); c.arc(W / 2 + 95, 26, 9, 0, Math.PI * 2); c.fill(); c.fillStyle = Trial.on ? '#000' : '#777'; c.font = 'bold 9px Arial'; c.fillText('R', W / 2 + 95, 29);
+    if (s.shift) { c.fillStyle = '#ffd400'; c.font = 'bold 9px Arial'; c.fillText('SHIFT', W / 2 - 95, 22); }
+    if (s.talkFwd) { c.fillStyle = '#7fd3ff'; c.font = 'bold 9px Arial'; c.fillText('TALK FWD ' + s.tf, W / 2 - 95, 36); }
+    else if (s.talkBack) { c.fillStyle = '#7fd3ff'; c.font = 'bold 9px Arial'; c.fillText('TALK BACK', W / 2 - 95, 36); }
+    // ---- body
+    const y0 = 50, bh = 218;
+    const freqs = this.freqs(), act = this.ear(0) === 'FF' ? null : this.ear(0);
+    const chTitle = ear => { const parts = []; [0, 1].forEach(i => { if (this.ear(i) === ear) parts.push((ear === 'R' ? 'Right' : 'Left') + ' - ' + (TRANS_NAME[this.trans(i)] || '') + ' ' + this.stimName(i)); }); return parts.join(' / ') || 'Off'; };
+    if (s.overlay === 'setup') this.drawPanel(c, y0, bh, 'Setup', ['Speech banana:  ' + (s.banana ? 'On' : 'Off') + '   (soft key 1)', 'Auto next frequency after Store:  ' + (s.autoNext ? 'On' : 'Off') + '   (soft key 2)', 'Level step:  ' + s.step + ' dB      Ext Range: ' + (s.ext ? 'On' : 'Off'), '', 'Exit: soft key 8']);
+    else if (s.overlay === 'clients') { const list = lsGet('pta-sim-sessions', []); this.drawPanel(c, y0, bh, 'Clients / saved sessions', list.length ? list.map((r, i) => (i + 1) + '.  ' + r.t + '   (' + r.pts.length + ' points)') : ['No saved sessions. Press Save Session to store one.']); }
+    else if (s.overlay === 'mask') this.drawPanel(c, y0, bh, 'Mask Info  —  ' + this.freq() + ' Hz', this.maskInfo());
+    else if (s.mode === 'speech') drawSpeech(c, 4, y0 + 2, W - 8, bh - 2, this.speech, this.ear(0), c1.level, 'ac40');
+    else if (s.magnify) { const e = act || 'R'; drawAudiogram(c, 4, y0 + 2, W - 8, bh - 2, { ear: e, freqs, pts: this.results, theme: 'ac40', tint: e, banana: s.banana, cursor: { f: this.freq(), level: c1.level }, title: chTitle(e), answer: Patient.showAnswer }); }
+    else ['R', 'L'].forEach((e, i) => drawAudiogram(c, i ? 267 : 4, y0 + 2, 259, bh - 2, { ear: e, freqs, pts: this.results, theme: 'ac40', tint: act === e ? e : null, banana: s.banana && act === e, cursor: act === e ? { f: this.freq(), level: c1.level } : null, title: chTitle(e), answer: Patient.showAnswer }));
+    // ---- tabs
+    c.fillStyle = '#0d2f74'; c.fillRect(0, 270, W, 24);
+    const tabs = this.tabs();
+    tabs.forEach((t, i) => { const x = 2 + i * 66; c.fillStyle = this.tabOn(i) ? '#4f86e8' : '#173f8f'; c.fillRect(x, 272, 64, 20); c.fillStyle = '#fff'; c.font = '9.5px Arial'; c.textAlign = 'center'; c.fillText(t, x + 32, 285); });
+    if (this.msg) { c.font = 'bold 11px "Microsoft JhengHei", Arial'; const w = c.measureText(this.msg).width + 20; c.fillStyle = 'rgba(10,20,40,.85)'; c.fillRect(W / 2 - w / 2, 236, w, 24); c.fillStyle = '#fff'; c.fillText(this.msg, W / 2, 252); }
+  },
+  drawPanel(c, y, h, title, lines) {
+    c.fillStyle = '#e8f0fa'; c.fillRect(4, y + 2, 522, h - 2); c.fillStyle = '#0d2f74'; c.fillRect(4, y + 2, 522, 20);
+    c.fillStyle = '#fff'; c.font = 'bold 11px Arial'; c.textAlign = 'left'; c.fillText(title, 12, y + 16);
+    c.fillStyle = '#132b55'; c.font = '11px Arial'; lines.forEach((l, i) => c.fillText(l, 14, y + 42 + i * 17));
+  },
+  maskInfo() { return maskInfoLines(this.results, this.freq(), this.ear(0), this.trans(0)); }
+};
+function maskInfoLines(pts, f, te, trans) {
+  if (!te || te === 'FF') return ['Select a test ear on channel 1.'];
+  const nte = other(te), get = (e, k) => { const p = pts.find(q => q.ear === e && q.f === f && q.kind === k); return p ? p.level : null; };
+  const acT = get(te, 'ac'), bcT = get(te, 'bc'), acN = get(nte, 'ac'), bcN = get(nte, 'bc');
+  const ia = trans === 'bone' ? IA.phone : (IA[trans] || 40), E = e => (e === 'R' ? 'Right' : 'Left');
+  const L = ['Test ear: ' + E(te) + '   Non-test ear: ' + E(nte) + '   Interaural attenuation (' + (TRANS_NAME[trans] || 'Phone') + '): ' + (trans === 'bone' ? '0' : ia) + ' dB',
+    'Stored  ' + E(te) + ': AC ' + (acT ?? '--') + '  BC ' + (bcT ?? '--') + '      ' + E(nte) + ': AC ' + (acN ?? '--') + '  BC ' + (bcN ?? '--')];
+  const bcRef = bcN ?? acN;
+  if (acT != null && bcRef != null) L.push('AC masking needed?  AC(' + acT + ') - BC non-test(' + bcRef + ') = ' + (acT - bcRef) + (acT - bcRef >= ia ? '  >= ' + ia + '  → YES' : '  < ' + ia + '  → no'));
+  else L.push('AC masking: store AC of test ear and BC (or AC) of non-test ear first.');
+  if (acT != null && bcT != null) L.push('BC masking needed?  air-bone gap ' + (acT - bcT) + ' dB' + (acT - bcT > 10 ? '  → YES' : '  → no'));
+  if (acN != null) L.push('Suggested starting NB level to ' + E(nte) + ': AC non-test + 10 = ' + (acN + 10) + ' dB EM  (raise 3-4 x 5 dB to find plateau)');
+  L.push('Route CH2 NB noise to the non-test ear (Insert Mask or ' + E(nte) + ' key), set Rev = continuous.');
+  return L;
+}
 
-                <div style="display: flex; gap: 20px; margin-top: 30px;">
-                    <div class="button-unit">
-                        <div class="label">Store</div><button class="btn-sq color-yellow" onclick="store()"></button>
-                        <div class="led"></div>
-                    </div>
-                    <div class="button-unit">
-                        <div class="label">No Resp</div><button class="btn-sq" onclick="storeNR()"></button>
-                        <div class="led"></div>
-                    </div>
-                </div>
+// =====================================================================
+// AudioStar-Pro-style audiometer
+// =====================================================================
+const G = {
+  el: null, c: null, results: [], speech: { correct: 0, incorrect: 0, list: [] }, msg: '', msgT: null, vraT: null,
+  s: {
+    testType: 'tone', freqIdx: 4, view: 'audiogram', interlock: false, tracking: false, monitor: -1, lvlSel: -1, tf: 60, step: 5,
+    examiner: '', patient: '', vra: null, talkFwd: false, aux: false, monLvl: 50, inLvl: 50, paused: false,
+    ch: [
+      { stim: 'tone', toneMode: 0, trans: 'phone', route: 'R', level: 30, intr: false, bar: false },
+      { stim: 'nb', toneMode: 0, trans: 'phone', route: 'L', level: 30, intr: false, bar: false }
+    ]
+  },
+  freqs() { return this.s.testType === 'high' ? FREQ_HF : FREQ_STD; },
+  freq() { return this.freqs()[this.s.freqIdx]; },
+  ears(i) { const c = this.s.ch[i]; return c.route === 'LR' ? ['R', 'L'] : [c.route]; },
+  ear(i) { const c = this.s.ch[i]; if (c.trans === 'ff') return 'FF'; return c.route === 'LR' ? 'LR' : c.route; },
+  maxL(i) { const c = this.s.ch[i]; return { phone: 120, insert: 110, hf: 100, bone: c.stim === 'tone' ? 80 : 70, ff: 90 }[c.trans]; },
+  isNoise(i) { return ['nb', 'sn', 'wn'].includes(this.s.ch[i].stim); },
+  stimName(i) { const c = this.s.ch[i]; if (c.stim === 'tone') return ['Tone', 'Pulsed Tone', 'Warble'][c.toneMode]; return { mic: 'Mic', extA: 'Int/Ext A', extB: 'Int/Ext B', nb: 'NB Noise', sn: 'Speech Noise', wn: 'White Noise' }[c.stim]; },
+  engineStim(i) { const st = this.s.ch[i].stim; return st === 'tone' ? 'tone' : st === 'extA' || st === 'extB' ? 'wave' : st === 'mic' ? 'mic' : st; },
+  present() { const s = this.s, [a, b] = s.ch; const on1 = a.intr ? !a.bar : a.bar; const on2 = s.interlock ? on1 : (b.intr ? !b.bar : b.bar); return [on1, on2]; },
+  desc(i, on) {
+    if (!on) return null; const c = this.s.ch[i], stim = this.engineStim(i), f = this.freq();
+    const mod = stim === 'tone' ? ['', 'pulse', 'warble'][c.toneMode] : '';
+    const pan = c.trans === 'ff' ? (c.route === 'R' ? 0.6 : c.route === 'L' ? -0.6 : 0) : (c.route === 'R' ? 1 : c.route === 'L' ? -1 : 0);
+    return { sig: [stim, mod, f, pan, c.trans].join(':'), stim, mod, freq: f, pan, level: c.level, trans: c.trans, ears: this.ears(i),
+      cls: stim === 'tone' ? 'tone' : this.isNoise(i) ? 'noise' : 'other' };
+  },
+  sync() { const [a, b] = this.present(); const d = [this.desc(0, a), this.desc(1, b)]; this._on = [!!d[0], !!d[1]]; AE.set('g0', d[0]); AE.set('g1', d[1]); Trial.update(d); this.render(); },
+  toast(m) { this.msg = m; clearTimeout(this.msgT); this.msgT = setTimeout(() => { this.msg = ''; this.render(); }, 1800); },
+  adjLevel(i, dir) {
+    const s = this.s, c = s.ch[i], old = c.level; c.level = clamp(c.level + dir * s.step, -10, this.maxL(i));
+    if (i === 0 && s.tracking && c.level !== old) s.ch[1].level = clamp(s.ch[1].level + (c.level - old), -10, this.maxL(1));
+    if (c.level === old && dir > 0) this.toast('已達此轉換器最大輸出 ' + c.level + ' dB HL');
+    this.sync();
+  },
+  adjFreq(d) { const s = this.s; s.freqIdx = clamp(s.freqIdx + d, 0, this.freqs().length - 1); this.sync(); },
+  store(i) {
+    const s = this.s, c = s.ch[i];
+    if (s.testType === 'speech') { const sp = this.speech, n = sp.correct + sp.incorrect; if (!n) { this.toast('尚未計分（CORRECT / INCORRECT）'); return; }
+      sp.list.push({ ear: this.ear(i) === 'LR' ? 'FF' : this.ear(i), level: c.level, pct: Math.round(sp.correct / n * 100), n }); sp.correct = sp.incorrect = 0; this.toast('Speech score stored'); this.render(); return; }
+    if (c.stim !== 'tone') { this.toast('Channel ' + (i + 1) + ' 需為 TONE 才能儲存閾值'); return; }
+    const ear = this.ear(i); if (ear === 'LR') { this.toast('請選擇單一耳別（LEFT 或 RIGHT）'); return; }
+    const kind = c.trans === 'bone' ? 'bc' : c.trans === 'ff' ? 'ff' : 'ac', j = 1 - i, m = s.ch[j];
+    const masked = kind !== 'ff' && this.isNoise(j) && m.trans !== 'ff' && !this.ears(j).includes(ear) && (m.intr || s.interlock);
+    const nr = c.level >= this.maxL(i);
+    putPoint(this.results, { ear, f: this.freq(), kind, level: c.level, nr, masked, mask: masked ? m.level : null });
+    this.toast('Stored ' + (ear === 'FF' ? 'Sound field' : ear === 'R' ? 'Right' : 'Left') + ' ' + this.freq() + ' Hz ' + c.level + ' dB HL' + (nr ? ' (NR)' : '') + (masked ? ' masked' : ''));
+    this.sync();
+  },
+  setTestType(t) {
+    const s = this.s, f = this.freq(); s.testType = t; s.freqIdx = nearestIdx(this.freqs(), f);
+    const c1 = s.ch[0];
+    if (t === 'high') { c1.trans = 'hf'; c1.stim = 'tone'; }
+    if (t === 'tone') { if (c1.trans === 'hf') c1.trans = 'phone'; c1.stim = 'tone'; }
+    if (t === 'speech') { c1.stim = 'extA'; if (c1.trans === 'hf') c1.trans = 'phone'; s.view = 'audiogram'; }
+    this.clampAll(); this.sync();
+  },
+  clampAll() { [0, 1].forEach(i => { const c = this.s.ch[i]; if (c.trans === 'bone' && c.route === 'LR') c.route = i ? 'L' : 'R'; c.level = clamp(c.level, -10, this.maxL(i)); }); },
+  press(a) {
+    const s = this.s; const m = a.match(/^ch(\d)-(\w+)-(\w+)$/);
+    if (m) {
+      const c = s.ch[+m[1] - 1], grp = m[2], v = m[3];
+      if (grp === 'stim') { if (v === 'tone' && c.stim === 'tone') c.toneMode = (c.toneMode + 1) % 3; c.stim = v; }
+      if (grp === 'trans') c.trans = v;
+      if (grp === 'route') c.route = v;
+      if (grp === 'intr') c.intr = !c.intr;
+      if (grp === 'store') { this.store(+m[1] - 1); return; }
+      this.clampAll(); this.sync(); return;
+    }
+    switch (a) {
+      case 'tt-tone': this.setTestType('tone'); return;
+      case 'tt-high': this.setTestType('high'); return;
+      case 'tt-speech': this.setTestType('speech'); return;
+      case 'tt-more': this.toast('MORE：SISI、ABLB、Stenger、Tone Decay 等（此模擬器未提供）'); break;
+      case 'examiner': { const v = prompt('Examiner name', s.examiner); if (v !== null) s.examiner = v.slice(0, 20); break; }
+      case 'patient': { const v = prompt('Patient name / ID', s.patient); if (v !== null) s.patient = v.slice(0, 20); break; }
+      case 'erase': if (confirm('DATA ERASE：清除所有聽力圖資料？')) { this.results = []; this.speech = { correct: 0, incorrect: 0, list: [] }; this.toast('Data erased'); } break;
+      case 'config': s.step = s.step === 5 ? 1 : s.step === 1 ? 2 : 5; this.toast('Configure：音量步階 ' + s.step + ' dB'); break;
+      case 'mon-sel': s.monitor = s.monitor >= 3 ? -1 : s.monitor + 1; break;
+      case 'lvl-sel': s.lvlSel = s.lvlSel >= 2 ? -1 : s.lvlSel + 1; break;
+      case 'aux': s.aux = !s.aux; break;
+      case 'print': printAudiogram('Pure-tone audiogram (AudioStar-Pro-style simulator)' + (s.patient ? ' — ' + s.patient : ''), this.results); break;
+      case 'transfer': { const blob = new Blob([JSON.stringify({ exported: new Date().toISOString(), examiner: s.examiner, patient: s.patient, audiogram: this.results, speech: this.speech.list }, null, 2)], { type: 'application/json' });
+        const u = URL.createObjectURL(blob), l = document.createElement('a'); l.href = u; l.download = 'audiogram.json'; l.click(); setTimeout(() => URL.revokeObjectURL(u), 1000); this.toast('Data transfer：已下載 audiogram.json'); break; }
+      case 'status': s.view = s.view === 'audiogram' ? 'status' : 'audiogram'; break;
+      case 'interlock': s.interlock = !s.interlock; break;
+      case 'tracking': s.tracking = !s.tracking; break;
+      case 'vraL': case 'vraR': s.vra = a === 'vraL' ? 'L' : 'R'; clearTimeout(this.vraT); this.vraT = setTimeout(() => { s.vra = null; this.render(); }, 2500); break;
+      case 'correct': case 'incorrect': case 'clear':
+        if (s.testType !== 'speech') { this.toast(a === 'correct' ? 'START：自動測試未提供，請用手動給音' : a === 'clear' ? 'PAUSE' : 'STOP'); break; }
+        if (a === 'correct') this.speech.correct++; else if (a === 'incorrect') this.speech.incorrect++; else { this.speech.correct = this.speech.incorrect = 0; }
+        break;
+      case 'up': this.adjLevel(0, 1); return;
+      case 'down': this.adjLevel(0, -1); return;
+      case 'left': case 'fdown': this.adjFreq(-1); return;
+      case 'right': case 'fup': this.adjFreq(1); return;
+      case 'center': this.store(0); return;
+    }
+    this.sync();
+  },
+  isOn(a) {
+    const s = this.s; const m = a.match(/^ch(\d)-(\w+)-(\w+)$/);
+    if (m) { const c = s.ch[+m[1] - 1], g = m[2], v = m[3]; if (g === 'stim') return c.stim === v; if (g === 'trans') return c.trans === v; if (g === 'route') return c.route === v; if (g === 'intr') return c.intr; return false; }
+    return ({ 'tt-tone': s.testType === 'tone', 'tt-high': s.testType === 'high', 'tt-speech': s.testType === 'speech', status: s.view === 'status', interlock: s.interlock, tracking: s.tracking, aux: s.aux,
+      vraL: s.vra === 'L', vraR: s.vra === 'R' })[a] || false;
+  },
+  build(root) {
+    this.el = root; root.className = 'stage dev gsi';
+    const P = (x, y) => `left:${x - 300}px;top:${y - 40}px`;
+    let h = '<div class="bezel"></div><canvas class="lcd" width="1640" height="524"></canvas><div class="model">DUAL-CHANNEL<br>CLINICAL AUDIOMETER</div>';
+    // face background (coordinates follow the photo of the real panel)
+    h += `<div class="face"><svg width="1462" height="1045" viewBox="300 40 1462 1045">
+      <defs><linearGradient id="gb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bcd4f1"/><stop offset="1" stop-color="#a6c3ea"/></linearGradient></defs>
+      <path d="M322 48 H1740 Q1762 48 1762 70 V870 Q1762 1078 1580 1078 H482 Q300 1078 300 870 V70 Q300 48 322 48Z" fill="#e7e9ed" stroke="#c4c8cf" stroke-width="2"/>
+      <rect x="740" y="48" width="595" height="652" fill="url(#gb)"/>
+      <path d="M312 680 H1750 V870 Q1750 1066 1580 1066 H482 Q312 1066 312 870Z" fill="#a9c6ec"/>
+      <path d="M340 60 H725 Q735 60 735 70 V660 Q735 678 717 678 H358 Q340 678 340 660Z" fill="#e7e9ed"/>
+      <path d="M1340 60 H1745 Q1755 60 1755 70 V670 Q1755 688 1737 688 H1358 Q1340 688 1340 670Z" fill="#e7e9ed"/>
+      <circle cx="1028" cy="790" r="152" fill="#e9ebef"/><rect x="876" y="790" width="304" height="282" fill="#e9ebef"/>
+      <g stroke="#1e2533" stroke-width="1.5"><line x1="355" y1="95" x2="550" y2="95"/><line x1="565" y1="95" x2="728" y2="95"/><line x1="560" y1="350" x2="728" y2="350"/>
+      <line x1="750" y1="118" x2="875" y2="118"/><line x1="890" y1="118" x2="1005" y2="118"/><line x1="1062" y1="120" x2="1180" y2="120"/><line x1="1192" y1="120" x2="1325" y2="120"/>
+      <line x1="745" y1="470" x2="872" y2="470"/><line x1="885" y1="470" x2="1005" y2="470"/><line x1="1060" y1="474" x2="1180" y2="474"/><line x1="1190" y1="474" x2="1325" y2="474"/>
+      <line x1="1032" y1="128" x2="1032" y2="645"/><line x1="1352" y1="100" x2="1522" y2="100"/><line x1="1550" y1="137" x2="1722" y2="137"/>
+      <line x1="370" y1="586" x2="450" y2="586"/><line x1="498" y1="586" x2="582" y2="586"/><line x1="630" y1="588" x2="714" y2="588"/></g>
+      <circle cx="1686" cy="100" r="11" fill="none" stroke="#1e2533" stroke-width="3"/><line x1="1686" y1="84" x2="1686" y2="100" stroke="#1e2533" stroke-width="3"/>
+      <rect x="1094" y="1020" width="52" height="4" fill="none"/>
+    </svg>`;
+    const L = (x, y, t, cls) => { h += `<div class="gl ${cls || ''}" style="${P(x, y)}">${t}</div>`; };
+    const RB = (x, y, a, cls, title) => { h += `<button class="rb ${cls || ''}" data-a="${a}" style="${P(x, y)}" title="${title || ''}"></button>`; };
+    const PILL = (x, y, a, cls, title) => { h += `<button class="pill ${cls || ''}" data-a="${a}" style="${P(x, y)}" title="${title || ''}"></button>`; };
+    const LED = (x, y, id) => { h += `<span class="gled" id="${id}" style="${P(x, y)}"></span>`; };
+    // headers
+    L(878, 73, 'CHANNEL 1', 'c gh big'); L(1193, 75, 'CHANNEL 2', 'c gh big');
+    L(784, 106, 'STIMULUS', 'c gh'); L(938, 108, 'TRANSDUCER', 'c gh'); L(1122, 109, 'TRANSDUCER', 'c gh'); L(1258, 110, 'STIMULUS', 'c gh');
+    L(767, 458, 'NOISE', 'c gh'); L(917, 461, 'ROUTING', 'c gh'); L(1129, 463, 'ROUTING', 'c gh'); L(1298, 464, 'NOISE', 'c gh');
+    L(389, 104, 'MONITOR', 'c gh'); L(600, 104, 'TEST TYPE', 'c gh'); L(1702, 149, 'LEVEL', 'c gh');
+    // channel buttons
+    const stims = [['tone', 'TONE'], ['mic', 'MIC'], ['extA', 'INT/EXT A'], ['extB', 'INT/EXT B']], ys1 = [155, 219, 283, 346];
+    const trs = [['phone', 'PHONE'], ['bone', 'BONE'], ['ff', 'SPKR'], ['insert', 'INSERT'], ['hf', 'HIGH FREQ<br>PHONE']], ys2 = [157, 220, 284, 347, 411];
+    const noises = [['nb', 'NB'], ['sn', 'SPEECH'], ['wn', 'WHITE']], ys3 = [489, 552, 616];
+    const routes = [['L', 'LEFT'], ['R', 'RIGHT'], ['LR', 'LEFT<br>RIGHT']];
+    stims.forEach(([v, t], i) => { RB(850, ys1[i], 'ch1-stim-' + v, '', 'CH1 ' + t); L(820, ys1[i], t, 'r'); RB(1220, ys1[i] + 2, 'ch2-stim-' + v, '', 'CH2 ' + t); L(1254, ys1[i] + 2, t); });
+    trs.forEach(([v, t], i) => { RB(978, ys2[i], 'ch1-trans-' + v, '', 'CH1 ' + t.replace('<br>', ' ')); L(945, ys2[i], t, 'r'); RB(1090, ys2[i], 'ch2-trans-' + v, '', 'CH2 ' + t.replace('<br>', ' ')); L(1124, ys2[i], t); });
+    noises.forEach(([v, t], i) => { RB(846, ys3[i], 'ch1-stim-' + v, '', 'CH1 ' + t + ' noise'); L(813, ys3[i], t, 'r'); RB(1217, ys3[i] + 3, 'ch2-stim-' + v, '', 'CH2 ' + t + ' noise'); L(1252, ys3[i] + 3, t); });
+    routes.forEach(([v, t], i) => { RB(975, ys3[i], 'ch1-route-' + v, '', 'CH1 ' + t.replace('<br>', ' ')); L(942, ys3[i], t, 'r'); RB(1087, ys3[i] + 3, 'ch2-route-' + v, '', 'CH2 ' + t.replace('<br>', ' ')); L(1121, ys3[i] + 3, t); });
+    // left gray panel
+    [['CH 1', 135], ['CH 2', 178], ['AUX<br>INTERCOM', 220], ['TALKBACK', 262]].forEach(([t, y], i) => { L(408, y, t, 'r'); LED(426, y, 'gmon' + i); });
+    PILL(418, 318, 'mon-sel', '', 'Monitor SELECT'); L(413, 349, 'SELECT', 'c');
+    h += `<div class="knob" id="gmonk" style="${P(483, 278)};width:68px;height:68px" title="Monitor level"><div class="rot"><div class="mark"></div></div></div>`;
+    [['TONE', 'tt-tone'], ['HIGH Hz', 'tt-high'], ['SPEECH', 'tt-speech'], ['MORE', 'tt-more'], ['EXAMINER', 'examiner'], ['PATIENT', 'patient'], ['DATA ERASE', 'erase'], ['CONFIGURE', 'config']]
+      .forEach(([t, a], i) => { const y = [152, 208, 264, 320, 376, 433, 490, 546][i]; L(622, y, t, 'r'); PILL(681, y, a, '', t); });
+    L(413, 507, 'AUX INTERCOM &#9638;', 'c'); PILL(411, 545, 'aux', '', 'AUX INTERCOM');
+    L(410, 603, 'CORRECT<br>START', 'c'); L(540, 603, 'CLEAR<br>PAUSE', 'c'); L(672, 605, 'INCORRECT<br>STOP', 'c');
+    PILL(409, 637, 'correct', '', 'CORRECT / START'); PILL(540, 637, 'clear', '', 'CLEAR / PAUSE'); PILL(672, 637, 'incorrect', '', 'INCORRECT / STOP');
+    // right gray panel
+    h += `<span class="gled on" style="${P(1655, 100)}"></span>`;
+    PILL(1395, 157, 'print', '', 'PRINT'); L(1448, 158, 'PRINT'); PILL(1395, 213, 'transfer', '', 'DATA TRANSFER'); L(1448, 228, '&#8663;&#8665;<br>DATA TRANSFER');
+    L(1390, 293, 'STATUS/<br>AUDIOGRAM', 'c'); PILL(1392, 328, 'status', '', 'STATUS / AUDIOGRAM');
+    [['TEST MIC', 188], ['EXT A', 231], ['EXT B', 274]].forEach(([t, y], i) => { LED(1655, y, 'glvl' + i); L(1670, y, t); });
+    h += `<div class="knob" id="glvlk" style="${P(1528, 290)};width:64px;height:64px" title="Input level"><div class="rot"><div class="mark"></div></div></div>`;
+    PILL(1657, 330, 'lvl-sel', '', 'Level SELECT'); L(1656, 361, 'SELECT', 'c');
+    PILL(1390, 500, 'interlock', 'big', 'INTERLOCK：CH2 隨 CH1 給音'); L(1446, 501, 'INTERLOCK &#128274;'); PILL(1390, 557, 'tracking', 'big', 'TRACKING：CH2 音量跟隨 CH1'); L(1446, 558, 'TRACKING &#8801;');
+    h += `<div class="ring" id="gtfring" style="${P(1620, 447)};width:96px;height:96px"></div>`;
+    h += `<div class="knob" id="gtfk" style="${P(1632, 459)};width:72px;height:72px" title="Talk forward level"><div class="rot"><div class="mark"></div></div></div>`;
+    L(1588, 493, '45', 'c'); L(1620, 445, '60', 'c'); L(1692, 445, '75', 'c'); L(1725, 495, '90', 'c'); L(1658, 570, 'TALK<br>FORWARD<br>dB HL', 'c');
+    L(1527, 626, 'LEFT VRA', 'c'); L(1660, 628, 'RIGHT VRA', 'c'); PILL(1527, 651, 'vraL', '', 'LEFT VRA'); PILL(1660, 651, 'vraR', '', 'RIGHT VRA');
+    // bottom controls
+    h += `<div class="knob" id="gk1" style="${P(375, 745)};width:224px;height:224px;box-shadow:0 0 0 10px #18191c,0 0 0 13px #9aa0a8,0 14px 24px rgba(0,0,0,.5)" title="CH1 音量"><div class="rot"><div class="mark"></div></div></div>`;
+    h += `<div class="knob" id="gk2" style="${P(1455, 756)};width:224px;height:224px;box-shadow:0 0 0 10px #18191c,0 0 0 13px #9aa0a8,0 14px 24px rgba(0,0,0,.5)" title="CH2 音量"><div class="rot"><div class="mark"></div></div></div>`;
+    L(695, 717, 'INTERRUPT', 'c'); RB(694, 754, 'ch1-intr-x', 'sm', 'CH1 INTERRUPT（常開／常關）');
+    L(1366, 727, 'INTERRUPT', 'c'); RB(1366, 764, 'ch2-intr-x', 'sm', 'CH2 INTERRUPT（常開／常關）');
+    L(822, 706, 'STORE &#128190;', 'c'); RB(829, 740, 'ch1-store-x', 'xs', 'CH1 STORE（Enter）');
+    L(1236, 713, '&#128190; STORE', 'c'); RB(1230, 744, 'ch2-store-x', 'xs', 'CH2 STORE');
+    h += `<button class="bar" id="gbar1" style="${P(696, 902)};transform:rotate(16deg)" title="CHANNEL 1 給音（空白鍵）"></button>`; L(752, 980, 'CHANNEL 1', 'c');
+    h += `<button class="bar" id="gbar2" style="${P(1360, 912)};transform:rotate(-13deg)" title="CHANNEL 2 給音"></button>`; L(1300, 990, 'CHANNEL 2', 'c');
+    // d-pad
+    const cx = 1028, cy = 788, arc = (a0, a1, r0, r1) => { const p = (a, r) => [cx + r * Math.cos(a), cy + r * Math.sin(a)]; const [x0, y0] = p(a0, r1), [x1, y1] = p(a1, r1), [x2, y2] = p(a1, r0), [x3, y3] = p(a0, r0);
+      return `M${x0} ${y0} A${r1} ${r1} 0 0 1 ${x1} ${y1} L${x2} ${y2} A${r0} ${r0} 0 0 0 ${x3} ${y3}Z`; };
+    const g = 0.12, segs = [['up', -Math.PI / 2], ['right', 0], ['down', Math.PI / 2], ['left', Math.PI]];
+    h += `<svg class="dpad" width="1462" height="1045" viewBox="300 40 1462 1045" style="pointer-events:none"><g style="pointer-events:auto">` +
+      segs.map(([a, m]) => `<path data-a="${a}" d="${arc(m - Math.PI / 4 + g, m + Math.PI / 4 - g, 56, 104)}" fill="#17181b" stroke="#55585e" stroke-width="2"><title>${{ up: '▲ CH1 音量 +', down: '▼ CH1 音量 −', left: '◀ 頻率 −', right: '▶ 頻率 +' }[a]}</title></path>`).join('') +
+      `<circle class="c" data-a="center" cx="${cx}" cy="${cy}" r="44" fill="#1b1c20" stroke="#55585e" stroke-width="2"><title>Store CH1</title></circle></g>
+      <g fill="#2a2f3a"><path d="M1028 668 l-7 12 h14z"/><path d="M1028 905 l-7 -12 h14z"/><path d="M908 788 l12 -7 v14z"/><path d="M1148 788 l-12 -7 v14z"/>
+      <path d="M862 952 l20 -12 v24z"/><path d="M1192 952 l-20 -12 v24z"/></g></svg>`;
+    L(1026, 917, 'FREQUENCY', 'c');
+    h += `<div class="rocker" style="${P(1026, 952)}"><button data-a="fdown" title="頻率 −"></button><button data-a="fup" title="頻率 +"></button></div>`;
+    L(1024, 995, 'TALK FORWARD', 'c'); h += `<button class="tfbar" id="gtf" style="${P(1025, 1031)}" title="TALK FORWARD（按住）"></button>`; L(1112, 1030, '&#127911;');
+    h += `<div class="gl c" style="${P(1024, 1066)};font-size:8px;color:#666">REF ANSI S3.6 / IEC 60645 / ISO 389</div>`;
+    h += '</div>';
+    root.innerHTML = h;
+    this.c = setupCanvas(root.querySelector('canvas'));
+    root.querySelectorAll('[data-a]').forEach(b => b.addEventListener('click', () => { AE.ensure(); this.press(b.dataset.a); }));
+    attachKnob(root.querySelector('#gk1'), d => this.adjLevel(0, d));
+    attachKnob(root.querySelector('#gk2'), d => this.adjLevel(1, d));
+    attachKnob(root.querySelector('#gtfk'), d => { this.s.tf = clamp(this.s.tf + d * 5, 45, 90); this.render(); });
+    attachKnob(root.querySelector('#gmonk'), d => { this.s.monLvl = clamp(this.s.monLvl + d * 5, 0, 100); this.toast('Monitor level ' + this.s.monLvl); this.render(); });
+    attachKnob(root.querySelector('#glvlk'), d => { this.s.inLvl = clamp(this.s.inLvl + d * 2, 0, 100); this.toast(['Test mic', 'Ext A', 'Ext B'][Math.max(0, this.s.lvlSel)] + ' level ' + this.s.inLvl); this.render(); });
+    attachHold(root.querySelector('#gbar1'), () => this.bar(0, true), () => this.bar(0, false));
+    attachHold(root.querySelector('#gbar2'), () => this.bar(1, true), () => this.bar(1, false));
+    attachHold(root.querySelector('#gtf'), () => { this.s.talkFwd = true; this.render(); }, () => { this.s.talkFwd = false; this.render(); });
+    root.querySelector('canvas').addEventListener('click', e => this.lcdClick(e));
+  },
+  bar(i, v) { this.s.ch[i].bar = v; this.sync(); },
+  hold(i, v) { this.bar(i, v); },
+  lcdClick(e) {
+    const s = this.s; if (s.view !== 'audiogram' || s.testType === 'speech') return;
+    const cv = this.el.querySelector('canvas'), r = cv.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width * 820, y = (e.clientY - r.top) / r.height * 262;
+    if (y < 112) return; const freqs = this.freqs(), fmax = freqs[freqs.length - 1];
+    const bx = x < 410 ? 8 : 412, gx = bx + 30, gw = 400 - 38, gy = 110 + 16, gh = 256 - gy - 4;
+    s.freqIdx = nearestIdx(freqs, 125 * Math.pow(2, (x - gx) / gw * Math.log2(fmax / 125)));
+    s.ch[0].level = clamp(Math.round(((y - gy) / gh * 130 - 10) / 5) * 5, -10, this.maxL(0));
+    this.sync();
+  },
+  render() {
+    if (!this.el) return; const s = this.s;
+    this.el.querySelectorAll('[data-a]').forEach(b => { if (b.classList.contains('rb') || b.classList.contains('pill')) b.classList.toggle('on', this.isOn(b.dataset.a)); });
+    for (let i = 0; i < 4; i++) this.el.querySelector('#gmon' + i).classList.toggle('on', s.monitor === i || (i === 2 && s.aux));
+    for (let i = 0; i < 3; i++) this.el.querySelector('#glvl' + i).classList.toggle('on', s.lvlSel === i);
+    this.el.querySelector('#gk1 .rot').style.transform = `rotate(${s.ch[0].level * 2.4}deg)`;
+    this.el.querySelector('#gk2 .rot').style.transform = `rotate(${s.ch[1].level * 2.4}deg)`;
+    this.el.querySelector('#gtfk .rot').style.transform = `rotate(${(s.tf - 67.5) * 4}deg)`;
+    this.el.querySelector('#gmonk .rot').style.transform = `rotate(${(s.monLvl - 50) * 2.6}deg)`;
+    this.el.querySelector('#glvlk .rot').style.transform = `rotate(${(s.inLvl - 50) * 2.6}deg)`;
+    const deg = (s.tf - 45) / 45 * 180;
+    this.el.querySelector('#gtfring').style.background = `conic-gradient(from 270deg, rgba(90,170,255,.95) 0deg ${deg}deg, transparent ${deg}deg)`;
+    this.el.querySelector('#gtfring').style.webkitMask = this.el.querySelector('#gtfring').style.mask = 'radial-gradient(circle, transparent 41px, #000 42px, #000 47px, transparent 48px)';
+    this.draw();
+  },
+  draw() {
+    const c = this.c, s = this.s, W = 820, H = 262, on = this._on || [false, false];
+    c.clearRect(0, 0, W, H); c.fillStyle = '#e4ebf4'; c.fillRect(0, 0, W, H);
+    c.textBaseline = 'middle';
+    // top strip
+    c.fillStyle = '#1f4f99'; c.fillRect(0, 0, W, 22); c.fillStyle = '#fff'; c.font = 'bold 11px Arial'; c.textAlign = 'left';
+    c.fillText({ tone: 'Tone Test', high: 'High Frequency Test', speech: 'Speech Test' }[s.testType] + (s.examiner ? '   Examiner: ' + s.examiner : ''), 8, 11);
+    c.textAlign = 'center'; c.fillText([s.interlock ? 'INTERLOCK' : '', s.tracking ? 'TRACKING' : '', s.talkFwd ? 'TALK FORWARD ' + s.tf + ' dB HL' : ''].filter(Boolean).join('   '), W / 2, 11);
+    c.textAlign = 'right'; c.fillText((s.patient ? 'Patient: ' + s.patient + '   ' : '') + 'Response', W - 26, 11);
+    c.fillStyle = Trial.on ? '#ffd400' : '#0e2c5c'; c.beginPath(); c.arc(W - 13, 11, 7, 0, Math.PI * 2); c.fill(); c.strokeStyle = '#fff'; c.lineWidth = 1; c.stroke();
+    // status boxes
+    const box = (x, i) => {
+      const ch = s.ch[i]; c.fillStyle = '#fff'; c.fillRect(x, 27, 300, 78); c.strokeStyle = on[i] ? '#1db954' : '#9fb0c8'; c.lineWidth = on[i] ? 3 : 1; c.strokeRect(x + .5, 27.5, 299, 77);
+      c.fillStyle = '#2b5fa8'; c.fillRect(x, 27, 300, 16); c.fillStyle = '#fff'; c.font = 'bold 10px Arial'; c.textAlign = 'left'; c.fillText('Channel ' + (i + 1), x + 6, 35);
+      c.textAlign = 'right'; c.fillText(ch.intr ? 'INTERRUPT: NORMALLY ON' : 'INTERRUPT: NORMALLY OFF', x + 294, 35);
+      c.fillStyle = '#132b55'; c.textAlign = 'left'; c.font = 'bold 13px Arial'; c.fillText(this.stimName(i), x + 8, 55);
+      c.font = '11px Arial'; c.fillText(TRANS_NAME[ch.trans] + '  ·  ' + { L: 'Left', R: 'Right', LR: 'Left + Right' }[ch.route], x + 8, 74);
+      c.textAlign = 'right'; c.font = 'bold 30px Arial'; c.fillText(ch.level, x + 238, 72); c.font = 'bold 11px Arial'; c.fillText(this.isNoise(i) ? 'dB EM' : 'dB HL', x + 292, 76);
+      c.textAlign = 'left'; c.font = 'bold 10px Arial'; c.fillStyle = on[i] ? '#1a9b45' : '#9aa6b8'; c.fillText(on[i] ? '▶ PRESENTING' : '■ OFF', x + 8, 94);
+    };
+    box(6, 0); box(514, 1);
+    c.fillStyle = '#fff'; c.fillRect(312, 27, 196, 78); c.strokeStyle = '#9fb0c8'; c.lineWidth = 1; c.strokeRect(312.5, 27.5, 195, 77);
+    c.fillStyle = '#132b55'; c.textAlign = 'center'; c.font = '10px Arial'; c.fillText('Frequency', 410, 38); c.font = 'bold 26px Arial'; c.fillText(this.freq() + ' Hz', 410, 64);
+    c.font = '10px Arial'; c.fillText('Step ' + s.step + ' dB   ·   ' + (s.view === 'status' ? 'Status' : 'Audiogram'), 410, 92);
+    // lower area
+    const y0 = 110, bh = 146;
+    if (s.testType === 'speech') drawSpeech(c, 6, y0, W - 12, bh, this.speech, this.ear(0) === 'LR' ? 'FF' : this.ear(0), s.ch[0].level, 'gsi');
+    else if (s.view === 'status') this.drawTable(c, 6, y0, W - 12, bh);
+    else { const e1 = this.ear(0); ['R', 'L'].forEach((e, i) => drawAudiogram(c, i ? 412 : 8, y0, 400, bh, { ear: e, freqs: this.freqs(), pts: this.results, theme: 'gsi', title: e === 'R' ? 'Right' : 'Left',
+      cursor: (e1 === e || e1 === 'LR') ? { f: this.freq(), level: s.ch[0].level } : null, answer: Patient.showAnswer })); }
+    if (s.vra) { const x = s.vra === 'L' ? W - 60 : 60; c.fillStyle = '#ffcf33'; c.beginPath(); for (let k = 0; k < 10; k++) { const r = k % 2 ? 9 : 20, a = -Math.PI / 2 + k * Math.PI / 5; c.lineTo(x + r * Math.cos(a), 180 + r * Math.sin(a)); } c.closePath(); c.fill();
+      c.fillStyle = '#132b55'; c.font = 'bold 10px Arial'; c.textAlign = 'center'; c.fillText((s.vra === 'L' ? 'LEFT' : 'RIGHT') + ' VRA', x, 212); }
+    if (this.msg) { c.font = 'bold 11px "Microsoft JhengHei", Arial'; c.textAlign = 'center'; const w = c.measureText(this.msg).width + 22; c.fillStyle = 'rgba(15,35,75,.88)'; c.fillRect(W / 2 - w / 2, 226, w, 24); c.fillStyle = '#fff'; c.fillText(this.msg, W / 2, 238); }
+    c.textBaseline = 'alphabetic';
+  },
+  drawTable(c, x, y, w, h) {
+    const fr = this.freqs(); c.fillStyle = '#fff'; c.fillRect(x, y, w, h); c.font = '10px Arial'; c.textAlign = 'center';
+    const cw = (w - 110) / fr.length; c.fillStyle = '#2b5fa8'; c.fillRect(x, y, w, 18); c.fillStyle = '#fff'; c.fillText('dB HL', x + 55, y + 9);
+    fr.forEach((f, i) => c.fillText(f >= 1000 ? fmtK(f) + 'k' : f, x + 110 + cw * i + cw / 2, y + 9));
+    const rows = [['R', 'ac', 'Right AC'], ['R', 'bc', 'Right BC'], ['L', 'ac', 'Left AC'], ['L', 'bc', 'Left BC'], ['FF', 'ff', 'Sound field']];
+    rows.forEach(([e, k, t], r) => { const yy = y + 30 + r * 23; c.fillStyle = EAR_COL[e]; c.textAlign = 'left'; c.font = 'bold 10px Arial'; c.fillText(t, x + 8, yy);
+      c.textAlign = 'center'; c.font = '11px Arial';
+      fr.forEach((f, i) => { const p = this.results.find(q => q.ear === e && q.kind === k && q.f === f); c.fillText(p ? (p.nr ? 'NR' : p.level) + (p.masked ? 'm' : '') : '·', x + 110 + cw * i + cw / 2, yy); });
+      c.strokeStyle = '#e1e6ee'; c.beginPath(); c.moveTo(x, yy + 11.5); c.lineTo(x + w, yy + 11.5); c.stroke(); });
+  }
+};
 
-                <div style="display: flex; gap: 20px; margin-top: 10px;">
-                    <div class="button-unit">
-                        <div class="label">Freq Down</div><button class="btn-sq" onclick="adjFreq(-1)"></button>
-                        <div class="led"></div>
-                    </div>
-                    <div class="button-unit">
-                        <div class="label">Freq Up</div><button class="btn-sq" onclick="adjFreq(1)"></button>
-                        <div class="led"></div>
-                    </div>
-                </div>
-            </div>
+// ================= page wiring =================
+const DEV = { ac40: AC, gsi: G };
+let cur = lsGet('pta-sim-device', 'ac40'); if (!DEV[cur]) cur = 'ac40';
+AC.build(document.getElementById('ac40')); G.build(document.getElementById('gsi'));
+Trial.onChange = () => { AC.render(); G.render(); };
+Patient.load(document.getElementById('patientSel').value);
 
-            <div class="panel-col">
-                <div class="btn-group-header">CHANNEL 2 INPUT</div>
-                <div class="btn-matrix">
-                    <div class="button-unit">
-                        <div class="label">Tone Warble</div><button class="btn-sq"></button>
-                        <div class="led"></div>
-                    </div>
-                    <div class="button-unit">
-                        <div class="label">Wavefile</div><button class="btn-sq"></button>
-                        <div class="led"></div>
-                    </div>
-                    <div class="button-unit">
-                        <div class="label">NB N</div><button class="btn-sq active" id="c2-mask"
-                            onclick="selStim(2, 'nb')"></button>
-                        <div class="led"></div>
-                    </div>
-                    <div class="button-unit">
-                        <div class="label">1 Mic 2</div><button class="btn-sq"></button>
-                        <div class="led"></div>
-                    </div>
-                    <div class="button-unit">
-                        <div class="label">Off</div><button class="btn-sq"></button>
-                        <div class="led"></div>
-                    </div>
-                </div>
-
-                <div class="btn-group-header" style="margin-top: 10px;">CHANNEL 2 OUTPUT</div>
-                <div class="btn-matrix">
-                    <div class="button-unit">
-                        <div class="label">Right Insert</div><button class="btn-sq color-red"></button>
-                        <div class="led"></div>
-                    </div>
-                    <div class="button-unit">
-                        <div class="label">Left Insert</div><button class="btn-sq color-blue active" id="c2-lout"
-                            onclick="selOut(2, 'Left', 'Phone')"></button>
-                        <div class="led"></div>
-                    </div>
-                    <div class="button-unit">
-                        <div class="label">Insert Mask</div><button class="btn-sq color-green"></button>
-                        <div class="led"></div>
-                    </div>
-                    <div class="button-unit">
-                        <div class="label">1 FF 2</div><button class="btn-sq"></button>
-                        <div class="led"></div>
-                    </div>
-                </div>
-
-                <div class="control-hub">
-                    <div class="enter-btn" onmousedown="oscStart(2)" onmouseup="oscStop()">TONE SWITCH<br>ENTER</div>
-                    <div class="button-unit">
-                        <div class="dial-knob" id="dial-2"></div>
-                        <div class="label" style="font-size:10px; margin-top:5px;">HL CH 2</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="shelf-label">PTA (Interacoustics AC40)</div>
-    </div>
-
-    <script>
-        const canvas = document.getElementById('audiogramCanvas');
-        const ctx = canvas.getContext('2d');
-        const freqs = [125, 250, 500, 750, 1000, 1500, 2000, 3000, 4000, 6000, 8000];
-        const steps = [5, 2, 1];
-
-        let audioCtx = null;
-        let osc = null, gainNode = null;
-        let noise = null, noiseGain = null;
-
-        let state = {
-            freqIdx: 4,
-            db1: 30, db2: 50,
-            side: 'Right',
-            transducer: 'Phone',
-            extRange: false,
-            sync: false,
-            stepIdx: 0,
-            stim1: 'tone', stim2: 'nb',
-            results: { Right: [], Left: [] }
-        };
-
-        function init() {
-            const dpr = window.devicePixelRatio || 1;
-            canvas.width = canvas.offsetWidth * dpr;
-            canvas.height = canvas.offsetHeight * dpr;
-            ctx.scale(dpr, dpr);
-            draw();
-        }
-
-        function draw() {
-            const w = canvas.width / devicePixelRatio, h = canvas.height / devicePixelRatio;
-            const pad = 50, gridH = h - pad * 2 - 40;
-            ctx.fillStyle = '#000'; ctx.fillRect(0, 0, w, h);
-
-            ctx.fillStyle = '#1a1a1a'; ctx.fillRect(0, 0, w, 30);
-            ctx.fillStyle = '#0f0'; ctx.font = 'bold 12px Consolas';
-            ctx.fillText(`CH1: ${freqs[state.freqIdx]}Hz ${state.db1}dB  |  CH2: ${state.db2}dB ${state.stim2.toUpperCase()}`, 15, 20);
-            if (state.sync) ctx.fillText("SYNC ACTIVE", w - 120, 20);
-
-            ctx.strokeStyle = '#333'; ctx.lineWidth = 1;
-            freqs.forEach((f, i) => {
-                const x = pad + (i * (w - pad * 2) / (freqs.length - 1));
-                ctx.beginPath(); ctx.moveTo(x, pad + 30); ctx.lineTo(x, h - pad); ctx.stroke();
-                ctx.fillStyle = '#666'; ctx.font = '10px Arial'; ctx.fillText(f, x - 12, pad + 25);
-            });
-
-            for (let j = 0; j <= 13; j++) {
-                const y = pad + 30 + (j * gridH / 13);
-                const db = -10 + j * 10;
-                ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(w - pad, y); ctx.stroke();
-                ctx.fillText(db, pad - 25, y + 4);
-                if (!state.extRange && db > 100) {
-                    ctx.fillStyle = 'rgba(255,0,0,0.1)';
-                    ctx.fillRect(pad, y, w - pad * 2, gridH / 13);
-                }
-            }
-
-            renderSet('Right', 'red', 'O', '<');
-            renderSet('Left', '#4d94ff', 'X', '>');
-        }
-
-        function renderSet(s, color, airSym, boneSym) {
-            const w = canvas.width / devicePixelRatio, h = canvas.height / devicePixelRatio;
-            const pad = 50, gridH = h - pad * 2 - 40;
-            const pts = state.results[s].sort((a, b) => a.f - b.f);
-            if (!pts.length) return;
-
-            ctx.strokeStyle = color; ctx.lineWidth = 2;
-            ctx.beginPath();
-            pts.forEach((p, i) => {
-                if (p.type !== 'Phone') return;
-                const x = pad + (freqs.indexOf(p.f) * (w - pad * 2) / (freqs.length - 1));
-                const y = pad + 30 + ((p.d + 10) * gridH / 130);
-                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-            });
-            ctx.stroke();
-
-            pts.forEach(p => {
-                const x = pad + (freqs.indexOf(p.f) * (w - pad * 2) / (freqs.length - 1));
-                const y = pad + 30 + ((p.d + 10) * gridH / 130);
-                ctx.fillStyle = color; ctx.font = 'bold 16px Arial';
-                let sym = p.type === 'Phone' ? airSym : boneSym;
-                if (p.nr) sym += '↓';
-                ctx.fillText(sym, x - 8, y + 6);
-            });
-        }
-
-        function updateUI() {
-            document.getElementById('dial-1').style.transform = `rotate(${(state.db1 + 10) * 2}deg)`;
-            document.getElementById('dial-2').style.transform = `rotate(${(state.db2 + 10) * 2}deg)`;
-            document.getElementById('ext-range').classList.toggle('active', state.extRange);
-            document.getElementById('sync-btn').classList.toggle('active', state.sync);
-            draw();
-        }
-
-        function adjFreq(d) { state.freqIdx = Math.max(0, Math.min(freqs.length - 1, state.freqIdx + d)); updateUI(); }
-        function selOut(ch, side, type) { if (ch === 1) { state.side = side || state.side; state.transducer = type; } updateUI(); }
-        function toggleExt() { state.extRange = !state.extRange; updateUI(); }
-        function toggleSync() { state.sync = !state.sync; updateUI(); }
-        function cycleStep() { state.stepIdx = (state.stepIdx + 1) % steps.length; }
-
-        function store() {
-            state.results[state.side] = state.results[state.side].filter(p => p.f !== freqs[state.freqIdx]);
-            state.results[state.side].push({ f: freqs[state.freqIdx], d: state.db1, type: state.transducer, nr: false });
-            draw();
-        }
-        function storeNR() { state.results[state.side].push({ f: freqs[state.freqIdx], d: state.db1, type: state.transducer, nr: true }); draw(); }
-        function delPt() { state.results[state.side].pop(); draw(); }
-        function clearAll() { if (confirm("確定要清除所有聽力圖數據嗎？")) { state.results = { Right: [], Left: [] }; draw(); } }
-
-        function setupAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-        function oscStart(ch) {
-            setupAudio();
-            const f = freqs[state.freqIdx];
-            const level = ch === 1 ? state.db1 : state.db2;
-            const stim = ch === 1 ? state.stim1 : state.stim2;
-            if (stim === 'tone') {
-                osc = audioCtx.createOscillator(); gainNode = audioCtx.createGain();
-                osc.frequency.value = f; gainNode.gain.value = Math.pow(10, (level - 70) / 20) * 0.1;
-                osc.connect(gainNode).connect(audioCtx.destination); osc.start();
-            } else {
-                const bufferSize = 2 * audioCtx.sampleRate, noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate), output = noiseBuffer.getChannelData(0);
-                for (let i = 0; i < bufferSize; i++) { output[i] = Math.random() * 2 - 1; }
-                noise = audioCtx.createBufferSource(); noise.buffer = noiseBuffer; noise.loop = true;
-                noiseGain = audioCtx.createGain(); noiseGain.gain.value = Math.pow(10, (level - 70) / 20) * 0.05;
-                noise.connect(noiseGain).connect(audioCtx.destination); noise.start();
-            }
-        }
-        function oscStop() { if (osc) { osc.stop(); osc = null; } if (noise) { noise.stop(); noise = null; } }
-
-        document.getElementById('dial-1').addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const d = e.deltaY > 0 ? -steps[state.stepIdx] : steps[state.stepIdx];
-            state.db1 = Math.max(-10, Math.min(state.extRange ? 120 : 100, state.db1 + d));
-            if (state.sync) state.db2 = Math.max(-10, Math.min(120, state.db2 + d));
-            updateUI();
-        });
-        document.getElementById('dial-2').addEventListener('wheel', (e) => {
-            e.preventDefault();
-            state.db2 = Math.max(-10, Math.min(120, state.db2 + (e.deltaY > 0 ? -5 : 5)));
-            updateUI();
-        });
-
-        canvas.addEventListener('mousedown', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const x = (e.clientX - rect.left) * (canvas.width / rect.width / devicePixelRatio);
-            const y = (e.clientY - rect.top) * (canvas.height / rect.height / devicePixelRatio);
-            const w = 800, h = 400, pad = 50, gridH = 310;
-            let fi = Math.round((x - pad) / (700 / 10));
-            let db = Math.round((y - pad - 30) / (gridH / 13)) * 10 - 10;
-            if (fi >= 0 && fi <= 10 && db >= -10 && db <= 120) {
-                state.freqIdx = fi; state.db1 = db; store(); updateUI();
-            }
-        });
-
-        window.addEventListener('resize', init);
-        init(); updateUI();
-    </script>
+function fit() {
+  ['ac40', 'gsi'].forEach(k => {
+    const wrap = document.getElementById('wrap-' + k), st = document.getElementById(k); if (wrap.hidden) return;
+    const W = st.offsetWidth, H = st.offsetHeight, sc = Math.min(1, wrap.clientWidth / W);
+    st.style.transform = `scale(${sc})`; wrap.style.height = Math.ceil(H * sc) + 'px'; wrap.style.maxWidth = W + 'px';
+  });
+}
+function show(k) {
+  AE.stopAll(); Trial.reset();
+  ['ac40', 'gsi'].forEach(x => { document.getElementById('wrap-' + x).hidden = x !== k; document.getElementById('help-' + x).hidden = x !== k; });
+  document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', String(t.dataset.dev === k)));
+  cur = k; lsSet('pta-sim-device', k); fit(); DEV[k].sync();
+}
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => show(t.dataset.dev)));
+document.getElementById('patientSel').addEventListener('change', e => { Patient.load(e.target.value); Trial.reset(); AC.render(); G.render(); });
+document.getElementById('showAns').addEventListener('change', e => { Patient.showAnswer = e.target.checked; AC.render(); G.render(); });
+document.getElementById('vol').addEventListener('input', e => AE.setVol(+e.target.value));
+window.addEventListener('resize', fit);
+let spaceDown = false;
+document.addEventListener('keydown', e => {
+  if (/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName) && e.key !== 'Escape') return;
+  const d = DEV[cur];
+  if (e.code === 'Space') { e.preventDefault(); if (!spaceDown) { spaceDown = true; AE.ensure(); d.hold(0, true); } }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); d.adjLevel(0, 1); }
+  else if (e.key === 'ArrowDown') { e.preventDefault(); d.adjLevel(0, -1); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); d.adjFreq(-1); }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); d.adjFreq(1); }
+  else if (e.key === 'Enter') { e.preventDefault(); d === AC ? AC.store(false) : G.store(0); }
+  else if ((e.key === 'n' || e.key === 'N') && d === AC) AC.store(true);
+});
+document.addEventListener('keyup', e => { if (e.code === 'Space' && spaceDown) { spaceDown = false; DEV[cur].hold(0, false); } });
+window.addEventListener('blur', () => { if (spaceDown) { spaceDown = false; DEV[cur].hold(0, false); } });
+show(cur);
+})();
+</script>
 </body>
-
 </html>

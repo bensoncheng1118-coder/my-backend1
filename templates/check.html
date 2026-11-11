@@ -930,9 +930,10 @@ const G = {
     // d-pad
     const cx = 1028, cy = 788, arc = (a0, a1, r0, r1) => { const p = (a, r) => [cx + r * Math.cos(a), cy + r * Math.sin(a)]; const [x0, y0] = p(a0, r1), [x1, y1] = p(a1, r1), [x2, y2] = p(a1, r0), [x3, y3] = p(a0, r0);
       return `M${x0} ${y0} A${r1} ${r1} 0 0 1 ${x1} ${y1} L${x2} ${y2} A${r0} ${r0} 0 0 0 ${x3} ${y3}Z`; };
+    const DPAD_TIPS = { up: '▲ CH1 音量 +', down: '▼ CH1 音量 −', left: '◀ 頻率 −', right: '▶ 頻率 +' };
     const g = 0.12, segs = [['up', -Math.PI / 2], ['right', 0], ['down', Math.PI / 2], ['left', Math.PI]];
     h += `<svg class="dpad" width="1462" height="1045" viewBox="300 40 1462 1045" style="pointer-events:none"><g style="pointer-events:auto">` +
-      segs.map(([a, m]) => `<path data-a="${a}" d="${arc(m - Math.PI / 4 + g, m + Math.PI / 4 - g, 56, 104)}" fill="#17181b" stroke="#55585e" stroke-width="2"><title>${{ up: '▲ CH1 音量 +', down: '▼ CH1 音量 −', left: '◀ 頻率 −', right: '▶ 頻率 +' }[a]}</title></path>`).join('') +
+      segs.map(([a, m]) => `<path data-a="${a}" d="${arc(m - Math.PI / 4 + g, m + Math.PI / 4 - g, 56, 104)}" fill="#17181b" stroke="#55585e" stroke-width="2"><title>${DPAD_TIPS[a]}</title></path>`).join('') +
       `<circle class="c" data-a="center" cx="${cx}" cy="${cy}" r="44" fill="#1b1c20" stroke="#55585e" stroke-width="2"><title>Store CH1</title></circle></g>
       <g fill="#2a2f3a"><path d="M1028 668 l-7 12 h14z"/><path d="M1028 905 l-7 -12 h14z"/><path d="M908 788 l12 -7 v14z"/><path d="M1148 788 l-12 -7 v14z"/>
       <path d="M862 952 l20 -12 v24z"/><path d="M1192 952 l-20 -12 v24z"/></g></svg>`;

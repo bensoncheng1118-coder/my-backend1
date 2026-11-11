@@ -1,0 +1,1 @@
+var e=`/static/phonetics/assets/chimera-C-_11GVu.wasm`;export{e as default};

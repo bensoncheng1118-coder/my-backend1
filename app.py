@@ -1117,6 +1117,12 @@ def add_code():
 def assessment():
     return render_template('assessment.html')
 
+# 發音互動教室：會發聲的聲道剖面、母音四邊形、IPA 子音表
+# 頁面由 phonetics_src/ 編譯而來（npm/bun run build:lab），輸出在 static/phonetics/
+@app.route('/phonetics')
+def phonetics():
+    return send_from_directory(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'phonetics'), 'voice-lab.html')
+
 
 print(app.url_map)
 if __name__ == '__main__':

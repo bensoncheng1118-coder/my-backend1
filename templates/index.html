@@ -696,6 +696,128 @@
       flex-wrap: wrap;
     }
   </style>
+  <!-- 搜尋引擎：科目 → 年級雲端資料夾即時建議 -->
+  <style>
+    .ss-wrap { position: relative; }
+    #searchForm {
+      height: 40px !important;
+      padding: 0 4px 0 14px;
+      gap: 2px;
+      border-radius: 999px;
+      background: rgba(20, 20, 22, 0.55);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      transition: background .2s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+    #searchForm:focus-within {
+      background: rgba(20, 20, 22, 0.78);
+      border-color: rgba(255, 255, 255, 0.45);
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+    }
+    #searchForm .ss-icon { flex: none; color: rgba(255, 255, 255, 0.75); margin-right: 6px; }
+    #searchForm #searchInput {
+      color: #fff !important;
+      width: 210px;
+      height: 32px;
+      padding: 0 4px;
+      font-size: 0.95rem;
+      transition: width .25s ease;
+    }
+    #searchForm #searchInput:focus { width: 260px; }
+    #searchForm #searchInput::placeholder { color: rgba(255, 255, 255, 0.6); }
+    #searchForm button {
+      height: 32px;
+      align-items: center;
+      padding: 0 12px;
+      border-left: 0 !important;
+      border-radius: 999px;
+      text-shadow: none;
+      white-space: nowrap;
+    }
+    #searchForm button[type="submit"] {
+      background: rgba(255, 255, 255, 0.92) !important;
+      color: #111 !important;
+      font-size: 0.9rem;
+    }
+    #searchForm button[type="submit"]:hover { background: #fff !important; }
+
+    .ss-panel {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: 380px;
+      max-width: calc(100vw - 32px);
+      max-height: 70vh;
+      overflow-y: auto;
+      background: #fff;
+      color: #1d1d1f;
+      border-radius: 16px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.22);
+      padding: 8px;
+      z-index: 1300;
+      font-family: "Segoe UI", "Microsoft JhengHei", "PingFang TC", sans-serif;
+      text-align: left;
+    }
+    .ss-panel[hidden] { display: none; }
+    .ss-head {
+      font-size: 12px;
+      letter-spacing: .06em;
+      color: #8a8a90;
+      font-weight: 600;
+      padding: 8px 10px 4px;
+    }
+    .ss-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border-radius: 12px;
+      cursor: default;
+    }
+    .ss-row.active, .ss-row:hover { background: #f2f4f7; }
+    .ss-info { flex: 1; min-width: 0; }
+    .ss-name { font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ss-tag {
+      display: inline-block;
+      margin-top: 2px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 1px 8px;
+      border-radius: 999px;
+      background: #e8f0fe;
+      color: #1a73e8;
+    }
+    .ss-btn {
+      flex: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 7px 12px;
+      border-radius: 10px;
+      white-space: nowrap;
+      transition: filter .15s ease;
+    }
+    .ss-btn:hover { filter: brightness(.95); }
+    .ss-drive { background: #e6f4ea; color: #0b7a43; }
+    .ss-nb { background: #f1ebfd; color: #6a3fd0; }
+    .ss-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 10px 8px; }
+    .ss-all {
+      display: block;
+      text-decoration: none;
+      color: #1a73e8;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 10px;
+      border-top: 1px solid #eee;
+      margin-top: 4px;
+    }
+    .ss-all:hover { background: #f2f4f7; border-radius: 0 0 10px 10px; }
+    .ss-empty { padding: 12px 10px; color: #8a8a90; font-size: 14px; }
+  </style>
 </head>
 
 <body>
@@ -734,9 +856,12 @@
       <div class="nav-item"><a href="/teach">網站使用說明</a></div>
       <div class="logo-search">
 
-        <form action="/search" method="get" id="searchForm">
-          <input type="text" name="q" placeholder="輸入關鍵字搜尋..." required id="searchInput" x-webkit-speech lang="zh-TW"
-            autocomplete="off" />
+        <div class="ss-wrap">
+        <form action="/search" method="get" id="searchForm" role="search">
+          <svg class="ss-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+            stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input type="text" name="q" placeholder="搜尋科目，例如：解剖學、生統" required id="searchInput" x-webkit-speech lang="zh-TW"
+            autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="ssPanel" aria-expanded="false" />
           <!-- 新增語音輸入按鈕 -->
           <button type="button" id="voiceBtn" title="語音輸入" aria-label="語音輸入"
             style="border:none; background:transparent; color:white; font-size:20px; cursor:pointer; padding:0 6px;">
@@ -744,6 +869,9 @@
           </button>
           <button type="submit">搜尋</button>
         </form>
+        <div id="ssPanel" class="ss-panel" role="listbox" hidden></div>
+        </div>
+        <script src="/static/search_suggest.js" defer></script>
 
         <div id="sidebar" class="sidebar">
 
